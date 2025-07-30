@@ -19,4 +19,4 @@ function validateApiKey() {
 // Validate API key on module load
 validateApiKey();
 
-export const GOOGLE_MODEL = google("gemini-1.5-flash");
+export const GOOGLE_MODEL = google("gemini-2.5-flash");

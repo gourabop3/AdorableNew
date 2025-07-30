@@ -18,7 +18,7 @@ export async function GET() {
     
     // Test all available Gemini models
     const models = [
-      "gemini-1.5-flash",
+      "gemini-2.5-flash",
       "gemini-1.5-pro",
       "gemini-2.5-flash", 
       "gemini-2.5-pro",
