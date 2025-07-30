@@ -30,7 +30,7 @@ export const memory = new Memory({
 
 export const builderAgent = new Agent({
   name: "BuilderAgent",
-  model: google("gemini-1.5-flash"),
+  model: google("gemini-2.5-flash"),
   instructions: SYSTEM_MESSAGE,
   memory,
   tools: {
