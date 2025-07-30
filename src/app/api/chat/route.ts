@@ -127,7 +127,7 @@ export async function sendMessage(
     resourceId: appId,
     maxSteps: 100,
     maxRetries: 0,
-    maxOutputTokens: 64000,
+    maxOutputTokens: 8000,
     toolsets,
     async onChunk() {
       if (Date.now() - lastKeepAlive > 5000) {
