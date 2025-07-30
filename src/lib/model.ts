@@ -1,3 +1,3 @@
-import { anthropic } from "@ai-sdk/anthropic";
+import { google } from "@ai-sdk/google";
 
-export const ANTHROPIC_MODEL = anthropic("claude-4-sonnet-20250514");
+export const GOOGLE_MODEL = google("gemini-2.0-flash-exp");
