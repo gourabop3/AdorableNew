@@ -160,6 +160,8 @@ export async function sendMessage(
         
         // Extract retry delay from error if available
         let retryDelay = 60; // default 60 seconds
+        let quotaViolations = [];
+        
         try {
           if (error.responseBody) {
             const errorData = JSON.parse(error.responseBody);
@@ -170,14 +172,26 @@ export async function sendMessage(
               if (retryInfo?.retryDelay) {
                 retryDelay = parseInt(retryInfo.retryDelay.replace('s', ''));
               }
+              
+              const quotaFailure = errorData.error.details.find((detail: any) => 
+                detail['@type'] === 'type.googleapis.com/google.rpc.QuotaFailure'
+              );
+              if (quotaFailure?.violations) {
+                quotaViolations = quotaFailure.violations;
+              }
             }
           }
         } catch (e) {
-          console.warn("Could not parse retry delay from error");
+          console.warn("Could not parse error details");
         }
         
         console.log(`⏰ Suggested retry delay: ${retryDelay} seconds`);
-        console.log("💡 Consider upgrading to a paid Google AI API plan for higher quotas");
+        console.log("🚫 Quota violations:", quotaViolations.map((v: any) => v.quotaId).join(', '));
+        console.log("💡 To fix this:");
+        console.log("   1. Wait for quota reset (usually 1 minute for per-minute limits, 24 hours for daily limits)");
+        console.log("   2. Upgrade to a paid Google AI API plan for higher quotas");
+        console.log("   3. Implement request rate limiting in your application");
+        console.log("   4. Consider using a different model or reducing request frequency");
       } else {
         console.error("❌ Other error:", error);
       }

@@ -43,8 +43,21 @@ export async function GET() {
     
     let errorMessage = error.message || "Unknown error";
     let statusCode = 500;
+    let quotaDetails = null;
     
-    if (errorMessage.includes("quota") || errorMessage.includes("billing")) {
+    // Extract detailed quota information
+    if (error.responseBody) {
+      try {
+        const errorData = JSON.parse(error.responseBody);
+        if (errorData.error?.details) {
+          quotaDetails = errorData.error.details;
+        }
+      } catch (e) {
+        console.warn("Could not parse error response body");
+      }
+    }
+    
+    if (errorMessage.includes("quota") || errorMessage.includes("billing") || error.statusCode === 429) {
       statusCode = 429;
       errorMessage = "API quota exceeded. Please check your Google AI API billing limits.";
     } else if (errorMessage.includes("API key") || errorMessage.includes("authentication")) {
@@ -56,7 +69,10 @@ export async function GET() {
       { 
         success: false, 
         error: errorMessage,
-        details: error.stack 
+        details: error.stack,
+        quotaDetails,
+        statusCode: error.statusCode,
+        responseBody: error.responseBody
       },
       { status: statusCode }
     );
