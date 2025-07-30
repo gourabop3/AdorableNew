@@ -153,7 +153,34 @@ export async function sendMessage(
     onError: async (error) => {
       await mcp.disconnect();
       await redisPublisher.del(`app:${appId}:stream-state`);
-      console.error("Error:", error);
+      
+      // Enhanced error handling for quota issues
+      if (error?.message?.includes('quota') || error?.message?.includes('429') || error?.statusCode === 429) {
+        console.error("❌ Gemini API quota exceeded:", error.message);
+        
+        // Extract retry delay from error if available
+        let retryDelay = 60; // default 60 seconds
+        try {
+          if (error.responseBody) {
+            const errorData = JSON.parse(error.responseBody);
+            if (errorData.error?.details) {
+              const retryInfo = errorData.error.details.find((detail: any) => 
+                detail['@type'] === 'type.googleapis.com/google.rpc.RetryInfo'
+              );
+              if (retryInfo?.retryDelay) {
+                retryDelay = parseInt(retryInfo.retryDelay.replace('s', ''));
+              }
+            }
+          }
+        } catch (e) {
+          console.warn("Could not parse retry delay from error");
+        }
+        
+        console.log(`⏰ Suggested retry delay: ${retryDelay} seconds`);
+        console.log("💡 Consider upgrading to a paid Google AI API plan for higher quotas");
+      } else {
+        console.error("❌ Other error:", error);
+      }
     },
     onFinish: async () => {
       await redisPublisher.del(`app:${appId}:stream-state`);
