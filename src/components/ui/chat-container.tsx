@@ -3,6 +3,21 @@
 import { cn } from "@/lib/utils";
 import { Children, useCallback, useEffect, useRef, useState } from "react";
 
+// Debounce utility for better performance
+function useDebounce<T extends (...args: any[]) => void>(
+  callback: T,
+  delay: number
+): T {
+  const timeoutRef = useRef<NodeJS.Timeout>();
+  
+  return useCallback((...args: Parameters<T>) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => callback(...args), delay);
+  }, [callback, delay]) as T;
+}
+
 const useAutoScroll = (
   containerRef: React.RefObject<HTMLDivElement | null>,
   enabled: boolean,
@@ -192,35 +207,34 @@ function ChatContainer({
     prevChildrenRef.current = children;
   }, [children, setNewMessageAdded]);
 
+  // Debounced scroll handler to reduce performance impact
+  const debouncedScrollHandler = useDebounce(() => {
+    if (newMessageAdded) {
+      scrollToBottom("instant");
+      setNewMessageAdded(false);
+      contentChangedWithoutNewMessageRef.current = false;
+    } else if (
+      contentChangedWithoutNewMessageRef.current &&
+      autoScrollEnabled &&
+      !isScrolling &&
+      !scrollTriggered
+    ) {
+      scrollToBottom("instant");
+      contentChangedWithoutNewMessageRef.current = false;
+    }
+  }, 16); // ~60fps
+
   useEffect(() => {
     if (!autoScroll) return;
-
-    const scrollHandler = () => {
-      if (newMessageAdded) {
-        scrollToBottom("instant");
-        setNewMessageAdded(false);
-        contentChangedWithoutNewMessageRef.current = false;
-      } else if (
-        contentChangedWithoutNewMessageRef.current &&
-        autoScrollEnabled &&
-        !isScrolling &&
-        !scrollTriggered
-      ) {
-        scrollToBottom("instant");
-        contentChangedWithoutNewMessageRef.current = false;
-      }
-    };
-
-    requestAnimationFrame(scrollHandler);
+    debouncedScrollHandler();
   }, [
     children,
     autoScroll,
     autoScrollEnabled,
     isScrolling,
     scrollTriggered,
-    scrollToBottom,
     newMessageAdded,
-    setNewMessageAdded,
+    debouncedScrollHandler,
   ]);
 
   return (

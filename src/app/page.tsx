@@ -10,10 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ExampleButton } from "@/components/ExampleButton";
 import { UserButton } from "@stackframe/stack";
 import { UserApps } from "@/components/user-apps";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PromptInputTextareaWithTypingAnimation } from "@/components/prompt-input";
-
-const queryClient = new QueryClient();
 
 export default function Home() {
   const [prompt, setPrompt] = useState("");
@@ -32,8 +29,7 @@ export default function Home() {
   };
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <main className="min-h-screen p-4 relative">
+    <main className="min-h-screen p-4 relative">
         <div className="flex w-full justify-between items-center">
           <h1 className="text-lg font-bold flex-1 sm:w-80">
             <a href="https://www.freestyle.sh">freestyle.sh</a>
@@ -111,8 +107,7 @@ export default function Home() {
           <UserApps />
         </div>
       </main>
-    </QueryClientProvider>
-  );
+    );
 }
 
 function Examples({ setPrompt }: { setPrompt: (text: string) => void }) {
