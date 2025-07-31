@@ -8,11 +8,11 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       // Reduce stale time to prevent excessive caching
-      staleTime: 30000, // 30 seconds
-      // Reduce retry attempts
-      retry: 1,
-      // Prevent refetch on window focus by default
-      refetchOnWindowFocus: false,
+      staleTime: 5000, // Reduced from 30s to 5s
+      // Keep retry attempts reasonable
+      retry: 2,
+      // Allow refetch on window focus for better UX
+      refetchOnWindowFocus: true,
     },
   },
 });

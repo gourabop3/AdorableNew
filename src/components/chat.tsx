@@ -28,9 +28,10 @@ export default function Chat(props: {
     queryFn: async () => {
       return chatState(props.appId);
     },
-    refetchInterval: 5000, // Reduced from 1000ms to 5000ms
-    refetchOnWindowFocus: false, // Disabled to prevent excessive polling
-    staleTime: 2000, // Consider data fresh for 2 seconds
+    refetchInterval: 3000, // Reduced interval but not too aggressive
+    refetchOnWindowFocus: true, // Re-enabled for better UX
+    staleTime: 1000, // Reduced stale time
+    retry: 3, // Allow more retries
   });
 
   const { messages, sendMessage } = useChatSafe({
@@ -38,6 +39,12 @@ export default function Chat(props: {
     id: props.appId,
     resume: props.running && chat?.state === "running",
   });
+
+  // Debug logging
+  console.log("Chat component - messages count:", messages.length);
+  console.log("Chat component - initial messages count:", props.initialMessages.length);
+  console.log("Chat component - running:", props.running);
+  console.log("Chat component - chat state:", chat?.state);
 
   // Rate limiting: max 10 requests per minute, minimum 2 seconds between requests
   const rateLimit = useRateLimit({
@@ -53,13 +60,14 @@ export default function Chat(props: {
       e.preventDefault();
     }
     
-    // Check rate limit before sending
-    if (!rateLimit.makeRequest()) {
-      const remainingTime = Math.ceil(rateLimit.getRemainingTime() / 1000);
-      toast.error(`Please wait ${remainingTime} seconds before sending another message`);
-      return;
-    }
+    // Temporarily disabled rate limiting for debugging
+    // if (!rateLimit.makeRequest()) {
+    //   const remainingTime = Math.ceil(rateLimit.getRemainingTime() / 1000);
+    //   toast.error(`Please wait ${remainingTime} seconds before sending another message`);
+    //   return;
+    // }
     
+    console.log("Sending message:", input);
     sendMessage(
       {
         parts: [
@@ -136,19 +144,9 @@ export default function Chat(props: {
         style={{ overflowAnchor: "auto" }}
       >
         <ChatContainer autoScroll>
-          {messages
-            .filter((message: any) => {
-              // Filter out duplicate messages
-              if (isDuplicateMessage(message)) {
-                console.warn("Filtered duplicate message:", message.id);
-                return false;
-              }
-              addMessageToDeduplicator(message);
-              return true;
-            })
-            .map((message: any) => (
-              <MessageBody key={message.id} message={message} />
-            ))}
+          {messages.map((message: any) => (
+            <MessageBody key={message.id} message={message} />
+          ))}
         </ChatContainer>
       </div>
       <div className="flex-shrink-0 p-3 transition-all bg-background md:backdrop-blur-sm">

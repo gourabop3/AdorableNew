@@ -31,30 +31,16 @@ export function useChatSafe(
 
   useEffect(() => {
     if (!runningChats.has(id) && resume) {
+      console.log("Resuming stream for:", id);
       chat.resumeStream();
       runningChats.add(id);
-      
-      // Set up automatic cleanup after 30 seconds to prevent stuck states
-      const cleanupTimeout = setTimeout(() => {
-        if (runningChats.has(id)) {
-          console.warn(`Auto-cleaning stuck stream for ${id}`);
-          runningChats.delete(id);
-          streamCleanupTimeouts.delete(id);
-        }
-      }, 30000);
-      
-      streamCleanupTimeouts.set(id, cleanupTimeout);
     }
 
     return () => {
       if (runningChats.has(id)) {
+        console.log("Cleaning up stream for:", id);
         chat.stop().then(() => {
           runningChats.delete(id);
-          const timeout = streamCleanupTimeouts.get(id);
-          if (timeout) {
-            clearTimeout(timeout);
-            streamCleanupTimeouts.delete(id);
-          }
         });
       }
     };
