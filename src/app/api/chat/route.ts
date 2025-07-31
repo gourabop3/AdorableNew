@@ -125,15 +125,15 @@ export async function sendMessage(
   const stream = await builderAgent.stream([], {
     threadId: appId,
     resourceId: appId,
-    maxSteps: 100,
+    maxSteps: 50, // Reduced from 100 to 50 for faster responses
     maxRetries: 0,
-    maxOutputTokens: 8000,
+    maxOutputTokens: 4000, // Reduced from 8000 to 4000 for better performance
     toolsets,
     async onChunk() {
-      if (Date.now() - lastKeepAlive > 5000) {
+      if (Date.now() - lastKeepAlive > 10000) { // Reduced frequency from 5s to 10s
         lastKeepAlive = Date.now();
         redisPublisher.set(`app:${appId}:stream-state`, "running", {
-          EX: 15,
+          EX: 60, // Increased TTL from 15s to 60s
         });
       }
     },

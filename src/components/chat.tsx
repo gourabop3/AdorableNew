@@ -12,6 +12,9 @@ import { useQuery } from "@tanstack/react-query";
 import { chatState } from "@/actions/chat-streaming";
 import { CompressedImage } from "@/lib/image-compression";
 import { useChatSafe } from "./use-chat";
+import { useRateLimit } from "@/hooks/use-rate-limit";
+import { toast } from "sonner";
+import { isDuplicateMessage, addMessageToDeduplicator } from "@/lib/message-deduplication";
 
 export default function Chat(props: {
   appId: string;
@@ -25,8 +28,9 @@ export default function Chat(props: {
     queryFn: async () => {
       return chatState(props.appId);
     },
-    refetchInterval: 1000,
-    refetchOnWindowFocus: true,
+    refetchInterval: 5000, // Reduced from 1000ms to 5000ms
+    refetchOnWindowFocus: false, // Disabled to prevent excessive polling
+    staleTime: 2000, // Consider data fresh for 2 seconds
   });
 
   const { messages, sendMessage } = useChatSafe({
@@ -35,12 +39,27 @@ export default function Chat(props: {
     resume: props.running && chat?.state === "running",
   });
 
+  // Rate limiting: max 10 requests per minute, minimum 2 seconds between requests
+  const rateLimit = useRateLimit({
+    maxRequests: 10,
+    windowMs: 60000, // 1 minute
+    minInterval: 2000, // 2 seconds
+  });
+
   const [input, setInput] = useState("");
 
   const onSubmit = (e?: React.FormEvent<HTMLFormElement>) => {
     if (e?.preventDefault) {
       e.preventDefault();
     }
+    
+    // Check rate limit before sending
+    if (!rateLimit.makeRequest()) {
+      const remainingTime = Math.ceil(rateLimit.getRemainingTime() / 1000);
+      toast.error(`Please wait ${remainingTime} seconds before sending another message`);
+      return;
+    }
+    
     sendMessage(
       {
         parts: [
@@ -60,6 +79,13 @@ export default function Chat(props: {
   };
 
   const onSubmitWithImages = (text: string, images: CompressedImage[]) => {
+    // Check rate limit before sending
+    if (!rateLimit.makeRequest()) {
+      const remainingTime = Math.ceil(rateLimit.getRemainingTime() / 1000);
+      toast.error(`Please wait ${remainingTime} seconds before sending another message`);
+      return;
+    }
+    
     const parts: Parameters<typeof sendMessage>[0]["parts"] = [];
 
     if (text.trim()) {
@@ -110,9 +136,19 @@ export default function Chat(props: {
         style={{ overflowAnchor: "auto" }}
       >
         <ChatContainer autoScroll>
-          {messages.map((message: any) => (
-            <MessageBody key={message.id} message={message} />
-          ))}
+          {messages
+            .filter((message: any) => {
+              // Filter out duplicate messages
+              if (isDuplicateMessage(message)) {
+                console.warn("Filtered duplicate message:", message.id);
+                return false;
+              }
+              addMessageToDeduplicator(message);
+              return true;
+            })
+            .map((message: any) => (
+              <MessageBody key={message.id} message={message} />
+            ))}
         </ChatContainer>
       </div>
       <div className="flex-shrink-0 p-3 transition-all bg-background md:backdrop-blur-sm">

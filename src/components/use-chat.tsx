@@ -1,13 +1,10 @@
 import { useChat } from "@ai-sdk/react";
 import { useEffect } from "react";
 
-// For some reason, if the chat is resumed during a router page navigation, it
-// will try to resume the stream multiple times and result in some sort of leak
-// where the chat is spammed with new messages. This only happens in dev mode. I
-// think it's related to react rendering components twice in dev mode so
-// discover bugs. This utility prevents a stream from being resumed multiple
-// times.
+// This utility prevents stream resumption race conditions and duplicate messages
+// by tracking running chats and implementing proper cleanup
 const runningChats = new Set<string>();
+const streamCleanupTimeouts = new Map<string, NodeJS.Timeout>();
 export function useChatSafe(
   options: Parameters<typeof useChat>[0] & { id: string; onFinish?: () => void }
 ) {
@@ -19,6 +16,12 @@ export function useChatSafe(
   const onFinish = options.onFinish;
   options.onFinish = () => {
     runningChats.delete(id);
+    // Clear any pending cleanup timeout
+    const timeout = streamCleanupTimeouts.get(id);
+    if (timeout) {
+      clearTimeout(timeout);
+      streamCleanupTimeouts.delete(id);
+    }
     if (onFinish) {
       onFinish();
     }
@@ -30,16 +33,32 @@ export function useChatSafe(
     if (!runningChats.has(id) && resume) {
       chat.resumeStream();
       runningChats.add(id);
+      
+      // Set up automatic cleanup after 30 seconds to prevent stuck states
+      const cleanupTimeout = setTimeout(() => {
+        if (runningChats.has(id)) {
+          console.warn(`Auto-cleaning stuck stream for ${id}`);
+          runningChats.delete(id);
+          streamCleanupTimeouts.delete(id);
+        }
+      }, 30000);
+      
+      streamCleanupTimeouts.set(id, cleanupTimeout);
     }
 
     return () => {
       if (runningChats.has(id)) {
         chat.stop().then(() => {
           runningChats.delete(id);
+          const timeout = streamCleanupTimeouts.get(id);
+          if (timeout) {
+            clearTimeout(timeout);
+            streamCleanupTimeouts.delete(id);
+          }
         });
       }
     };
-  }, [resume, id]);
+  }, [resume, id, chat]);
 
   return chat;
 }
