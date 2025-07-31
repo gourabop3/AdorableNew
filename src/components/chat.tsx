@@ -4,7 +4,7 @@ import Image from "next/image";
 
 import { PromptInputBasic } from "./chatinput";
 import { Markdown } from "./ui/markdown";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ChatContainer } from "./ui/chat-container";
 import { UIMessage } from "ai";
 import { ToolMessage } from "./tools";
@@ -12,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { chatState } from "@/actions/chat-streaming";
 import { CompressedImage } from "@/lib/image-compression";
 import { useChatSafe } from "./use-chat";
+import { DebugPanel } from "./debug-panel";
 
 export default function Chat(props: {
   appId: string;
@@ -20,13 +21,18 @@ export default function Chat(props: {
   topBar?: React.ReactNode;
   running: boolean;
 }) {
+  // Optimize polling: only poll when actually needed
   const { data: chat } = useQuery({
     queryKey: ["stream", props.appId],
     queryFn: async () => {
       return chatState(props.appId);
     },
-    refetchInterval: 1000,
-    refetchOnWindowFocus: true,
+    refetchInterval: (data) => {
+      // Only poll every 2 seconds when running, 5 seconds when idle
+      return data?.state === "running" ? 2000 : 5000;
+    },
+    refetchOnWindowFocus: false, // Reduce unnecessary refetches
+    staleTime: 1000, // Consider data fresh for 1 second
   });
 
   const { messages, sendMessage } = useChatSafe({
@@ -37,7 +43,7 @@ export default function Chat(props: {
 
   const [input, setInput] = useState("");
 
-  const onSubmit = (e?: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = useCallback((e?: React.FormEvent<HTMLFormElement>) => {
     if (e?.preventDefault) {
       e.preventDefault();
     }
@@ -57,9 +63,9 @@ export default function Chat(props: {
       }
     );
     setInput("");
-  };
+  }, [input, sendMessage, props.appId]);
 
-  const onSubmitWithImages = (text: string, images: CompressedImage[]) => {
+  const onSubmitWithImages = useCallback((text: string, images: CompressedImage[]) => {
     const parts: Parameters<typeof sendMessage>[0]["parts"] = [];
 
     if (text.trim()) {
@@ -88,16 +94,20 @@ export default function Chat(props: {
       }
     );
     setInput("");
-  };
+  }, [sendMessage, props.appId]);
 
-  async function handleStop() {
-    await fetch("/api/chat/" + props.appId + "/stream", {
-      method: "DELETE",
-      headers: {
-        "Adorable-App-Id": props.appId,
-      },
-    });
-  }
+  const handleStop = useCallback(async () => {
+    try {
+      await fetch("/api/chat/" + props.appId + "/stream", {
+        method: "DELETE",
+        headers: {
+          "Adorable-App-Id": props.appId,
+        },
+      });
+    } catch (error) {
+      console.error("Failed to stop stream:", error);
+    }
+  }, [props.appId]);
 
   return (
     <div
@@ -127,6 +137,12 @@ export default function Chat(props: {
           isGenerating={props.isLoading || chat?.state === "running"}
         />
       </div>
+      
+      {/* Debug panel - only visible in development */}
+      <DebugPanel 
+        appId={props.appId} 
+        isVisible={process.env.NODE_ENV === 'development'} 
+      />
     </div>
   );
 }

@@ -35,22 +35,28 @@ export async function POST(req: NextRequest) {
     console.log("Stopping previous stream for appId:", appId);
     stopStream(appId);
 
-    // Wait until stream state is cleared
-    const maxAttempts = 60;
+    // Use non-blocking approach with exponential backoff
+    const maxAttempts = 30; // Reduced from 60
     let attempts = 0;
-    while (attempts < maxAttempts) {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+    const checkStreamState = async (): Promise<boolean> => {
       const updatedState = await redisPublisher.get(
         "app:" + appId + ":stream-state"
       );
       if (updatedState !== "running") {
-        break;
+        return true; // Stream stopped
       }
       attempts++;
-    }
+      if (attempts >= maxAttempts) {
+        return false; // Timeout
+      }
+      // Exponential backoff: 100ms, 200ms, 400ms, etc.
+      const delay = Math.min(100 * Math.pow(2, attempts - 1), 2000);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      return checkStreamState();
+    };
 
-    // If stream is still running after max attempts, return an error
-    if (attempts >= maxAttempts) {
+    const streamStopped = await checkStreamState();
+    if (!streamStopped) {
       await redisPublisher.del(`app:${appId}:stream-state`);
       return new Response(
         "Previous stream is still shutting down, please try again",

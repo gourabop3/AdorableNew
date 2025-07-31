@@ -13,6 +13,7 @@ const useAutoScroll = (
   const [newMessageAdded, setNewMessageAdded] = useState(false);
   const prevChildrenCountRef = useRef(0);
   const scrollTriggeredRef = useRef(false);
+  const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const isAtBottom = useCallback((element: HTMLDivElement) => {
     const { scrollTop, scrollHeight, clientHeight } = element;
@@ -46,16 +47,25 @@ const useAutoScroll = (
 
       requestAnimationFrame(checkScrollEnd);
 
-      const safetyTimeout = setTimeout(() => {
+      // Clear any existing timeout
+      if (safetyTimeoutRef.current) {
+        clearTimeout(safetyTimeoutRef.current);
+      }
+
+      safetyTimeoutRef.current = setTimeout(() => {
         autoScrollingRef.current = false;
         scrollTriggeredRef.current = false;
+        safetyTimeoutRef.current = null;
       }, 500);
 
       try {
         const handleScrollEnd = () => {
           autoScrollingRef.current = false;
           scrollTriggeredRef.current = false;
-          clearTimeout(safetyTimeout);
+          if (safetyTimeoutRef.current) {
+            clearTimeout(safetyTimeoutRef.current);
+            safetyTimeoutRef.current = null;
+          }
           container.removeEventListener("scrollend", handleScrollEnd);
         };
 
@@ -131,6 +141,12 @@ const useAutoScroll = (
       container.removeEventListener("touchstart", handleTouchStart);
       container.removeEventListener("touchmove", handleTouchMove);
       container.removeEventListener("touchend", handleTouchEnd);
+      
+      // Clean up timeout on unmount
+      if (safetyTimeoutRef.current) {
+        clearTimeout(safetyTimeoutRef.current);
+        safetyTimeoutRef.current = null;
+      }
     };
   }, [containerRef, enabled, autoScrollEnabled, isAtBottom]);
 
