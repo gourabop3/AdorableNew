@@ -2,7 +2,7 @@ import { getApp } from "@/actions/get-app";
 import { freestyle } from "@/lib/freestyle";
 import { getAppIdFromHeaders } from "@/lib/utils";
 import { MCPClient } from "@mastra/mcp";
-import { builderAgent } from "@/mastra/agents/builder";
+import { builderAgent, memory } from "@/mastra/agents/builder";
 import { UIMessage } from "ai";
 
 // "fix" mastra mcp bug
@@ -90,24 +90,27 @@ export async function sendMessage(
 
   const toolsets = await mcp.getToolsets();
 
-  await (
-    await builderAgent.getMemory()
-  )?.saveMessages({
-    messages: [
-      {
-        content: {
-          parts: message.parts,
-          format: 3,
+  try {
+    await memory.saveMessages({
+      messages: [
+        {
+          content: {
+            parts: message.parts,
+            format: 3,
+          },
+          role: "user",
+          createdAt: new Date(),
+          id: message.id,
+          threadId: appId,
+          type: "text",
+          resourceId: appId,
         },
-        role: "user",
-        createdAt: new Date(),
-        id: message.id,
-        threadId: appId,
-        type: "text",
-        resourceId: appId,
-      },
-    ],
-  });
+      ],
+    });
+  } catch (error) {
+    console.error("Error saving user message to memory:", error);
+    // Continue without failing the request
+  }
 
   const controller = new AbortController();
   let shouldAbort = false;
@@ -145,9 +148,13 @@ export async function sendMessage(
         controller.abort("Aborted stream after step finish");
         const messages = messageList.drainUnsavedMessages();
         console.log(messages);
-        await builderAgent.getMemory()?.saveMessages({
-          messages,
-        });
+        try {
+          await memory.saveMessages({
+            messages,
+          });
+        } catch (error) {
+          console.error("Error saving aborted messages to memory:", error);
+        }
       }
     },
     onError: async (error) => {

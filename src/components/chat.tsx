@@ -40,11 +40,10 @@ export default function Chat(props: {
     resume: props.running && chat?.state === "running",
   });
 
-  // Debug logging
-  console.log("Chat component - messages count:", messages.length);
-  console.log("Chat component - initial messages count:", props.initialMessages.length);
-  console.log("Chat component - running:", props.running);
-  console.log("Chat component - chat state:", chat?.state);
+  // Debug: Log message count for troubleshooting
+  if (messages.length === 0 && props.initialMessages.length > 0) {
+    console.warn("No messages displayed despite having initial messages");
+  }
 
   // Rate limiting: max 10 requests per minute, minimum 2 seconds between requests
   const rateLimit = useRateLimit({
@@ -144,9 +143,15 @@ export default function Chat(props: {
         style={{ overflowAnchor: "auto" }}
       >
         <ChatContainer autoScroll>
-          {messages.map((message: any) => (
-            <MessageBody key={message.id} message={message} />
-          ))}
+          {messages.length === 0 ? (
+            <div className="text-center text-gray-500 p-4">
+              No messages yet. Start a conversation!
+            </div>
+          ) : (
+            messages.map((message: any) => (
+              <MessageBody key={message.id} message={message} />
+            ))
+          )}
         </ChatContainer>
       </div>
       <div className="flex-shrink-0 p-3 transition-all bg-background md:backdrop-blur-sm">
