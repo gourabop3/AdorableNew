@@ -1,12 +1,23 @@
 import Stripe from 'stripe';
 
+// Check if required environment variables are set
 if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is not set');
+  console.warn('STRIPE_SECRET_KEY is not set. Stripe operations will fail.');
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2024-12-18.acacia',
-});
+// Create Stripe instance with error handling
+let stripe: Stripe | null = null;
+
+try {
+  if (process.env.STRIPE_SECRET_KEY) {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2024-12-18.acacia',
+    });
+  }
+} catch (error) {
+  console.error('Failed to create Stripe instance:', error);
+  stripe = null;
+}
 
 export const STRIPE_PLANS = {
   pro: {
@@ -18,3 +29,5 @@ export const STRIPE_PLANS = {
 } as const;
 
 export type StripePlan = keyof typeof STRIPE_PLANS;
+
+export { stripe };

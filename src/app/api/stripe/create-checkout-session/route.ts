@@ -12,6 +12,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Check if Stripe is available
+    if (!stripe) {
+      return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 });
+    }
+
     const { plan } = await request.json();
     
     if (!plan || !STRIPE_PLANS[plan as keyof typeof STRIPE_PLANS]) {
@@ -21,13 +26,13 @@ export async function POST(request: NextRequest) {
     const selectedPlan = STRIPE_PLANS[plan as keyof typeof STRIPE_PLANS];
 
     // Get or create user in our database
-    let dbUser = await db.query.users.findFirst({
+    let dbUser = await db?.query.users.findFirst({
       where: eq(users.id, user.userId),
     });
 
     if (!dbUser) {
       // Create new user with 50 free credits
-      dbUser = await db.insert(users).values({
+      dbUser = await db?.insert(users).values({
         id: user.userId,
         email: user.email || '',
         name: user.name || '',
@@ -38,23 +43,25 @@ export async function POST(request: NextRequest) {
     }
 
     // Create or get Stripe customer
-    let customerId = dbUser.stripeCustomerId;
+    let customerId = dbUser?.stripeCustomerId;
     
     if (!customerId) {
       const customer = await stripe.customers.create({
-        email: dbUser.email,
-        name: dbUser.name,
+        email: dbUser?.email || user.email || '',
+        name: dbUser?.name || user.name || '',
         metadata: {
-          userId: dbUser.id,
+          userId: dbUser?.id || user.userId,
         },
       });
       
       customerId = customer.id;
       
       // Update user with Stripe customer ID
-      await db.update(users)
-        .set({ stripeCustomerId: customerId })
-        .where(eq(users.id, dbUser.id));
+      if (db && dbUser) {
+        await db.update(users)
+          .set({ stripeCustomerId: customerId })
+          .where(eq(users.id, dbUser.id));
+      }
     }
 
     // Create checkout session
@@ -71,7 +78,7 @@ export async function POST(request: NextRequest) {
       success_url: `${request.nextUrl.origin}/billing?success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${request.nextUrl.origin}/billing?canceled=true`,
       metadata: {
-        userId: dbUser.id,
+        userId: dbUser?.id || user.userId,
         plan,
       },
     });

@@ -12,6 +12,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Check if Stripe is available
+    if (!stripe) {
+      return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 });
+    }
+
     const { subscriptionId } = await request.json();
     
     if (!subscriptionId) {
@@ -19,7 +24,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify the subscription belongs to the user
-    const dbSubscription = await db.query.subscriptions.findFirst({
+    const dbSubscription = await db?.query.subscriptions.findFirst({
       where: eq(subscriptions.id, subscriptionId),
     });
 
@@ -33,12 +38,14 @@ export async function POST(request: NextRequest) {
     });
 
     // Update our database
-    await db.update(subscriptions)
-      .set({
-        cancelAtPeriodEnd: true,
-        updatedAt: new Date(),
-      })
-      .where(eq(subscriptions.id, subscriptionId));
+    if (db) {
+      await db.update(subscriptions)
+        .set({
+          cancelAtPeriodEnd: true,
+          updatedAt: new Date(),
+        })
+        .where(eq(subscriptions.id, subscriptionId));
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

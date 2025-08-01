@@ -13,6 +13,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Missing signature' }, { status: 400 });
   }
 
+  // Check if Stripe is available
+  if (!stripe) {
+    return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 });
+  }
+
   let event;
 
   try {
@@ -29,7 +34,7 @@ export async function POST(request: NextRequest) {
         const userId = session.metadata?.userId;
         const plan = session.metadata?.plan;
 
-        if (userId && plan && STRIPE_PLANS[plan as keyof typeof STRIPE_PLANS]) {
+        if (userId && plan && STRIPE_PLANS[plan as keyof typeof STRIPE_PLANS] && db) {
           const selectedPlan = STRIPE_PLANS[plan as keyof typeof STRIPE_PLANS];
           
           // Update user plan and add credits
@@ -66,20 +71,22 @@ export async function POST(request: NextRequest) {
 
       case 'customer.subscription.updated': {
         const subscription = event.data.object;
-        const dbSubscription = await db.query.subscriptions.findFirst({
-          where: eq(subscriptions.stripeSubscriptionId, subscription.id),
-        });
+        if (db) {
+          const dbSubscription = await db.query.subscriptions.findFirst({
+            where: eq(subscriptions.stripeSubscriptionId, subscription.id),
+          });
 
-        if (dbSubscription) {
-          await db.update(subscriptions)
-            .set({
-              status: subscription.status,
-              currentPeriodStart: new Date(subscription.current_period_start * 1000),
-              currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-              cancelAtPeriodEnd: subscription.cancel_at_period_end,
-              updatedAt: new Date(),
-            })
-            .where(eq(subscriptions.stripeSubscriptionId, subscription.id));
+          if (dbSubscription) {
+            await db.update(subscriptions)
+              .set({
+                status: subscription.status,
+                currentPeriodStart: new Date(subscription.current_period_start * 1000),
+                currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+                cancelAtPeriodEnd: subscription.cancel_at_period_end,
+                updatedAt: new Date(),
+              })
+              .where(eq(subscriptions.stripeSubscriptionId, subscription.id));
+          }
         }
         break;
       }
@@ -87,25 +94,27 @@ export async function POST(request: NextRequest) {
       case 'customer.subscription.deleted': {
         const subscription = event.data.object;
         
-        // Update user back to free plan
-        const dbSubscription = await db.query.subscriptions.findFirst({
-          where: eq(subscriptions.stripeSubscriptionId, subscription.id),
-        });
+        if (db) {
+          // Update user back to free plan
+          const dbSubscription = await db.query.subscriptions.findFirst({
+            where: eq(subscriptions.stripeSubscriptionId, subscription.id),
+          });
 
-        if (dbSubscription) {
-          await db.update(users)
-            .set({ 
-              plan: 'free',
-              updatedAt: new Date(),
-            })
-            .where(eq(users.id, dbSubscription.userId));
+          if (dbSubscription) {
+            await db.update(users)
+              .set({ 
+                plan: 'free',
+                updatedAt: new Date(),
+              })
+              .where(eq(users.id, dbSubscription.userId));
 
-          await db.update(subscriptions)
-            .set({
-              status: 'canceled',
-              updatedAt: new Date(),
-            })
-            .where(eq(subscriptions.stripeSubscriptionId, subscription.id));
+            await db.update(subscriptions)
+              .set({
+                status: 'canceled',
+                updatedAt: new Date(),
+              })
+              .where(eq(subscriptions.stripeSubscriptionId, subscription.id));
+          }
         }
         break;
       }
