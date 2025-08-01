@@ -11,10 +11,32 @@ export default async function NewAppRedirectPage({
   searchParams: Promise<{ [key: string]: string | string[] }>;
   params: Promise<{ id: string }>;
 }) {
-  const user = await getUser().catch(() => undefined);
+  let user;
+  try {
+    user = await getUser();
+  } catch (error) {
+    console.error('Authentication error:', error);
+    // Redirect to sign in if user is not authenticated
+    const search = await searchParams;
+    const newParams = new URLSearchParams();
+    Object.entries(search).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        value.forEach((v) => newParams.append(key, v));
+      } else {
+        newParams.set(key, value);
+      }
+    });
+
+    redirect(
+      `/handler/sign-in?after_auth_return_to=${encodeURIComponent(
+        "/app/new?" + newParams.toString()
+      )}`
+    );
+  }
+
   const search = await searchParams;
 
-  if (!user) {
+  if (!user || !user.userId) {
     // reconstruct the search params
     const newParams = new URLSearchParams();
     Object.entries(search).forEach(([key, value]) => {
@@ -40,10 +62,16 @@ export default async function NewAppRedirectPage({
     message = search.message;
   }
 
-  const { id } = await createApp({
-    initialMessage: decodeURIComponent(message),
-    templateId: search.template as string,
-  });
+  try {
+    const { id } = await createApp({
+      initialMessage: decodeURIComponent(message || ''),
+      templateId: search.template as string,
+    });
 
-  redirect(`/app/${id}`);
+    redirect(`/app/${id}`);
+  } catch (error) {
+    console.error('Error creating app:', error);
+    // Redirect to home page with error message
+    redirect('/?error=app_creation_failed');
+  }
 }
