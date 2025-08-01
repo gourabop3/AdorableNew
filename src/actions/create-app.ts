@@ -2,12 +2,13 @@
 
 import { sendMessage } from "@/app/api/chat/route";
 import { getUser } from "@/auth/stack-auth";
-import { appsTable, appUsers } from "@/db/schema";
+import { appsTable, appUsers, users } from "@/db/schema";
 import { db } from "@/lib/db";
 import { freestyle } from "@/lib/freestyle";
 import { templates } from "@/lib/templates";
 import { memory } from "@/mastra/agents/builder";
 import { deductCredits } from "@/lib/credits";
+import { eq } from "drizzle-orm";
 
 export async function createApp({
   initialMessage,
@@ -19,6 +20,10 @@ export async function createApp({
   console.time("get user");
   const user = await getUser();
   console.timeEnd("get user");
+
+  if (!user || !user.userId) {
+    throw new Error("User not authenticated");
+  }
 
   if (!templates[templateId]) {
     throw new Error(
@@ -54,6 +59,23 @@ export async function createApp({
   console.timeEnd("dev server");
 
   console.time("database: create app");
+  
+  // Ensure user exists in database before deducting credits
+  let dbUser = await db.query.users.findFirst({
+    where: eq(users.id, user.userId),
+  });
+
+  if (!dbUser) {
+    // Create new user with 50 free credits
+    dbUser = await db.insert(users).values({
+      id: user.userId,
+      email: '', // Default empty email
+      name: '', // Default empty name
+      image: '', // Default empty image
+      credits: 50,
+      plan: 'free',
+    }).returning()[0];
+  }
   
   // Deduct credits for app creation
   try {

@@ -11,6 +11,12 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Check if user.userId exists
+    if (!user.userId) {
+      console.error('User ID is undefined:', user);
+      return NextResponse.json({ error: 'Invalid user data' }, { status: 400 });
+    }
+
     // Get user data
     let dbUser = await db.query.users.findFirst({
       where: eq(users.id, user.userId),
@@ -20,9 +26,9 @@ export async function GET() {
       // Create new user with 50 free credits
       dbUser = await db.insert(users).values({
         id: user.userId,
-        email: user.email || '',
-        name: user.name || '',
-        image: user.image || '',
+        email: '', // Default empty email
+        name: '', // Default empty name
+        image: '', // Default empty image
         credits: 50,
         plan: 'free',
       }).returning()[0];
