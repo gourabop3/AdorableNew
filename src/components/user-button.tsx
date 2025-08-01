@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { UserButton as StackUserButton } from "@stackframe/stack";
 import { Badge } from "@/components/ui/badge";
-import { ZapIcon, CrownIcon, ChevronDownIcon } from "lucide-react";
+import { ZapIcon, CrownIcon, UserIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface UserData {
@@ -64,18 +64,14 @@ export function UserButton() {
         </div>
       )}
 
-      {/* Custom User Button with Upgrade Option */}
+      {/* Profile Button with Dropdown */}
       <div className="relative" ref={dropdownRef}>
         <button
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
-          <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {userData?.name?.charAt(0) || 'U'}
-            </span>
-          </div>
-          <ChevronDownIcon className="h-4 w-4 text-gray-500" />
+          <UserIcon className="h-5 w-5 text-gray-500" />
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Profile</span>
         </button>
         
         {/* Dropdown Menu */}
