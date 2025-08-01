@@ -18,7 +18,13 @@ export async function createApp({
   templateId: string;
 }) {
   console.time("get user");
-  const user = await getUser();
+  let user;
+  try {
+    user = await getUser();
+  } catch (error) {
+    console.error('User authentication failed:', error);
+    throw new Error("User not authenticated. Please sign in first.");
+  }
   console.timeEnd("get user");
 
   if (!user || !user.userId) {

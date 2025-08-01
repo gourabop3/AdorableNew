@@ -14,6 +14,8 @@ interface UserData {
 export function UserButton() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -36,13 +38,27 @@ export function UserButton() {
 
   const fetchUserData = async () => {
     try {
+      setIsLoading(true);
+      setError(null);
+      console.log('Fetching user billing data...');
+      
       const response = await fetch('/api/user/billing');
+      console.log('Response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('User data received:', data);
         setUserData(data.user);
+      } else {
+        const errorData = await response.json();
+        console.error('API error:', errorData);
+        setError(errorData.error || 'Failed to fetch user data');
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
+      setError('Network error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -61,6 +77,21 @@ export function UserButton() {
           <Badge variant={userData.plan === 'pro' ? 'default' : 'secondary'} className="text-xs">
             {userData.plan === 'pro' ? 'Pro' : 'Free'}
           </Badge>
+        </div>
+      )}
+
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
+          <span className="text-sm text-gray-500">Loading...</span>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div className="flex items-center gap-2 px-3 py-1 bg-red-100 dark:bg-red-800 rounded-full">
+          <span className="text-sm text-red-600 dark:text-red-400">{error}</span>
         </div>
       )}
 

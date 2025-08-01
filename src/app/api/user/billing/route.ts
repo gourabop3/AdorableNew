@@ -6,7 +6,14 @@ import { eq } from 'drizzle-orm';
 
 export async function GET() {
   try {
-    const user = await getUser();
+    let user;
+    try {
+      user = await getUser();
+    } catch (error) {
+      console.error('User authentication failed:', error);
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
