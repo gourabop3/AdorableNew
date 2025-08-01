@@ -18,18 +18,11 @@ async function testConnection() {
     console.log('Database:', url.pathname.slice(1));
     console.log('User:', url.username);
 
-    // Try with explicit port if not specified
-    let connectionString = process.env.DATABASE_URL;
-    if (!url.port) {
-      connectionString = process.env.DATABASE_URL.replace('@dpg-d24675h5pdvs73fv2os0-a/', '@dpg-d24675h5pdvs73fv2os0-a:5432/');
-      console.log('Trying with explicit port 5432...');
-    }
-
     const pool = new Pool({
-      connectionString: connectionString,
-      ssl: {
-        rejectUnauthorized: false
-      }
+      connectionString: process.env.DATABASE_URL,
+      max: 20,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 2000,
     });
 
     console.log('Attempting to connect...');
@@ -46,28 +39,6 @@ async function testConnection() {
   } catch (error) {
     console.error('❌ Database connection failed:', error.message);
     console.error('Error code:', error.code);
-    
-    // Try alternative connection methods
-    if (error.code === 'ENOTFOUND') {
-      console.log('\nTrying alternative connection methods...');
-      
-      // Try with different SSL settings
-      try {
-        const pool2 = new Pool({
-          connectionString: process.env.DATABASE_URL,
-          ssl: false
-        });
-        
-        console.log('Trying without SSL...');
-        const client2 = await pool2.connect();
-        console.log('✅ Database connection successful (without SSL)');
-        client2.release();
-        await pool2.end();
-        
-      } catch (error2) {
-        console.error('❌ Alternative connection also failed:', error2.message);
-      }
-    }
   }
 }
 
