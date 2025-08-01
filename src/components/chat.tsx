@@ -13,6 +13,7 @@ import { chatState } from "@/actions/chat-streaming";
 import { CompressedImage } from "@/lib/image-compression";
 import { useChatSafe } from "./use-chat";
 import { DebugPanel } from "./debug-panel";
+import { SunaStyleChat } from "./suna-style-chat";
 
 export default function Chat(props: {
   appId: string;
@@ -109,34 +110,24 @@ export default function Chat(props: {
     }
   }, [props.appId]);
 
+  // Use Suna-style chat interface
   return (
-    <div
-      className="flex flex-col h-full"
-      style={{ transform: "translateZ(0)" }}
-    >
+    <div className="flex flex-col h-full">
       {props.topBar}
-      <div
-        className="flex-1 overflow-y-auto flex flex-col space-y-6 min-h-0"
-        style={{ overflowAnchor: "auto" }}
-      >
-        <ChatContainer autoScroll>
-          {messages.map((message: any) => (
-            <MessageBody key={message.id} message={message} />
-          ))}
-        </ChatContainer>
-      </div>
-      <div className="flex-shrink-0 p-3 transition-all bg-background md:backdrop-blur-sm">
-        <PromptInputBasic
-          stop={handleStop}
-          input={input}
-          onValueChange={(value) => {
-            setInput(value);
-          }}
-          onSubmit={onSubmit}
-          onSubmitWithImages={onSubmitWithImages}
-          isGenerating={props.isLoading || chat?.state === "running"}
-        />
-      </div>
+      
+      <SunaStyleChat
+        appId={props.appId}
+        initialMessages={messages}
+        onSendMessage={async (message: string, images?: CompressedImage[]) => {
+          if (images && images.length > 0) {
+            await onSubmitWithImages(message, images);
+          } else {
+            await onSubmit();
+          }
+        }}
+        isGenerating={props.isLoading || chat?.state === "running"}
+        onStop={handleStop}
+      />
       
       {/* Debug panel - only visible in development */}
       <DebugPanel 
@@ -194,34 +185,7 @@ function MessageBody({ message }: { message: any }) {
           }
 
           if (part.type.startsWith("tool-")) {
-            // if (
-            //   part.toolInvocation.state === "result" &&
-            //   part.toolInvocation.result.isError
-            // ) {
-            //   return (
-            //     <div
-            //       key={index}
-            //       className="border-red-500 border text-sm text-red-800 rounded bg-red-100 px-2 py-1 mt-2 mb-4"
-            //     >
-            //       {part.toolInvocation.result?.content?.map(
-            //         (content: { type: "text"; text: string }, i: number) => (
-            //           <div key={i}>{content.text}</div>
-            //         )
-            //       )}
-            //       {/* Unexpectedly failed while using tool{" "}
-            //       {part.toolInvocation.toolName}. Please try again. again. */}
-            //     </div>
-            //   );
-            // }
-
-            // if (
-            //   message.parts!.length - 1 == index &&
-            //   part.toolInvocation.state !== "result"
-            // ) {
             return <ToolMessage key={index} toolInvocation={part} />;
-            // } else {
-            //   return undefined;
-            // }
           }
         })}
       </div>
