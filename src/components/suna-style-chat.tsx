@@ -47,7 +47,7 @@ export function SunaStyleChat({
   const handleSendMessage = async () => {
     if (!input.trim()) return;
 
-    const userMessage: UIMessage = {
+    const userMessage: any = {
       id: `user-${Date.now()}`,
       role: 'user',
       content: input,
@@ -143,7 +143,7 @@ export function SunaStyleChat({
   const handleDownload = () => {
     // Export chat as markdown or other format
     const chatContent = messages
-      .map(msg => `${msg.role}: ${msg.content}`)
+      .map((msg: any) => `${msg.role}: ${msg.content || msg.parts?.[0]?.text || ''}`)
       .join('\n\n');
     
     const blob = new Blob([chatContent], { type: 'text/markdown' });
@@ -229,11 +229,11 @@ export function SunaStyleChat({
               }`}
             >
               {message.role === 'user' ? (
-                <div>{message.content}</div>
+                <div>{message.content || (message.parts?.[0] as any)?.text || ''}</div>
               ) : (
                 <div className="space-y-2">
                   <Markdown className="prose prose-sm dark:prose-invert max-w-none">
-                    {message.content}
+                    {message.content || (message.parts?.[0] as any)?.text || ''}
                   </Markdown>
                   
                   {/* Tool messages */}

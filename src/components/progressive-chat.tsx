@@ -38,7 +38,7 @@ export function ProgressiveChat({
     const convertedMessages = initialMessages.map(msg => ({
       id: msg.id,
       role: msg.role as 'user' | 'assistant',
-      content: msg.parts?.[0]?.text || '',
+      content: (msg.parts?.[0] as any)?.text || '',
       isStreaming: false,
       parts: msg.parts || [],
       timestamp: new Date(),

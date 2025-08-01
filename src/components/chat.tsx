@@ -13,7 +13,7 @@ import { chatState } from "@/actions/chat-streaming";
 import { CompressedImage } from "@/lib/image-compression";
 import { useChatSafe } from "./use-chat";
 import { DebugPanel } from "./debug-panel";
-import { SunaStyleChat } from "./suna-style-chat";
+// import { SunaStyleChat } from "./suna-style-chat";
 
 export default function Chat(props: {
   appId: string;
@@ -30,14 +30,14 @@ export default function Chat(props: {
     },
     refetchInterval: (data) => {
       // Only poll every 2 seconds when running, 5 seconds when idle
-      return data?.state === "running" ? 2000 : 5000;
+      return data && typeof data === 'object' && 'state' in data && data.state === "running" ? 2000 : 5000;
     },
     refetchOnWindowFocus: false, // Reduce unnecessary refetches
     staleTime: 1000, // Consider data fresh for 1 second
   });
 
   const { messages, sendMessage } = useChatSafe({
-    messages: props.initialMessages,
+    messages: props.initialMessages as any,
     id: props.appId,
     resume: props.running && chat?.state === "running",
   });
@@ -110,24 +110,35 @@ export default function Chat(props: {
     }
   }, [props.appId]);
 
-  // Use Suna-style chat interface
+  // Use original chat interface for now
   return (
-    <div className="flex flex-col h-full">
+    <div
+      className="flex flex-col h-full"
+      style={{ transform: "translateZ(0)" }}
+    >
       {props.topBar}
-      
-      <SunaStyleChat
-        appId={props.appId}
-        initialMessages={messages}
-        onSendMessage={async (message: string, images?: CompressedImage[]) => {
-          if (images && images.length > 0) {
-            await onSubmitWithImages(message, images);
-          } else {
-            await onSubmit();
-          }
-        }}
-        isGenerating={props.isLoading || chat?.state === "running"}
-        onStop={handleStop}
-      />
+      <div
+        className="flex-1 overflow-y-auto flex flex-col space-y-6 min-h-0"
+        style={{ overflowAnchor: "auto" }}
+      >
+        <ChatContainer autoScroll>
+          {messages.map((message: any) => (
+            <MessageBody key={message.id} message={message} />
+          ))}
+        </ChatContainer>
+      </div>
+      <div className="flex-shrink-0 p-3 transition-all bg-background md:backdrop-blur-sm">
+        <PromptInputBasic
+          stop={handleStop}
+          input={input}
+          onValueChange={(value) => {
+            setInput(value);
+          }}
+          onSubmit={onSubmit}
+          onSubmitWithImages={onSubmitWithImages}
+          isGenerating={props.isLoading || chat?.state === "running"}
+        />
+      </div>
       
       {/* Debug panel - only visible in development */}
       <DebugPanel 
