@@ -101,6 +101,21 @@ export function UserButton() {
     }
   };
 
+  // Show sign in button when not authenticated and not loading
+  if (!isLoading && !isAuthenticated) {
+    return (
+      <div className="flex items-center gap-2">
+        <button
+          onClick={handleSignIn}
+          className="flex items-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors"
+        >
+          <LogInIcon className="h-4 w-4" />
+          <span className="text-sm font-medium">Sign In</span>
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center gap-2">
       {/* Credits Display */}
@@ -129,53 +144,43 @@ export function UserButton() {
         </div>
       )}
 
-      {/* Profile Button with Dropdown */}
-      <div className="relative" ref={dropdownRef}>
-        <button
-          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-        >
-          <UserIcon className="h-5 w-5 text-gray-500" />
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            {isAuthenticated ? 'Profile' : 'Sign In'}
-          </span>
-        </button>
-        
-        {/* Dropdown Menu */}
-        {isDropdownOpen && (
-          <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50">
-            <div className="py-1">
-              {isAuthenticated ? (
-                <>
-                  <button
-                    onClick={handleUpgrade}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-                  >
-                    <CrownIcon className="h-4 w-4" />
-                    Upgrade to Pro
-                  </button>
-                  <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
-                  <button
-                    onClick={handleSignOut}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-                  >
-                    <LogOutIcon className="h-4 w-4" />
-                    Sign Out
-                  </button>
-                </>
-              ) : (
+      {/* Profile Button with Dropdown - Only show when authenticated */}
+      {isAuthenticated && (
+        <div className="relative" ref={dropdownRef}>
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            <UserIcon className="h-5 w-5 text-gray-500" />
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Profile
+            </span>
+          </button>
+          
+          {/* Dropdown Menu */}
+          {isDropdownOpen && (
+            <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50">
+              <div className="py-1">
                 <button
-                  onClick={handleSignIn}
+                  onClick={handleUpgrade}
                   className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
                 >
-                  <LogInIcon className="h-4 w-4" />
-                  Sign In
+                  <CrownIcon className="h-4 w-4" />
+                  Upgrade to Pro
                 </button>
-              )}
+                <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                <button
+                  onClick={handleSignOut}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                >
+                  <LogOutIcon className="h-4 w-4" />
+                  Sign Out
+                </button>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
