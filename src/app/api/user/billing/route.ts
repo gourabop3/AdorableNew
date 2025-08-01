@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getUser } from '@/auth/stack-auth';
-import { db } from '@/db';
+import { db } from '@/lib/db';
 import { users, subscriptions } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const user = await getUser();
     if (!user) {

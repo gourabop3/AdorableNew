@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { getUser } from '@/auth/stack-auth';
-import { db } from '@/db';
+import { db } from '@/lib/db';
 import { subscriptions } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 

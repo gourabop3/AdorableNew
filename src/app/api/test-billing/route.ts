@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUser } from '@/auth/stack-auth';
-import { db } from '@/db';
+import { db } from '@/lib/db';
 import { users, creditTransactions } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { deductCredits, addCredits, getUserCredits } from '@/lib/credits';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const user = await getUser();
     if (!user) {

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { UserButton as StackUserButton } from "@stackframe/stack";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ZapIcon, CrownIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -14,7 +13,6 @@ interface UserData {
 
 export function UserButton() {
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -30,8 +28,6 @@ export function UserButton() {
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
-    } finally {
-      setLoading(false);
     }
   };
 

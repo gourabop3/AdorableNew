@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe } from '@/lib/stripe';
-import { db } from '@/db';
-import { users, subscriptions, creditTransactions, STRIPE_PLANS } from '@/db/schema';
+import { stripe, STRIPE_PLANS } from '@/lib/stripe';
+import { db } from '@/lib/db';
+import { users, subscriptions, creditTransactions } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { headers } from 'next/headers';
 

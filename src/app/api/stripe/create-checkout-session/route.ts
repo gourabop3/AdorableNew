@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe, STRIPE_PLANS } from '@/lib/stripe';
 import { getUser } from '@/auth/stack-auth';
-import { db } from '@/db';
-import { users, subscriptions } from '@/db/schema';
+import { db } from '@/lib/db';
+import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
 export async function POST(request: NextRequest) {
