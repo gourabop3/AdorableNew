@@ -8,5 +8,8 @@ export default defineConfig({
   tablesFilter: ["!mastra*"],
   dbCredentials: {
     url: process.env.DATABASE_URL!,
+    ssl: {
+      rejectUnauthorized: false
+    }
   },
 });
