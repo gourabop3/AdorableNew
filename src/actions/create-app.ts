@@ -55,13 +55,19 @@ export async function createApp({
 
   console.time("database: create app");
   
-  // Deduct credits for app creation
+  // Deduct credits for app creation (only if database is available)
   try {
     await deductCredits(user.userId, 10, "App creation");
   } catch (error) {
     console.error('Error deducting credits:', error);
-    // Continue with app creation even if credit deduction fails
-    // This prevents the entire app creation from failing due to database issues
+    // If it's a database connection error, continue without credit deduction
+    if (error instanceof Error && error.message.includes('Database connection not available')) {
+      console.log('Continuing app creation without credit deduction due to database unavailability');
+    } else if (error instanceof Error && error.message.includes('Insufficient credits')) {
+      throw new Error("Insufficient credits. Please upgrade to Pro plan for more credits.");
+    } else {
+      console.log('Continuing app creation without credit deduction due to database error');
+    }
   }
   
   const app = await db.transaction(async (tx) => {
