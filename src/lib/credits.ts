@@ -4,6 +4,11 @@ import { eq } from 'drizzle-orm';
 
 export async function deductCredits(userId: string, amount: number, description: string) {
   try {
+    // Check if database connection is available
+    if (!db) {
+      throw new Error('Database connection not available');
+    }
+
     // Get current user
     const user = await db.query.users.findFirst({
       where: eq(users.id, userId),
@@ -42,6 +47,11 @@ export async function deductCredits(userId: string, amount: number, description:
 
 export async function addCredits(userId: string, amount: number, description: string, type: 'purchase' | 'bonus' | 'refund' = 'bonus') {
   try {
+    // Check if database connection is available
+    if (!db) {
+      throw new Error('Database connection not available');
+    }
+
     // Get current user
     const user = await db.query.users.findFirst({
       where: eq(users.id, userId),
@@ -76,6 +86,12 @@ export async function addCredits(userId: string, amount: number, description: st
 
 export async function getUserCredits(userId: string) {
   try {
+    // Check if database connection is available
+    if (!db) {
+      console.error('Database connection not available');
+      return 0;
+    }
+
     const user = await db.query.users.findFirst({
       where: eq(users.id, userId),
     });

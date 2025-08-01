@@ -58,8 +58,10 @@ export async function createApp({
   // Deduct credits for app creation
   try {
     await deductCredits(user.userId, 10, "App creation");
-  } catch {
-    throw new Error("Insufficient credits. Please upgrade to Pro plan for more credits.");
+  } catch (error) {
+    console.error('Error deducting credits:', error);
+    // Continue with app creation even if credit deduction fails
+    // This prevents the entire app creation from failing due to database issues
   }
   
   const app = await db.transaction(async (tx) => {

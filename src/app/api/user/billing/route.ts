@@ -11,27 +11,86 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Check if database connection is available
+    if (!db) {
+      console.error('Database connection not available');
+      // Return fallback data to prevent frontend crashes
+      return NextResponse.json({
+        user: {
+          id: user.userId,
+          email: user.email || '',
+          name: user.name || '',
+          credits: 50, // Default credits
+          plan: 'free',
+          stripeCustomerId: null,
+        },
+        subscription: null,
+        databaseError: true
+      });
+    }
+
     // Get user data
-    let dbUser = await db.query.users.findFirst({
-      where: eq(users.id, user.userId),
-    });
+    let dbUser;
+    try {
+      dbUser = await db.query.users.findFirst({
+        where: eq(users.id, user.userId),
+      });
+    } catch (dbError) {
+      console.error('Database query error:', dbError);
+      // Return fallback data to prevent frontend crashes
+      return NextResponse.json({
+        user: {
+          id: user.userId,
+          email: user.email || '',
+          name: user.name || '',
+          credits: 50, // Default credits
+          plan: 'free',
+          stripeCustomerId: null,
+        },
+        subscription: null,
+        databaseError: true
+      });
+    }
 
     if (!dbUser) {
       // Create new user with 50 free credits
-      dbUser = await db.insert(users).values({
-        id: user.userId,
-        email: user.email || '',
-        name: user.name || '',
-        image: user.image || '',
-        credits: 50,
-        plan: 'free',
-      }).returning()[0];
+      try {
+        dbUser = await db.insert(users).values({
+          id: user.userId,
+          email: user.email || '',
+          name: user.name || '',
+          image: user.image || '',
+          credits: 50,
+          plan: 'free',
+        }).returning()[0];
+      } catch (insertError) {
+        console.error('Error creating user:', insertError);
+        // Return fallback data to prevent frontend crashes
+        return NextResponse.json({
+          user: {
+            id: user.userId,
+            email: user.email || '',
+            name: user.name || '',
+            credits: 50, // Default credits
+            plan: 'free',
+            stripeCustomerId: null,
+          },
+          subscription: null,
+          databaseError: true
+        });
+      }
     }
 
     // Get subscription data
-    const subscription = await db.query.subscriptions.findFirst({
-      where: eq(subscriptions.userId, dbUser.id),
-    });
+    let subscription = null;
+    try {
+      subscription = await db.query.subscriptions.findFirst({
+        where: eq(subscriptions.userId, dbUser.id),
+      });
+    } catch (subError) {
+      console.error('Error fetching subscription:', subError);
+      // Don't fail the entire request if subscription query fails
+    }
 
     return NextResponse.json({
       user: {

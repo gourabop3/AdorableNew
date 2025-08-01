@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { UserButton as StackUserButton } from "@stackframe/stack";
 import { Badge } from "@/components/ui/badge";
-import { ZapIcon, CrownIcon } from "lucide-react";
+import { ZapIcon, CrownIcon, AlertTriangleIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface UserData {
@@ -11,8 +11,16 @@ interface UserData {
   plan: "free" | "pro";
 }
 
+interface BillingResponse {
+  user: UserData;
+  subscription: any;
+  databaseError?: boolean;
+}
+
 export function UserButton() {
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [databaseError, setDatabaseError] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -23,11 +31,18 @@ export function UserButton() {
     try {
       const response = await fetch('/api/user/billing');
       if (response.ok) {
-        const data = await response.json();
+        const data: BillingResponse = await response.json();
         setUserData(data.user);
+        setDatabaseError(data.databaseError || false);
+      } else {
+        console.error('Failed to fetch billing data');
+        setDatabaseError(true);
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
+      setDatabaseError(true);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -38,33 +53,32 @@ export function UserButton() {
   return (
     <div className="flex items-center gap-2">
       {/* Credits Display */}
-      {userData && (
+      {!loading && userData && (
         <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full">
           <ZapIcon className="h-4 w-4 text-yellow-500" />
           <span className="text-sm font-medium">{userData.credits}</span>
           <Badge variant={userData.plan === 'pro' ? 'default' : 'secondary'} className="text-xs">
             {userData.plan === 'pro' ? 'Pro' : 'Free'}
           </Badge>
+          {databaseError && (
+            <AlertTriangleIcon className="h-3 w-3 text-orange-500" title="Database connection issue" />
+          )}
         </div>
       )}
 
-      {/* Custom User Button with Upgrade Option */}
-      <div className="relative group">
-        <StackUserButton />
-        
-        {/* Custom Dropdown */}
-        <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-          <div className="py-1">
-            <button
-              onClick={handleUpgrade}
-              className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-            >
-              <CrownIcon className="h-4 w-4" />
-              Upgrade to Pro
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* Upgrade Button for Free Users */}
+      {!loading && userData && userData.plan === 'free' && (
+        <button
+          onClick={handleUpgrade}
+          className="flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-medium rounded-full hover:from-purple-600 hover:to-pink-600 transition-colors"
+        >
+          <CrownIcon className="h-3 w-3" />
+          Upgrade
+        </button>
+      )}
+
+      {/* Stack User Button */}
+      <StackUserButton />
     </div>
   );
 }
