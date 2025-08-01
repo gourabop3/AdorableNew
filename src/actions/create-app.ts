@@ -86,9 +86,9 @@ export async function createApp({
       // Create new user with 50 free credits
       dbUser = await db.insert(users).values({
         id: user.userId,
-        email: '', // Default empty email
-        name: '', // Default empty name
-        image: '', // Default empty image
+        email: user.email || `user-${user.userId}@example.com`, // Use user email or generate one
+        name: user.name || 'User', // Use user name or default
+        image: user.image || '', // Use user image or empty
         credits: 50,
         plan: 'free',
       }).returning()[0];

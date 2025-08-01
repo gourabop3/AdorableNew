@@ -28,6 +28,9 @@ export async function getUser() {
 
   return {
     userId: user.id,
+    email: user.email || '',
+    name: user.name || '',
+    image: user.image || '',
     freestyleIdentity: user.serverMetadata.freestyleIdentity,
   };
 }
