@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { freestyle } from "@/lib/freestyle";
 import { templates } from "@/lib/templates";
 import { memory } from "@/mastra/agents/builder";
+import { deductCredits } from "@/lib/credits";
 
 export async function createApp({
   initialMessage,
@@ -53,6 +54,14 @@ export async function createApp({
   console.timeEnd("dev server");
 
   console.time("database: create app");
+  
+  // Deduct credits for app creation
+  try {
+    await deductCredits(user.userId, 10, "App creation");
+  } catch {
+    throw new Error("Insufficient credits. Please upgrade to Pro plan for more credits.");
+  }
+  
   const app = await db.transaction(async (tx) => {
     const appInsertion = await tx
       .insert(appsTable)
