@@ -41,32 +41,45 @@ export function UserButton() {
     try {
       setIsLoading(true);
       setError(null);
-      console.log('Fetching user billing data...');
+      console.log('🔍 Fetching user billing data...');
       
       const response = await fetch('/api/user/billing');
-      console.log('Response status:', response.status);
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response ok:', response.ok);
       
       if (response.ok) {
         const data = await response.json();
-        console.log('User data received:', data);
-        setUserData(data.user);
-        setIsAuthenticated(true);
+        console.log('✅ User data received:', data);
+        console.log('✅ User object:', data.user);
+        console.log('✅ User ID:', data.user?.id);
+        console.log('✅ User credits:', data.user?.credits);
+        
+        if (data.user && data.user.id) {
+          setUserData(data.user);
+          setIsAuthenticated(true);
+          console.log('✅ Setting authenticated to true');
+        } else {
+          console.log('❌ User data is missing or invalid');
+          setUserData(null);
+          setIsAuthenticated(false);
+        }
       } else if (response.status === 401) {
-        console.log('User not authenticated');
+        console.log('❌ User not authenticated (401)');
         setUserData(null);
         setIsAuthenticated(false);
       } else {
         const errorData = await response.json();
-        console.error('API error:', errorData);
+        console.error('❌ API error:', errorData);
         setError(errorData.error || 'Failed to fetch user data');
         setIsAuthenticated(false);
       }
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      console.error('❌ Error fetching user data:', error);
       setError('Network error');
       setIsAuthenticated(false);
     } finally {
       setIsLoading(false);
+      console.log('🏁 Loading finished. isAuthenticated:', isAuthenticated);
     }
   };
 
@@ -76,30 +89,40 @@ export function UserButton() {
   };
 
   const handleSignIn = () => {
+    console.log('🔐 Redirecting to sign in...');
     router.push('/handler/sign-in');
     setIsDropdownOpen(false);
   };
 
   const handleSignOut = async () => {
     try {
+      console.log('🚪 Attempting to sign out...');
       const response = await fetch('/api/auth/signout', {
         method: 'POST',
       });
       
       if (response.ok) {
-        console.log('Successfully signed out');
+        console.log('✅ Successfully signed out');
         setUserData(null);
         setIsAuthenticated(false);
         setIsDropdownOpen(false);
         // Refresh the page to clear any cached state
         window.location.reload();
       } else {
-        console.error('Failed to sign out');
+        console.error('❌ Failed to sign out');
       }
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('❌ Error signing out:', error);
     }
   };
+
+  // Debug logging
+  console.log('🎯 Render state:', {
+    isAuthenticated,
+    isLoading,
+    error,
+    userData: userData ? { id: userData.id, credits: userData.credits, plan: userData.plan } : null
+  });
 
   return (
     <div className="flex items-center gap-2">
