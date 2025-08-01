@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { UserButton as StackUserButton } from "@stackframe/stack";
 import { Badge } from "@/components/ui/badge";
-import { ZapIcon, CrownIcon, UserIcon } from "lucide-react";
+import { ZapIcon, CrownIcon, UserIcon, LogOutIcon, LogInIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface UserData {
@@ -16,6 +16,7 @@ export function UserButton() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -49,14 +50,21 @@ export function UserButton() {
         const data = await response.json();
         console.log('User data received:', data);
         setUserData(data.user);
+        setIsAuthenticated(true);
+      } else if (response.status === 401) {
+        console.log('User not authenticated');
+        setUserData(null);
+        setIsAuthenticated(false);
       } else {
         const errorData = await response.json();
         console.error('API error:', errorData);
         setError(errorData.error || 'Failed to fetch user data');
+        setIsAuthenticated(false);
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
       setError('Network error');
+      setIsAuthenticated(false);
     } finally {
       setIsLoading(false);
     }
@@ -67,10 +75,36 @@ export function UserButton() {
     setIsDropdownOpen(false);
   };
 
+  const handleSignIn = () => {
+    router.push('/handler/sign-in');
+    setIsDropdownOpen(false);
+  };
+
+  const handleSignOut = async () => {
+    try {
+      const response = await fetch('/api/auth/signout', {
+        method: 'POST',
+      });
+      
+      if (response.ok) {
+        console.log('Successfully signed out');
+        setUserData(null);
+        setIsAuthenticated(false);
+        setIsDropdownOpen(false);
+        // Refresh the page to clear any cached state
+        window.location.reload();
+      } else {
+        console.error('Failed to sign out');
+      }
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
   return (
     <div className="flex items-center gap-2">
       {/* Credits Display */}
-      {userData && (
+      {userData && isAuthenticated && (
         <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full">
           <ZapIcon className="h-4 w-4 text-yellow-500" />
           <span className="text-sm font-medium">{userData.credits}</span>
@@ -102,30 +136,42 @@ export function UserButton() {
           className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
           <UserIcon className="h-5 w-5 text-gray-500" />
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Profile</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {isAuthenticated ? 'Profile' : 'Sign In'}
+          </span>
         </button>
         
         {/* Dropdown Menu */}
         {isDropdownOpen && (
           <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50">
             <div className="py-1">
-              <button
-                onClick={handleUpgrade}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-              >
-                <CrownIcon className="h-4 w-4" />
-                Upgrade to Pro
-              </button>
-              <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
-              <button
-                onClick={() => {
-                  // Handle sign out
-                  setIsDropdownOpen(false);
-                }}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                Sign Out
-              </button>
+              {isAuthenticated ? (
+                <>
+                  <button
+                    onClick={handleUpgrade}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                  >
+                    <CrownIcon className="h-4 w-4" />
+                    Upgrade to Pro
+                  </button>
+                  <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                  <button
+                    onClick={handleSignOut}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                  >
+                    <LogOutIcon className="h-4 w-4" />
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={handleSignIn}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                >
+                  <LogInIcon className="h-4 w-4" />
+                  Sign In
+                </button>
+              )}
             </div>
           </div>
         )}
