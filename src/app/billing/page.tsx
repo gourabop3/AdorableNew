@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckIcon, CrownIcon, CreditCardIcon, ZapIcon } from "lucide-react";
 import { toast } from "sonner";
+import { redirectToCheckout } from "@/lib/stripe-client";
+import { SafeButton } from "@/components/safe-button";
 
 interface UserData {
   id: string;
@@ -62,7 +63,11 @@ export default function BillingPage() {
     }
   };
 
-  const handleUpgrade = async () => {
+  const handleUpgrade = async (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
+    
     setUpgrading(true);
     try {
       const response = await fetch('/api/stripe/create-checkout-session', {
@@ -75,10 +80,13 @@ export default function BillingPage() {
 
       if (response.ok) {
         const { sessionId } = await response.json();
-        // Redirect to Stripe Checkout
-        const stripe = await import('@stripe/stripe-js');
-        const stripeInstance = await stripe.loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
-        await stripeInstance?.redirectToCheckout({ sessionId });
+        
+        // Use our robust Stripe client
+        const result = await redirectToCheckout(sessionId);
+        
+        if (!result.success) {
+          toast.error(result.error || 'Failed to redirect to payment page');
+        }
       } else {
         const error = await response.json();
         toast.error(error.error || 'Failed to create checkout session');
@@ -91,7 +99,11 @@ export default function BillingPage() {
     }
   };
 
-  const handleCancelSubscription = async () => {
+  const handleCancelSubscription = async (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
+    
     if (!subscription) return;
     
     try {
@@ -130,7 +142,7 @@ export default function BillingPage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
           <p className="text-gray-600 mb-4">Please log in to view your billing information.</p>
-          <Button onClick={() => router.push('/')}>Go Home</Button>
+          <SafeButton onClick={() => router.push('/')}>Go Home</SafeButton>
         </div>
       </div>
     );
@@ -225,17 +237,17 @@ export default function BillingPage() {
               </div>
 
               {userData.plan === 'free' ? (
-                <Button 
+                <SafeButton 
                   onClick={handleUpgrade} 
                   disabled={upgrading}
                   className="w-full"
                   size="lg"
                 >
                   {upgrading ? 'Processing...' : 'Upgrade to Pro'}
-                </Button>
+                </SafeButton>
               ) : (
                 <div className="space-y-2">
-                  <Button 
+                  <SafeButton 
                     onClick={handleCancelSubscription}
                     variant="outline"
                     className="w-full"
@@ -245,7 +257,7 @@ export default function BillingPage() {
                       ? 'Cancellation Scheduled' 
                       : 'Cancel Subscription'
                     }
-                  </Button>
+                  </SafeButton>
                   {subscription?.cancelAtPeriodEnd && (
                     <p className="text-xs text-gray-500 text-center">
                       Your subscription will end on {subscription.currentPeriodEnd && 
