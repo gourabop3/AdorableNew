@@ -27,11 +27,12 @@ export default function Chat(props: {
     queryFn: async () => {
       return chatState(props.appId);
     },
-    refetchInterval: 3000, // Even slower polling to prevent loops
+    refetchInterval: 5000, // Much slower polling to prevent auto-refresh
     refetchOnWindowFocus: false, // Disable refetch on window focus to reduce blinking
-    staleTime: 2000, // Keep data fresh for 2 seconds
+    staleTime: 5000, // Keep data fresh for 5 seconds
     refetchOnMount: false, // Prevent refetch on mount
     refetchOnReconnect: false, // Prevent refetch on reconnect
+    gcTime: 10000, // Keep cache for 10 seconds
   });
 
   // Debounce the running state to reduce blinking
@@ -41,7 +42,7 @@ export default function Chat(props: {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedRunning(props.running && chat?.state === "running");
-    }, 500); // 500ms debounce to prevent loops
+    }, 1000); // 1 second debounce to prevent loops and auto-refresh
 
     return () => clearTimeout(timer);
   }, [props.running, chat?.state]);
@@ -51,6 +52,15 @@ export default function Chat(props: {
     id: props.appId,
     resume: debouncedRunning,
   });
+
+  // Prevent unnecessary re-renders when chat state hasn't changed
+  const [lastChatState, setLastChatState] = useState<string | null>(null);
+  
+  useEffect(() => {
+    if (chat?.state !== lastChatState) {
+      setLastChatState(chat?.state || null);
+    }
+  }, [chat?.state, lastChatState]);
 
   const [input, setInput] = useState("");
 

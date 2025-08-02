@@ -3,6 +3,7 @@ import { createAppWithBilling } from "@/actions/create-app-with-billing";
 import { InsufficientCreditsError } from "@/lib/errors";
 import { redirect } from "next/navigation";
 import { getUser } from "@/auth/stack-auth";
+import { redisPublisher } from "@/lib/redis";
 
 // This page is never rendered. It is used to:
 // - Force user login without losing the user's initial message and template selection.
@@ -43,13 +44,29 @@ export default async function NewAppRedirectPage({
     message = search.message;
   }
 
+  // Create a unique key for this app creation request
+  const appCreationKey = `app-creation:${user.userId}:${message}:${search.template}:${Date.now()}`;
+  
+  // Check if we're already processing this request
+  const existingRequest = await redisPublisher.get(appCreationKey);
+  if (existingRequest) {
+    console.log('Duplicate app creation request detected, redirecting to existing app');
+    redirect(`/app/${existingRequest}`);
+  }
+
   // Try billing-aware app creation first, fallback to basic creation
   let result;
   try {
+    // Set a temporary key to prevent duplicates
+    await redisPublisher.set(appCreationKey, "processing", { EX: 30 });
+    
     result = await createAppWithBilling({
       initialMessage: message ? decodeURIComponent(message) : '',
       templateId: search.template as string,
     });
+    
+    // Store the successful app ID to prevent duplicates
+    await redisPublisher.set(appCreationKey, result.id, { EX: 300 }); // 5 minutes
     
     // If there's a warning, we could show it to the user later
     if (result.warning) {
@@ -58,6 +75,9 @@ export default async function NewAppRedirectPage({
     
     redirect(`/app/${result.id}`);
   } catch (error) {
+    // Clean up the processing key
+    await redisPublisher.del(appCreationKey);
+    
     // Handle insufficient credits error
     if (error instanceof InsufficientCreditsError) {
       console.log('Insufficient credits detected, redirecting to upgrade page');
@@ -72,12 +92,19 @@ export default async function NewAppRedirectPage({
     
     console.warn('Billing-aware app creation failed, trying fallback:', error);
     
+    // Set a new key for fallback creation
+    const fallbackKey = `app-creation-fallback:${user.userId}:${message}:${search.template}:${Date.now()}`;
+    await redisPublisher.set(fallbackKey, "processing", { EX: 30 });
+    
     // Fallback to basic app creation without billing
     // Use the original createApp function to avoid duplicate creation
     result = await createApp({
       initialMessage: message ? decodeURIComponent(message) : '',
       templateId: search.template as string,
     });
+    
+    // Store the successful app ID
+    await redisPublisher.set(fallbackKey, result.id, { EX: 300 });
     
     redirect(`/app/${result.id}`);
   }
