@@ -164,6 +164,24 @@ export async function createApp({
     
   } catch (error) {
     console.error('❌ Error during app creation:', error);
-    throw error;
+    
+    // Provide more specific error messages
+    if (error instanceof Error) {
+      if (error.message.includes('User not authenticated')) {
+        throw new Error('Please sign in to create an app');
+      } else if (error.message.includes('Insufficient credits')) {
+        throw new Error('You need more credits to create an app. Please upgrade to Pro plan.');
+      } else if (error.message.includes('Template not found')) {
+        throw new Error('Selected template is not available');
+      } else if (error.message.includes('DATABASE_URL')) {
+        throw new Error('Database connection failed. Please check your configuration.');
+      } else if (error.message.includes('FREESTYLE_API_KEY')) {
+        throw new Error('Freestyle API configuration failed. Please check your API key.');
+      } else {
+        throw new Error(`App creation failed: ${error.message}`);
+      }
+    }
+    
+    throw new Error('An unexpected error occurred during app creation');
   }
 }
