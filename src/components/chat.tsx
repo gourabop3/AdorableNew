@@ -243,4 +243,4 @@ const MessageBody = React.memo(function MessageBody({ message }: { message: any 
       <p className="text-gray-500">Something went wrong</p>
     </div>
   );
-}
+});
