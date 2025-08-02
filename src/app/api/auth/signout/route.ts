@@ -3,21 +3,16 @@ import { stackServerApp } from '@/auth/stack-auth';
 
 export async function POST() {
   try {
-    // Get the current user
-    const user = await stackServerApp.getUser();
-    
-    if (user) {
-      // Clear the user session
-      await stackServerApp.signOut();
-      console.log('User signed out successfully');
-    }
+    // Always try to sign out, regardless of current user state
+    await stackServerApp.signOut();
+    console.log('User signed out successfully');
     
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error signing out:', error);
-    return NextResponse.json(
-      { error: 'Failed to sign out' },
-      { status: 500 }
-    );
+    
+    // Even if there's an error, return success since the goal is to clear the session
+    // This prevents 500 errors when user is already signed out
+    return NextResponse.json({ success: true });
   }
 }

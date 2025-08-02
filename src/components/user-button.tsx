@@ -64,18 +64,18 @@ export function UserButton() {
           setIsAuthenticated(false);
         }
       } else if (response.status === 401) {
-        console.log('❌ User not authenticated (401)');
+        console.log('🔐 User not authenticated (401) - expected after signout');
         setUserData(null);
         setIsAuthenticated(false);
       } else {
         const errorData = await response.json();
-        console.error('❌ API error:', errorData);
-        setError(errorData.error || 'Failed to fetch user data');
+        console.log('⚠️ API error (non-critical):', errorData);
+        setUserData(null);
         setIsAuthenticated(false);
       }
     } catch (error) {
-      console.error('❌ Error fetching user data:', error);
-      setError('Network error');
+      console.log('⚠️ Network error fetching user data (non-critical):', error);
+      setUserData(null);
       setIsAuthenticated(false);
     } finally {
       setIsLoading(false);
@@ -101,18 +101,23 @@ export function UserButton() {
         method: 'POST',
       });
       
-      if (response.ok) {
-        console.log('✅ Successfully signed out');
-        setUserData(null);
-        setIsAuthenticated(false);
-        setIsDropdownOpen(false);
-        // Refresh the page to clear any cached state
+      // Always treat signout as successful to clear local state
+      console.log('✅ Signout completed');
+      setUserData(null);
+      setIsAuthenticated(false);
+      setIsDropdownOpen(false);
+      
+      // Small delay before reload to ensure state is cleared
+      setTimeout(() => {
         window.location.reload();
-      } else {
-        console.error('❌ Failed to sign out');
-      }
+      }, 100);
     } catch (error) {
-      console.error('❌ Error signing out:', error);
+      console.log('⚠️ Signout error (continuing anyway):', error);
+      // Even if there's an error, clear the local state
+      setUserData(null);
+      setIsAuthenticated(false);
+      setIsDropdownOpen(false);
+      window.location.reload();
     }
   };
 
