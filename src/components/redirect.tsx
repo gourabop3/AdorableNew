@@ -10,14 +10,17 @@ export function AppPageRedirect() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const message = urlParams.get("message");
-    const baseId = urlParams.get("baseId");
+    const templateId = urlParams.get("templateId") || "nextjs"; // Default to nextjs if no template specified
 
     if (message) {
       createApp({
         initialMessage: decodeURIComponent(message),
-        baseId: baseId as string,
+        templateId: templateId as string,
       }).then((app) => {
         router.push(`/app/${app.id}?respond`);
+      }).catch((error) => {
+        console.error('Error creating app:', error);
+        router.push("/?error=app_creation_failed");
       });
     } else {
       router.push("/");
