@@ -30,8 +30,8 @@ export function extractRetryDelay(error: QuotaError): number {
         }
       }
     }
-  } catch (e) {
-    console.warn("Could not parse retry delay from error");
+  } catch (error) {
+    console.warn("Could not parse retry delay from error:", error);
   }
   return 60; // default 60 seconds
 }

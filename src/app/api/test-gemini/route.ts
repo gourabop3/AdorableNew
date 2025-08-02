@@ -52,8 +52,8 @@ export async function GET() {
         if (errorData.error?.details) {
           quotaDetails = errorData.error.details;
         }
-      } catch (e) {
-        console.warn("Could not parse error response body");
+      } catch (error) {
+        console.warn("Could not parse error response body:", error);
       }
     }
     
