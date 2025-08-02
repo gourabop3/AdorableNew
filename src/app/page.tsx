@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { useRouter } from "next/navigation";
 import { PromptInput, PromptInputActions } from "@/components/ui/prompt-input";
 import { FrameworkSelector } from "@/components/framework-selector";
@@ -9,65 +8,25 @@ import LogoSvg from "@/logo.svg";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ExampleButton } from "@/components/ExampleButton";
-import { UserButton } from "@/components/user-button";
+import { UserButton } from "@stackframe/stack";
 import { UserApps } from "@/components/user-apps";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PromptInputTextareaWithTypingAnimation } from "@/components/prompt-input";
-import { ErrorBoundary } from "@/components/error-boundary";
 
 const queryClient = new QueryClient();
 
-export default function Home({
-  searchParams,
-}: {
-  searchParams?: { [key: string]: string | string[] | undefined };
-}) {
+export default function Home() {
   const [prompt, setPrompt] = useState("");
   const [framework, setFramework] = useState("nextjs");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  // Check for error messages in search params
-  React.useEffect(() => {
-    if (searchParams?.error) {
-      const errorParam = Array.isArray(searchParams.error) 
-        ? searchParams.error[0] 
-        : searchParams.error;
-      
-      if (errorParam === 'database_not_configured') {
-        setError('Database is not configured. Please set up your database connection.');
-      } else if (errorParam === 'freestyle_not_configured') {
-        setError('Freestyle API is not configured. Please set up your API keys.');
-      } else if (errorParam.includes('not authenticated')) {
-        setError('Authentication failed. Please sign in.');
-      } else if (errorParam.includes('credits')) {
-        setError('Insufficient credits. Please upgrade to Pro plan.');
-      } else {
-        setError('App creation failed. Please try again.');
-      }
-    }
-  }, [searchParams]);
-
-  const handleSubmit = async (e?: React.FormEvent) => {
-    if (e) {
-      e.preventDefault();
-    }
-    
-    if (!prompt.trim()) {
-      return;
-    }
-    
+  const handleSubmit = async () => {
     setIsLoading(true);
 
-    try {
-      router.push(
-        `/app/new?message=${encodeURIComponent(prompt)}&template=${framework}`
-      );
-    } catch (error) {
-      console.error('Navigation error:', error);
-      setIsLoading(false);
-    }
+    router.push(
+      `/app/new?message=${encodeURIComponent(prompt)}&template=${framework}`
+    );
   };
 
   return (
@@ -95,56 +54,38 @@ export default function Home({
               Let AI Cook
             </p>
 
-            {error && (
-              <div className="w-full mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-                <p className="text-red-600 text-sm text-center">{error}</p>
-                <button 
-                  onClick={() => setError(null)}
-                  className="text-red-500 text-xs underline block mx-auto mt-1"
-                >
-                  Dismiss
-                </button>
-              </div>
-            )}
-
             <div className="w-full relative my-5">
               <div className="relative w-full max-w-full overflow-hidden">
                 <div className="w-full bg-accent rounded-md relative z-10 border transition-colors">
-                  <ErrorBoundary>
-                    <PromptInput
-                      leftSlot={
-                        <ErrorBoundary>
-                          <FrameworkSelector
-                            value={framework}
-                            onChange={setFramework}
-                          />
-                        </ErrorBoundary>
-                      }
-                      isLoading={isLoading}
-                      value={prompt}
-                      onValueChange={setPrompt}
-                      onSubmit={handleSubmit}
-                      className="relative z-10 border-none bg-transparent shadow-none focus-within:border-gray-400 focus-within:ring-1 focus-within:ring-gray-200 transition-all duration-200 ease-in-out "
-                    >
-                      <ErrorBoundary>
-                        <PromptInputTextareaWithTypingAnimation />
-                      </ErrorBoundary>
-                      <PromptInputActions>
-                        <Button
-                          variant={"ghost"}
-                          size="sm"
-                          onClick={handleSubmit}
-                          disabled={isLoading || !prompt.trim()}
-                          className="h-7 text-xs"
-                        >
-                          <span className="hidden sm:inline">
-                            Start Creating ⏎
-                          </span>
-                          <span className="sm:hidden">Create ⏎</span>
-                        </Button>
-                      </PromptInputActions>
-                    </PromptInput>
-                  </ErrorBoundary>
+                  <PromptInput
+                    leftSlot={
+                      <FrameworkSelector
+                        value={framework}
+                        onChange={setFramework}
+                      />
+                    }
+                    isLoading={isLoading}
+                    value={prompt}
+                    onValueChange={setPrompt}
+                    onSubmit={handleSubmit}
+                    className="relative z-10 border-none bg-transparent shadow-none focus-within:border-gray-400 focus-within:ring-1 focus-within:ring-gray-200 transition-all duration-200 ease-in-out "
+                  >
+                    <PromptInputTextareaWithTypingAnimation />
+                    <PromptInputActions>
+                      <Button
+                        variant={"ghost"}
+                        size="sm"
+                        onClick={handleSubmit}
+                        disabled={isLoading || !prompt.trim()}
+                        className="h-7 text-xs"
+                      >
+                        <span className="hidden sm:inline">
+                          Start Creating ⏎
+                        </span>
+                        <span className="sm:hidden">Create ⏎</span>
+                      </Button>
+                    </PromptInputActions>
+                  </PromptInput>
                 </div>
               </div>
             </div>
@@ -165,9 +106,7 @@ export default function Home({
           </div>
         </div>
         <div className="border-t py-8 mx-0 sm:-mx-4">
-          <ErrorBoundary>
-            <UserApps />
-          </ErrorBoundary>
+          <UserApps />
         </div>
       </main>
     </QueryClientProvider>
