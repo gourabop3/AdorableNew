@@ -296,7 +296,7 @@ function EnhancedToolBlock(props: {
               <Loader2 className={cn("h-4 w-4 animate-spin", iconColorClasses[selectedColor])} />
               <span className="text-sm font-medium">Running...</span>
             </div>
-          ) : props.toolInvocation.result?.isError ? (
+          ) : (props.toolInvocation.result?.isError || props.toolInvocation.output?.isError || props.toolInvocation.error) ? (
             <div className="flex items-center gap-2">
               <XCircle className="h-4 w-4 text-red-500" />
               <span className="text-sm font-medium text-red-600">Failed</span>
