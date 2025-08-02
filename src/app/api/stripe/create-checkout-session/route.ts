@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'subscription',
-      success_url: `${baseUrl}/billing?success=true&session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${baseUrl}/billing?success=true&session_id={CHECKOUT_SESSION_ID}&plan=pro&credits=100`,
       cancel_url: `${baseUrl}/billing?canceled=true`,
       metadata: {
         userId: dbUser.id,
