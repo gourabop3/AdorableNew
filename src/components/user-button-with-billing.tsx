@@ -76,7 +76,7 @@ export function UserButtonWithBilling() {
             setIsDropdownOpen(!isDropdownOpen);
           }}
           variant="outline"
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 border-white/20 text-white hover:bg-white/10 hover:border-white/40 bg-white/10 backdrop-blur-sm"
         >
           <UserIcon className="h-4 w-4" />
           <span className="text-sm font-medium">
@@ -86,16 +86,16 @@ export function UserButtonWithBilling() {
         
         {/* Dropdown Menu */}
         {isDropdownOpen && (
-          <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50">
-            <div className="p-2">
+          <div className="absolute right-0 top-full mt-2 w-64 bg-black/80 backdrop-blur-md border border-white/20 rounded-xl shadow-2xl z-50">
+            <div className="p-4">
               {/* User Info */}
               {billing && (
-                <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700 mb-2">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <div className="px-3 py-3 border-b border-white/10 mb-3">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-medium text-white">
                       {billing.plan === 'pro' ? 'Pro Plan' : 'Free Plan'}
                     </span>
-                    <Badge variant={billing.plan === 'pro' ? 'default' : 'secondary'} className="text-xs">
+                    <Badge variant={billing.plan === 'pro' ? 'default' : 'secondary'} className="text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
                       {billing.plan === 'pro' ? (
                         <span className="flex items-center gap-1">
                           <SparklesIcon className="h-3 w-3" />
@@ -105,13 +105,53 @@ export function UserButtonWithBilling() {
                     </Badge>
                   </div>
                   
-                  {/* Credits Line */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Credits</span>
-                    <div className="flex items-center gap-2">
-                      <ZapIcon className="h-3 w-3 text-yellow-500" />
-                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {billing.plan === 'pro' ? `${billing.credits}/100` : `${billing.credits}/50`}
+                  {/* Credits Display with Progress Bar */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-white/80">Credits</span>
+                      <div className="flex items-center gap-2">
+                        <ZapIcon className="h-3 w-3 text-yellow-400" />
+                        <span className="text-sm font-medium text-white">
+                          {billing.plan === 'pro' ? `${billing.credits}/100` : `${billing.credits}/50`}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {/* Progress Bar */}
+                    <div className="w-full bg-white/10 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          billing.plan === 'pro' 
+                            ? billing.credits > 80 
+                              ? 'bg-red-500' 
+                              : billing.credits > 50 
+                                ? 'bg-yellow-500' 
+                                : 'bg-green-500'
+                            : billing.credits > 40 
+                              ? 'bg-red-500' 
+                              : billing.credits > 25 
+                                ? 'bg-yellow-500' 
+                                : 'bg-green-500'
+                        }`}
+                        style={{ 
+                          width: `${billing.plan === 'pro' ? (billing.credits / 100) * 100 : (billing.credits / 50) * 100}%` 
+                        }}
+                      ></div>
+                    </div>
+                    
+                    {/* Usage Stats */}
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-white/60">
+                        {billing.plan === 'pro' 
+                          ? `${100 - billing.credits} credits remaining`
+                          : `${50 - billing.credits} credits remaining`
+                        }
+                      </span>
+                      <span className="text-white/60">
+                        {billing.plan === 'pro' 
+                          ? `${Math.round((billing.credits / 100) * 100)}% used`
+                          : `${Math.round((billing.credits / 50) * 100)}% used`
+                        }
                       </span>
                     </div>
                   </div>
@@ -120,12 +160,12 @@ export function UserButtonWithBilling() {
 
               {/* Loading State */}
               {isLoading && (
-                <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700 mb-2">
+                <div className="px-3 py-3 border-b border-white/10 mb-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Credits</span>
+                    <span className="text-sm text-white/80">Credits</span>
                     <div className="flex items-center gap-2">
-                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-900"></div>
-                      <span className="text-sm text-gray-500">Loading...</span>
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                      <span className="text-sm text-white/60">Loading...</span>
                     </div>
                   </div>
                 </div>
@@ -133,12 +173,12 @@ export function UserButtonWithBilling() {
 
               {/* Error State */}
               {error && !billing && (
-                <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700 mb-2">
+                <div className="px-3 py-3 border-b border-white/10 mb-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Credits</span>
+                    <span className="text-sm text-white/80">Credits</span>
                     <div className="flex items-center gap-2">
-                      <AlertCircle className="h-3 w-3 text-orange-500" />
-                      <span className="text-sm text-orange-600 dark:text-orange-400">Offline</span>
+                      <AlertCircle className="h-3 w-3 text-orange-400" />
+                      <span className="text-sm text-orange-400">Offline</span>
                     </div>
                   </div>
                 </div>
@@ -148,17 +188,17 @@ export function UserButtonWithBilling() {
               <div className="space-y-1">
                 <button
                   onClick={handleUpgrade}
-                  className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md flex items-center gap-2 transition-colors"
+                  className="w-full text-left px-3 py-2 text-sm text-white hover:bg-white/10 rounded-md flex items-center gap-2 transition-colors"
                 >
                   <CrownIcon className="h-4 w-4" />
                   {billing?.plan === 'pro' ? 'Manage Billing' : 'Upgrade to Pro'}
                 </button>
                 
-                <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                <div className="border-t border-white/10 my-1"></div>
                 
                 <button
                   onClick={handleSignOut}
-                  className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md flex items-center gap-2 transition-colors"
+                  className="w-full text-left px-3 py-2 text-sm text-white hover:bg-white/10 rounded-md flex items-center gap-2 transition-colors"
                 >
                   <LogOutIcon className="h-4 w-4" />
                   Sign Out
