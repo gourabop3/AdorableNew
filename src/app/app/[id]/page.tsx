@@ -27,19 +27,34 @@ export default async function AppPage({
     console.log('✅ User authenticated for app page:', user?.userId);
 
     console.log('🔐 Checking user permissions...');
-    // Check if user has permission for THIS specific app
-    const userPermission = (
-      await db
-        .select()
-        .from(appUsers)
-        .where(
-          and(
-            eq(appUsers.userId, user.userId),
-            eq(appUsers.appId, id)
+    
+    // Add retry mechanism for newly created apps
+    let userPermission = null;
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    while (!userPermission && retryCount < maxRetries) {
+      userPermission = (
+        await db
+          .select()
+          .from(appUsers)
+          .where(
+            and(
+              eq(appUsers.userId, user.userId),
+              eq(appUsers.appId, id)
+            )
           )
-        )
-        .limit(1)
-    ).at(0);
+          .limit(1)
+      ).at(0);
+
+      if (!userPermission) {
+        console.log(`⏳ Permission not found, retry ${retryCount + 1}/${maxRetries}`);
+        if (retryCount < maxRetries - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+        }
+        retryCount++;
+      }
+    }
 
     console.log('🔐 User permission for this app:', userPermission?.permissions);
     console.log('🔐 User permission full object:', userPermission);
