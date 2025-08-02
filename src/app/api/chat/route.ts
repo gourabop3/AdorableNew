@@ -4,6 +4,7 @@ import { getAppIdFromHeaders } from "@/lib/utils";
 import { MCPClient } from "@mastra/mcp";
 import { builderAgent } from "@/mastra/agents/builder";
 import { UIMessage } from "ai";
+import { validateCreditsForChat } from "@/lib/credit-tracker";
 
 // "fix" mastra mcp bug
 import { EventEmitter } from "events";
