@@ -8,7 +8,7 @@ import LogoSvg from "@/logo.svg";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ExampleButton } from "@/components/ExampleButton";
-import { UserButton } from "@stackframe/stack";
+import { UserButton } from "@/components/user-button";
 import { UserApps } from "@/components/user-apps";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PromptInputTextareaWithTypingAnimation } from "@/components/prompt-input";
