@@ -63,8 +63,15 @@ export default async function NewAppRedirectPage({
     });
 
     console.log('✅ App created successfully with ID:', id);
+    console.log('🔄 Redirecting to app page...');
     redirect(`/app/${id}`);
   } catch (error) {
+    // Don't treat NEXT_REDIRECT as an error - it's the normal redirect mechanism
+    if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
+      console.log('✅ Redirect completed successfully');
+      return; // Let Next.js handle the redirect
+    }
+    
     console.error('❌ Error creating app:', error);
     console.error('❌ Error details:', {
       message: error instanceof Error ? error.message : 'Unknown error',
