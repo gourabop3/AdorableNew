@@ -27,6 +27,20 @@ export async function POST(req: NextRequest) {
     return new Response("App not found", { status: 404 });
   }
 
+  // Add request deduplication
+  const requestId = req.headers.get('x-request-id') || crypto.randomUUID();
+  const cacheKey = `request:${appId}:${requestId}`;
+  
+  // Check if this request is already being processed
+  const existingRequest = await redisPublisher.get(cacheKey);
+  if (existingRequest) {
+    console.log("Duplicate request detected, returning existing response");
+    return new Response("Request already being processed", { status: 409 });
+  }
+  
+  // Set request processing flag
+  await redisPublisher.set(cacheKey, "processing", { EX: 30 });
+
   const streamState = await redisPublisher.get(
     "app:" + appId + ":stream-state"
   );
@@ -153,6 +167,7 @@ export async function sendMessage(
     onError: async (error) => {
       await mcp.disconnect();
       await redisPublisher.del(`app:${appId}:stream-state`);
+      await redisPublisher.del(cacheKey); // Clean up request deduplication
       
       // Enhanced error handling for quota issues
       if (error?.message?.includes('quota') || error?.message?.includes('429') || error?.statusCode === 429) {
@@ -198,6 +213,7 @@ export async function sendMessage(
     },
     onFinish: async () => {
       await redisPublisher.del(`app:${appId}:stream-state`);
+      await redisPublisher.del(cacheKey); // Clean up request deduplication
       await mcp.disconnect();
     },
     abortSignal: controller.signal,

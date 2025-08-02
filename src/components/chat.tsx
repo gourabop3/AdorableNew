@@ -27,18 +27,21 @@ export default function Chat(props: {
     queryFn: async () => {
       return chatState(props.appId);
     },
-    refetchInterval: 2000, // Slower polling to reduce blinking
+    refetchInterval: 3000, // Even slower polling to prevent loops
     refetchOnWindowFocus: false, // Disable refetch on window focus to reduce blinking
-    staleTime: 1000, // Keep data fresh for 1 second
+    staleTime: 2000, // Keep data fresh for 2 seconds
+    refetchOnMount: false, // Prevent refetch on mount
+    refetchOnReconnect: false, // Prevent refetch on reconnect
   });
 
   // Debounce the running state to reduce blinking
   const [debouncedRunning, setDebouncedRunning] = useState(false);
+  const [lastMessageId, setLastMessageId] = useState<string | null>(null);
   
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedRunning(props.running && chat?.state === "running");
-    }, 300); // 300ms debounce
+    }, 500); // 500ms debounce to prevent loops
 
     return () => clearTimeout(timer);
   }, [props.running, chat?.state]);
@@ -55,8 +58,18 @@ export default function Chat(props: {
     if (e?.preventDefault) {
       e.preventDefault();
     }
+    
+    // Prevent duplicate message sending
+    if (!input.trim() || debouncedRunning) {
+      return;
+    }
+    
+    const messageId = crypto.randomUUID();
+    setLastMessageId(messageId);
+    
     sendMessage(
       {
+        id: messageId,
         parts: [
           {
             type: "text",
