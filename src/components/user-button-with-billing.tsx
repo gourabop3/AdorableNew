@@ -26,17 +26,27 @@ export function UserButtonWithBilling() {
     };
   }, []);
 
-  const handleUpgrade = () => {
+  const handleUpgrade = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
     router.push('/billing');
     setIsDropdownOpen(false);
   };
 
-  const handleSignIn = () => {
+  const handleSignIn = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
     router.push('/handler/sign-in');
     setIsDropdownOpen(false);
   };
 
-  const handleSignOut = async () => {
+  const handleSignOut = async (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
+    
     try {
       await fetch('/api/auth/signout', { method: 'POST' });
       window.location.reload();
@@ -90,7 +100,10 @@ export function UserButtonWithBilling() {
       {/* User Menu */}
       <div className="relative" ref={dropdownRef}>
         <button
-          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          onClick={(e) => {
+            e.preventDefault();
+            setIsDropdownOpen(!isDropdownOpen);
+          }}
           className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
           <UserIcon className="h-5 w-5 text-gray-500" />
