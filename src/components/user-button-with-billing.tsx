@@ -168,10 +168,10 @@ export function UserButtonWithBilling() {
                       </div>
                     )}
                     
-                    {/* Total Usage Info */}
-                    <div className="text-xs text-white/60 pt-1">
-                      <span>1 credit per chat • App creation: 10 credits</span>
-                    </div>
+                                         {/* Total Usage Info */}
+                     <div className="text-xs text-white/60 pt-1">
+                       <span>1 credit per chat • App creation: 1 credit</span>
+                     </div>
                   </div>
                 </div>
               )}
