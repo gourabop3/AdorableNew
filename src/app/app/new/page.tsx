@@ -2,6 +2,10 @@ import { createApp } from "@/actions/create-app";
 import { redirect } from "next/navigation";
 import { getUser } from "@/auth/stack-auth";
 
+// Force dynamic rendering to prevent build errors
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // This page is never rendered. It is used to:
 // - Force user login without losing the user's initial message and template selection.
 // - Force a loading page to be rendered (loading.tsx) while the app is being created.
