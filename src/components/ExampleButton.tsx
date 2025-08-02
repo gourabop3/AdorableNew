@@ -23,7 +23,10 @@ export function ExampleButton({
       className={`hover:bg-gray-100 hover:border-gray-300 active:scale-95 transition-all duration-200 rounded-full ${
         className || ""
       }`}
-      onClick={() => onClick(promptText)}
+      onClick={(e) => {
+        e.preventDefault();
+        onClick(promptText);
+      }}
       type="button"
     >
       {text}

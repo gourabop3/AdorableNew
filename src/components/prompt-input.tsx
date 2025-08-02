@@ -21,10 +21,13 @@ export function PromptInputTextareaWithTypingAnimation() {
     initialDelay: 500,
   });
 
+  // Fallback if displayText is undefined
+  const safePlaceholder = displayText || "I want to build an app";
+
   return (
     <PromptInputTextarea
       ref={placeholderRef}
-      placeholder={displayText}
+      placeholder={safePlaceholder}
       className="min-h-[100px] w-full bg-transparent dark:bg-transparent backdrop-blur-sm pr-12"
       onBlur={() => {}}
     />

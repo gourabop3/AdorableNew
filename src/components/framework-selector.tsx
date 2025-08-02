@@ -52,7 +52,10 @@ export function FrameworkSelector({
           {Object.entries(templates).map(([key, template]) => (
             <DropdownMenuItem
               key={key}
-              onClick={() => onChange(key)}
+              onClick={(e) => {
+                e.preventDefault();
+                onChange(key);
+              }}
               className="gap-2 text-xs"
             >
               <Image
@@ -62,7 +65,7 @@ export function FrameworkSelector({
                 height={16}
                 className="opacity-90"
               />
-              {templates[key].name}
+              {template.name}
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>

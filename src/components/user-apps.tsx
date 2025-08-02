@@ -4,11 +4,14 @@ import { AppCard } from "./app-card";
 
 export function UserApps() {
   const queryClient = useQueryClient();
-  const { data } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["userApps"],
     queryFn: getUserApps,
     initialData: [],
   });
+
+  // Safely handle the data
+  const safeData = Array.isArray(data) ? data : [];
 
   const onAppDeleted = () => {
     queryClient.invalidateQueries({ queryKey: ["userApps"] });

@@ -12,6 +12,7 @@ import { UserButton } from "@/components/user-button";
 import { UserApps } from "@/components/user-apps";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PromptInputTextareaWithTypingAnimation } from "@/components/prompt-input";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 const queryClient = new QueryClient();
 
@@ -21,14 +22,25 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
+    
+    if (!prompt.trim()) {
+      return;
+    }
+    
     setIsLoading(true);
 
-    // window.location = `http://localhost:3000/app/new?message=${encodeURIComponent(prompt)}&template=${framework}`;
-
-    router.push(
-      `/app/new?message=${encodeURIComponent(prompt)}&template=${framework}`
-    );
+    try {
+      router.push(
+        `/app/new?message=${encodeURIComponent(prompt)}&template=${framework}`
+      );
+    } catch (error) {
+      console.error('Navigation error:', error);
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -59,35 +71,41 @@ export default function Home() {
             <div className="w-full relative my-5">
               <div className="relative w-full max-w-full overflow-hidden">
                 <div className="w-full bg-accent rounded-md relative z-10 border transition-colors">
-                  <PromptInput
-                    leftSlot={
-                      <FrameworkSelector
-                        value={framework}
-                        onChange={setFramework}
-                      />
-                    }
-                    isLoading={isLoading}
-                    value={prompt}
-                    onValueChange={setPrompt}
-                    onSubmit={handleSubmit}
-                    className="relative z-10 border-none bg-transparent shadow-none focus-within:border-gray-400 focus-within:ring-1 focus-within:ring-gray-200 transition-all duration-200 ease-in-out "
-                  >
-                    <PromptInputTextareaWithTypingAnimation />
-                    <PromptInputActions>
-                      <Button
-                        variant={"ghost"}
-                        size="sm"
-                        onClick={handleSubmit}
-                        disabled={isLoading || !prompt.trim()}
-                        className="h-7 text-xs"
-                      >
-                        <span className="hidden sm:inline">
-                          Start Creating ⏎
-                        </span>
-                        <span className="sm:hidden">Create ⏎</span>
-                      </Button>
-                    </PromptInputActions>
-                  </PromptInput>
+                  <ErrorBoundary>
+                    <PromptInput
+                      leftSlot={
+                        <ErrorBoundary>
+                          <FrameworkSelector
+                            value={framework}
+                            onChange={setFramework}
+                          />
+                        </ErrorBoundary>
+                      }
+                      isLoading={isLoading}
+                      value={prompt}
+                      onValueChange={setPrompt}
+                      onSubmit={handleSubmit}
+                      className="relative z-10 border-none bg-transparent shadow-none focus-within:border-gray-400 focus-within:ring-1 focus-within:ring-gray-200 transition-all duration-200 ease-in-out "
+                    >
+                      <ErrorBoundary>
+                        <PromptInputTextareaWithTypingAnimation />
+                      </ErrorBoundary>
+                      <PromptInputActions>
+                        <Button
+                          variant={"ghost"}
+                          size="sm"
+                          onClick={handleSubmit}
+                          disabled={isLoading || !prompt.trim()}
+                          className="h-7 text-xs"
+                        >
+                          <span className="hidden sm:inline">
+                            Start Creating ⏎
+                          </span>
+                          <span className="sm:hidden">Create ⏎</span>
+                        </Button>
+                      </PromptInputActions>
+                    </PromptInput>
+                  </ErrorBoundary>
                 </div>
               </div>
             </div>
@@ -108,7 +126,9 @@ export default function Home() {
           </div>
         </div>
         <div className="border-t py-8 mx-0 sm:-mx-4">
-          <UserApps />
+          <ErrorBoundary>
+            <UserApps />
+          </ErrorBoundary>
         </div>
       </main>
     </QueryClientProvider>
