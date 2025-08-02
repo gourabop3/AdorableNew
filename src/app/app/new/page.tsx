@@ -73,11 +73,10 @@ export default async function NewAppRedirectPage({
     console.warn('Billing-aware app creation failed, trying fallback:', error);
     
     // Fallback to basic app creation without billing
-    // Use skipBilling flag to prevent duplicate app creation
-    result = await createAppWithBilling({
+    // Use the original createApp function to avoid duplicate creation
+    result = await createApp({
       initialMessage: message ? decodeURIComponent(message) : '',
       templateId: search.template as string,
-      skipBilling: true, // Skip billing to avoid duplicate creation
     });
     
     redirect(`/app/${result.id}`);
