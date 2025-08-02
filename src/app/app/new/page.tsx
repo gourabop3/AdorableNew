@@ -44,12 +44,12 @@ export default async function NewAppRedirectPage({
     message = search.message;
   }
 
-  // Create a unique key for this app creation request
-  const appCreationKey = `app-creation:${user.userId}:${message}:${search.template}:${Date.now()}`;
+  // Create a unique key for this app creation request (without timestamp to allow deduplication)
+  const appCreationKey = `app-creation:${user.userId}:${message}:${search.template}`;
   
   // Check if we're already processing this request
   const existingRequest = await redisPublisher.get(appCreationKey);
-  if (existingRequest) {
+  if (existingRequest && existingRequest !== "processing") {
     console.log('Duplicate app creation request detected, redirecting to existing app');
     redirect(`/app/${existingRequest}`);
   }
@@ -58,7 +58,7 @@ export default async function NewAppRedirectPage({
   let result;
   try {
     // Set a temporary key to prevent duplicates
-    await redisPublisher.set(appCreationKey, "processing", { EX: 30 });
+    await redisPublisher.set(appCreationKey, "processing", { EX: 60 }); // 1 minute timeout
     
     result = await createAppWithBilling({
       initialMessage: message ? decodeURIComponent(message) : '',
@@ -92,9 +92,15 @@ export default async function NewAppRedirectPage({
     
     console.warn('Billing-aware app creation failed, trying fallback:', error);
     
-    // Set a new key for fallback creation
-    const fallbackKey = `app-creation-fallback:${user.userId}:${message}:${search.template}:${Date.now()}`;
-    await redisPublisher.set(fallbackKey, "processing", { EX: 30 });
+    // Set a new key for fallback creation (without timestamp)
+    const fallbackKey = `app-creation-fallback:${user.userId}:${message}:${search.template}`;
+    const existingFallback = await redisPublisher.get(fallbackKey);
+    if (existingFallback && existingFallback !== "processing") {
+      console.log('Duplicate fallback request detected, redirecting to existing app');
+      redirect(`/app/${existingFallback}`);
+    }
+    
+    await redisPublisher.set(fallbackKey, "processing", { EX: 60 });
     
     // Fallback to basic app creation without billing
     // Use the original createApp function to avoid duplicate creation

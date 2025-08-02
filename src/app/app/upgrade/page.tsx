@@ -12,6 +12,7 @@ interface UserData {
 export default function UpgradePage() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [redirecting, setRedirecting] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -71,8 +72,10 @@ export default function UpgradePage() {
     );
   }
 
-  // If user has enough credits, redirect them to create an app
-  if (userData.credits >= requiredCredits) {
+  // If user has enough credits, redirect them to create an app (with guard)
+  if (userData && userData.credits >= requiredCredits && !redirecting) {
+    setRedirecting(true);
+    
     // Get the original app creation parameters from URL
     const message = searchParams.get('message');
     const template = searchParams.get('template');

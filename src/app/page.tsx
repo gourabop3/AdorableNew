@@ -59,6 +59,11 @@ export default function Home() {
   };
 
   const handleSubmit = async () => {
+    // Prevent multiple rapid submissions
+    if (isLoading || checkingCredits) {
+      return;
+    }
+    
     setIsLoading(true);
     setCheckingCredits(true);
 
@@ -84,8 +89,11 @@ export default function Home() {
         `/app/new?message=${encodeURIComponent(prompt)}&template=${framework}`
       );
     } finally {
-      setIsLoading(false);
-      setCheckingCredits(false);
+      // Don't reset loading state immediately to prevent rapid re-submissions
+      setTimeout(() => {
+        setIsLoading(false);
+        setCheckingCredits(false);
+      }, 1000); // 1 second delay to prevent rapid submissions
     }
   };
 
