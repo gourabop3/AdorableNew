@@ -67,85 +67,63 @@ export default function AppWrapper({
     running
   });
 
-  return (
-    <div className="h-screen flex flex-col" style={{ height: "100dvh" }}>
-      {/* Desktop and Mobile container */}
-      <div className="flex-1 overflow-hidden flex flex-col md:grid md:grid-cols-[1fr_2fr]">
-        {/* Chat component - positioned for both mobile and desktop */}
-        <div
-          className={
-            isMobile
-              ? `absolute inset-0 z-10 flex flex-col transition-transform duration-200 ${
-                  mobileActiveTab === "chat"
-                    ? "translate-x-0"
-                    : "-translate-x-full"
-                }`
-              : "h-full overflow-hidden flex flex-col"
-          }
-          style={
-            isMobile
-              ? {
-                  top: "env(safe-area-inset-top)",
-                  bottom: "calc(60px + env(safe-area-inset-bottom))",
+  // Simplified mobile layout to prevent blank screen
+  if (isMobile) {
+    return (
+      <div className="h-screen flex flex-col" style={{ height: "100dvh" }}>
+        {/* Mobile content area */}
+        <div className="flex-1 overflow-hidden relative">
+          {/* Chat tab */}
+          <div
+            className={`absolute inset-0 transition-transform duration-200 ${
+              mobileActiveTab === "chat" ? "translate-x-0" : "-translate-x-full"
+            }`}
+            style={{
+              top: "env(safe-area-inset-top)",
+              bottom: "60px",
+            }}
+          >
+            <QueryClientProvider client={queryClient}>
+              <Chat
+                topBar={
+                  <TopBar
+                    appName={appName}
+                    repoId={repoId}
+                    consoleUrl={consoleUrl}
+                    codeServerUrl={codeServerUrl}
+                  />
                 }
-              : undefined
-          }
-        >
-          <QueryClientProvider client={queryClient}>
-            <Chat
-              topBar={
-                <TopBar
-                  appName={appName}
-                  repoId={repoId}
-                  consoleUrl={consoleUrl}
-                  codeServerUrl={codeServerUrl}
-                />
-              }
-              appId={appId}
-              initialMessages={initialMessages}
-              key={appId}
-              running={running}
-            />
-          </QueryClientProvider>
-        </div>
+                appId={appId}
+                initialMessages={initialMessages}
+                key={appId}
+                running={running}
+              />
+            </QueryClientProvider>
+          </div>
 
-        {/* Preview component - positioned for both mobile and desktop */}
-        <div
-          className={
-            isMobile
-              ? `absolute inset-0 z-10 transition-transform duration-200 ${
-                  mobileActiveTab === "preview"
-                    ? "translate-x-0"
-                    : "translate-x-full"
-                }`
-              : "overflow-auto"
-          }
-          style={
-            isMobile
-              ? {
-                  top: "env(safe-area-inset-top)",
-                  bottom: "calc(60px + env(safe-area-inset-bottom))",
-                }
-              : undefined
-          }
-        >
-          <div className="h-full overflow-hidden relative">
-            <WebView
-              repo={repo}
-              baseId={baseId}
-              appId={appId}
-              domain={domain}
-            />
+          {/* Preview tab */}
+          <div
+            className={`absolute inset-0 transition-transform duration-200 ${
+              mobileActiveTab === "preview" ? "translate-x-0" : "translate-x-full"
+            }`}
+            style={{
+              top: "env(safe-area-inset-top)",
+              bottom: "60px",
+            }}
+          >
+            <div className="h-full overflow-hidden relative">
+              <WebView
+                repo={repo}
+                baseId={baseId}
+                appId={appId}
+                domain={domain}
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Mobile tab navigation */}
-      {isMobile && (
-        <div
-          className="fixed bottom-0 left-0 right-0 flex border-t bg-background/95 backdrop-blur-sm pb-safe"
-          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-        >
+        {/* Mobile tab navigation */}
+        <div className="fixed bottom-0 left-0 right-0 flex border-t bg-background/95 backdrop-blur-sm h-[60px]">
           <button
             onClick={() => {
               setMobileActiveTab("chat");
@@ -183,7 +161,44 @@ export default function AppWrapper({
             <span className="text-xs font-medium">Preview</span>
           </button>
         </div>
-      )}
+      </div>
+    );
+  }
+
+  // Desktop layout
+  return (
+    <div className="h-screen flex flex-col" style={{ height: "100dvh" }}>
+      <div className="flex-1 overflow-hidden flex flex-col md:grid md:grid-cols-[1fr_2fr]">
+        <div className="h-full overflow-hidden flex flex-col">
+          <QueryClientProvider client={queryClient}>
+            <Chat
+              topBar={
+                <TopBar
+                  appName={appName}
+                  repoId={repoId}
+                  consoleUrl={consoleUrl}
+                  codeServerUrl={codeServerUrl}
+                />
+              }
+              appId={appId}
+              initialMessages={initialMessages}
+              key={appId}
+              running={running}
+            />
+          </QueryClientProvider>
+        </div>
+
+        <div className="overflow-auto">
+          <div className="h-full overflow-hidden relative">
+            <WebView
+              repo={repo}
+              baseId={baseId}
+              appId={appId}
+              domain={domain}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
