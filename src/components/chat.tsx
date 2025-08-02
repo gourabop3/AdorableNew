@@ -10,7 +10,6 @@ import { ChatContainer } from "./ui/chat-container";
 import { UIMessage } from "ai";
 import { ToolMessage } from "./tools";
 import { EnhancedToolMessage } from "./enhanced-tools";
-import { ProgressiveCodeStreaming } from "./progressive-code-streaming";
 import { useQuery } from "@tanstack/react-query";
 import { chatState } from "@/actions/chat-streaming";
 import { CompressedImage } from "@/lib/image-compression";
@@ -125,13 +124,8 @@ export default function Chat(props: {
         style={{ overflowAnchor: "auto" }}
       >
         <ChatContainer autoScroll>
-          {messages.map((message: any, index: number) => (
-            <ProgressiveCodeStreaming 
-              key={message.id} 
-              message={message} 
-              isStreaming={debouncedRunning}
-              isLastMessage={index === messages.length - 1}
-            />
+          {messages.map((message: any) => (
+            <MessageBody key={message.id} message={message} />
           ))}
         </ChatContainer>
       </div>
