@@ -27,12 +27,12 @@ export default function Chat(props: {
     queryFn: async () => {
       return chatState(props.appId);
     },
-    refetchInterval: 5000, // Much slower polling to prevent auto-refresh
+    refetchInterval: 2000, // Faster polling for better responsiveness
     refetchOnWindowFocus: false, // Disable refetch on window focus to reduce blinking
-    staleTime: 5000, // Keep data fresh for 5 seconds
+    staleTime: 1000, // Keep data fresh for 1 second for better responsiveness
     refetchOnMount: false, // Prevent refetch on mount
     refetchOnReconnect: false, // Prevent refetch on reconnect
-    gcTime: 10000, // Keep cache for 10 seconds
+    gcTime: 5000, // Keep cache for 5 seconds
   });
 
   // Debounce the running state to reduce blinking
@@ -42,7 +42,7 @@ export default function Chat(props: {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedRunning(props.running && chat?.state === "running");
-    }, 1000); // 1 second debounce to prevent loops and auto-refresh
+    }, 300); // Reduced debounce for better responsiveness
 
     return () => clearTimeout(timer);
   }, [props.running, chat?.state]);
@@ -74,26 +74,32 @@ export default function Chat(props: {
       return;
     }
     
-    const messageId = crypto.randomUUID();
-    setLastMessageId(messageId);
-    
-    sendMessage(
-      {
-        id: messageId,
-        parts: [
-          {
-            type: "text",
-            text: input,
-          },
-        ],
-      },
-      {
-        headers: {
-          "Adorable-App-Id": props.appId,
-        },
-      }
-    );
+    // Add a small delay to prevent rapid-fire messages
+    const messageText = input.trim();
     setInput("");
+    
+    // Use setTimeout to ensure the input is cleared before sending
+    setTimeout(() => {
+      const messageId = crypto.randomUUID();
+      setLastMessageId(messageId);
+      
+      sendMessage(
+        {
+          id: messageId,
+          parts: [
+            {
+              type: "text",
+              text: messageText,
+            },
+          ],
+        },
+        {
+          headers: {
+            "Adorable-App-Id": props.appId,
+          },
+        }
+      );
+    }, 100); // Small delay to prevent rapid sending
   };
 
   const onSubmitWithImages = (text: string, images: CompressedImage[]) => {

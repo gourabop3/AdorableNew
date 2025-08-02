@@ -27,19 +27,19 @@ export async function POST(req: NextRequest) {
     return new Response("App not found", { status: 404 });
   }
 
-  // Add request deduplication
+  // Add request deduplication with shorter timeout
   const requestId = req.headers.get('x-request-id') || crypto.randomUUID();
   const cacheKey = `request:${appId}:${requestId}`;
   
-  // Check if this request is already being processed
+  // Check if this request is already being processed (shorter timeout)
   const existingRequest = await redisPublisher.get(cacheKey);
-  if (existingRequest) {
+  if (existingRequest === "processing") {
     console.log("Duplicate request detected, returning existing response");
     return new Response("Request already being processed", { status: 409 });
   }
   
-  // Set request processing flag
-  await redisPublisher.set(cacheKey, "processing", { EX: 30 });
+  // Set request processing flag with shorter timeout
+  await redisPublisher.set(cacheKey, "processing", { EX: 10 }); // Reduced from 30 to 10 seconds
 
   const streamState = await redisPublisher.get(
     "app:" + appId + ":stream-state"
