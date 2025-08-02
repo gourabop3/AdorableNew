@@ -38,13 +38,10 @@ export default function AppWrapper({
     "chat"
   );
   const [isMobile, setIsMobile] = useState(false);
-  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
-      const mobile = window.innerWidth < 768; // md breakpoint
-      setIsMobile(mobile);
-      console.log('📱 Mobile detection:', { isMobile: mobile, width: window.innerWidth });
+      setIsMobile(window.innerWidth < 768); // md breakpoint
     };
 
     checkMobile();
@@ -59,56 +56,117 @@ export default function AppWrapper({
     };
   }, []);
 
-  console.log('🎨 AppWrapper rendering:', {
-    isMobile,
-    mobileActiveTab,
-    appName,
-    appId,
-    initialMessagesCount: initialMessages.length,
-    running,
-    hasError
-  });
-
-  // Show a simple test page first to see if the issue is with complex components
   return (
-    <div className="h-screen flex flex-col items-center justify-center bg-gray-50">
-      <div className="text-center p-8 max-w-md">
-        <h1 className="text-3xl font-bold mb-4 text-green-600">✅ App Loaded Successfully!</h1>
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-          <h2 className="text-xl font-semibold mb-4">{appName || 'Unnamed App'}</h2>
-          <div className="space-y-2 text-sm text-gray-600">
-            <p><strong>App ID:</strong> {appId}</p>
-            <p><strong>Base ID:</strong> {baseId}</p>
-            <p><strong>Repo:</strong> {repo}</p>
-            <p><strong>Messages:</strong> {initialMessages.length}</p>
-            <p><strong>Running:</strong> {running ? 'Yes' : 'No'}</p>
-            <p><strong>Mobile:</strong> {isMobile ? 'Yes' : 'No'}</p>
-          </div>
-          <div className="mt-6 space-y-2">
-            <button 
-              onClick={() => {
-                console.log('🔄 Reloading page...');
-                window.location.reload();
-              }} 
-              className="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              Reload Page
-            </button>
-            <button 
-              onClick={() => {
-                console.log('🏠 Going to home...');
-                window.location.href = '/';
-              }} 
-              className="w-full px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-            >
-              Go to Home
-            </button>
+    <div className="h-screen flex flex-col" style={{ height: "100dvh" }}>
+      {/* Desktop and Mobile container */}
+      <div className="flex-1 overflow-hidden flex flex-col md:grid md:grid-cols-[1fr_2fr]">
+        {/* Chat component - positioned for both mobile and desktop */}
+        <div
+          className={
+            isMobile
+              ? `absolute inset-0 z-10 flex flex-col transition-transform duration-200 ${
+                  mobileActiveTab === "chat"
+                    ? "translate-x-0"
+                    : "-translate-x-full"
+                }`
+              : "h-full overflow-hidden flex flex-col"
+          }
+          style={
+            isMobile
+              ? {
+                  top: "env(safe-area-inset-top)",
+                  bottom: "calc(60px + env(safe-area-inset-bottom))",
+                }
+              : undefined
+          }
+        >
+          <QueryClientProvider client={queryClient}>
+            <Chat
+              topBar={
+                <TopBar
+                  appName={appName}
+                  repoId={repoId}
+                  consoleUrl={consoleUrl}
+                  codeServerUrl={codeServerUrl}
+                />
+              }
+              appId={appId}
+              initialMessages={initialMessages}
+              key={appId}
+              running={running}
+            />
+          </QueryClientProvider>
+        </div>
+
+        {/* Preview component - positioned for both mobile and desktop */}
+        <div
+          className={
+            isMobile
+              ? `absolute inset-0 z-10 transition-transform duration-200 ${
+                  mobileActiveTab === "preview"
+                    ? "translate-x-0"
+                    : "translate-x-full"
+                }`
+              : "overflow-auto"
+          }
+          style={
+            isMobile
+              ? {
+                  top: "env(safe-area-inset-top)",
+                  bottom: "calc(60px + env(safe-area-inset-bottom))",
+                }
+              : undefined
+          }
+        >
+          <div className="h-full overflow-hidden relative">
+            <WebView
+              repo={repo}
+              baseId={baseId}
+              appId={appId}
+              domain={domain}
+            />
           </div>
         </div>
-        <p className="mt-4 text-sm text-gray-500">
-          If you can see this, the AppWrapper is working. The issue might be with the Chat or WebView components.
-        </p>
       </div>
+
+      {/* Mobile tab navigation */}
+      {isMobile && (
+        <div
+          className="fixed bottom-0 left-0 right-0 flex border-t bg-background/95 backdrop-blur-sm pb-safe"
+          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        >
+          <button
+            onClick={() => setMobileActiveTab("chat")}
+            className={`flex-1 flex flex-col items-center justify-center py-2 px-1 transition-colors ${
+              mobileActiveTab === "chat"
+                ? "text-primary"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <MessageCircle
+              className={`h-6 w-6 mb-1 ${
+                mobileActiveTab === "chat" ? "fill-current" : ""
+              }`}
+            />
+            <span className="text-xs font-medium">Chat</span>
+          </button>
+          <button
+            onClick={() => setMobileActiveTab("preview")}
+            className={`flex-1 flex flex-col items-center justify-center py-2 px-1 transition-colors ${
+              mobileActiveTab === "preview"
+                ? "text-primary"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Monitor
+              className={`h-6 w-6 mb-1 ${
+                mobileActiveTab === "preview" ? "fill-current" : ""
+              }`}
+            />
+            <span className="text-xs font-medium">Preview</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
