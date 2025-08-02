@@ -158,7 +158,7 @@ function EnhancedEditFileTool({
       toolInvocation={toolInvocation}
       color="yellow"
     >
-      <div className="grid gap-3 mt-3">
+      <div className="grid gap-2 mt-3">
         {toolInvocation.input?.edits?.map?.(
           (edit: { newText: string; oldText: string }, index: number) =>
             (edit.oldText || edit.newText) && (
@@ -170,16 +170,16 @@ function EnhancedEditFileTool({
                     </div>
                     <CodeBlock className="border-red-200 bg-red-50">
                       <CodeBlockCode
-                        code={expandedEdits.has(index) ? edit.oldText : edit.oldText?.split("\n").slice(0, 8).join("\n")}
+                        code={expandedEdits.has(index) ? edit.oldText : edit.oldText?.split("\n").slice(0, 4).join("\n")}
                         language={"tsx"}
                         className="text-red-800"
                       />
-                      {edit.oldText?.split("\n").length > 8 && (
+                      {edit.oldText?.split("\n").length > 4 && (
                         <div 
                           className="text-red-600 px-4 text-xs font-mono py-1 cursor-pointer hover:bg-red-100 flex items-center justify-between"
                           onClick={() => toggleEdit(index)}
                         >
-                          <span>{expandedEdits.has(index) ? 'Show less' : `+${edit.oldText?.split("\n").length - 8} more lines`}</span>
+                          <span>{expandedEdits.has(index) ? 'Show less' : `+${edit.oldText?.split("\n").length - 4} more lines`}</span>
                           {expandedEdits.has(index) ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                         </div>
                       )}
@@ -193,16 +193,16 @@ function EnhancedEditFileTool({
                     </div>
                     <CodeBlock className="border-green-200 bg-green-50">
                       <CodeBlockCode
-                        code={expandedEdits.has(index) ? edit.newText?.trimEnd() : edit.newText?.trimEnd()?.split("\n").slice(0, 8).join("\n")}
+                        code={expandedEdits.has(index) ? edit.newText?.trimEnd() : edit.newText?.trimEnd()?.split("\n").slice(0, 4).join("\n")}
                         language={"tsx"}
                         className="text-green-800"
                       />
-                      {edit.newText?.split("\n").length > 8 && (
+                      {edit.newText?.split("\n").length > 4 && (
                         <div 
                           className="text-green-600 px-4 text-xs font-mono py-1 cursor-pointer hover:bg-green-100 flex items-center justify-between"
                           onClick={() => toggleEdit(index)}
                         >
-                          <span>{expandedEdits.has(index) ? 'Show less' : `+${edit.newText?.split("\n").length - 8} more lines`}</span>
+                          <span>{expandedEdits.has(index) ? 'Show less' : `+${edit.newText?.split("\n").length - 4} more lines`}</span>
                           {expandedEdits.has(index) ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                         </div>
                       )}
@@ -241,16 +241,16 @@ function EnhancedWriteFileTool({
           </div>
           <CodeBlock className="border-emerald-200 bg-emerald-50">
             <CodeBlockCode
-              code={isExpanded ? toolInvocation.input?.content : toolInvocation.input?.content?.split("\n").slice(0, 12).join("\n") ?? ""}
+              code={isExpanded ? toolInvocation.input?.content : toolInvocation.input?.content?.split("\n").slice(0, 6).join("\n") ?? ""}
               language={"tsx"}
               className="text-emerald-800"
             />
-            {toolInvocation.input?.content?.split("\n").length > 12 && (
+            {toolInvocation.input?.content?.split("\n").length > 6 && (
               <div 
                 className="text-emerald-600 px-4 text-xs font-mono py-2 cursor-pointer hover:bg-emerald-100 flex items-center justify-between"
                 onClick={() => setIsExpanded(!isExpanded)}
               >
-                <span>{isExpanded ? 'Show less' : `+${toolInvocation.input?.content?.split("\n").length - 12} more lines`}</span>
+                <span>{isExpanded ? 'Show less' : `+${toolInvocation.input?.content?.split("\n").length - 6} more lines`}</span>
                 {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
               </div>
             )}
@@ -285,16 +285,16 @@ function EnhancedReadFileTool({
           </div>
           <CodeBlock className="border-green-200 bg-green-50">
             <CodeBlockCode
-              code={isExpanded ? toolInvocation.input?.content : toolInvocation.input?.content?.split("\n").slice(0, 12).join("\n") ?? ""}
+              code={isExpanded ? toolInvocation.input?.content : toolInvocation.input?.content?.split("\n").slice(0, 6).join("\n") ?? ""}
               language={"tsx"}
               className="text-green-800"
             />
-            {toolInvocation.input?.content?.split("\n").length > 12 && (
+            {toolInvocation.input?.content?.split("\n").length > 6 && (
               <div 
                 className="text-green-600 px-4 text-xs font-mono py-2 cursor-pointer hover:bg-green-100 flex items-center justify-between"
                 onClick={() => setIsExpanded(!isExpanded)}
               >
-                <span>{isExpanded ? 'Show less' : `+${toolInvocation.input?.content?.split("\n").length - 12} more lines`}</span>
+                <span>{isExpanded ? 'Show less' : `+${toolInvocation.input?.content?.split("\n").length - 6} more lines`}</span>
                 {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
               </div>
             )}
