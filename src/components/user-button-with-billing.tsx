@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { ZapIcon, CrownIcon, UserIcon, LogOutIcon, LogInIcon, AlertCircle, SparklesIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useBilling } from "@/contexts/billing-context";
-import { CreditDisplay } from "@/components/credit-display";
 
 export function UserButtonWithBilling() {
   const { billing, isLoading, error, isAuthenticated } = useBilling();
@@ -69,47 +68,6 @@ export function UserButtonWithBilling() {
 
   return (
     <div className="flex items-center gap-3">
-      {/* Professional Credits Display */}
-      {billing && (
-        <div className="hidden sm:block">
-          <CreditDisplay 
-            credits={billing.credits} 
-            plan={billing.plan}
-            className="w-48"
-          />
-        </div>
-      )}
-
-      {/* Mobile Credits Display */}
-      {billing && (
-        <div className="sm:hidden flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg">
-          <ZapIcon className="h-4 w-4 text-yellow-500" />
-          <span className="text-sm font-bold">{billing.credits}</span>
-          {billing.plan === 'pro' && (
-            <Badge variant="default" className="bg-purple-600 text-xs">
-              <SparklesIcon className="h-3 w-3 mr-1" />
-              Pro
-            </Badge>
-          )}
-        </div>
-      )}
-
-      {/* Loading State */}
-      {isLoading && (
-        <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
-          <span className="text-sm text-gray-500">Loading...</span>
-        </div>
-      )}
-
-      {/* Error State - Still functional */}
-      {error && !billing && (
-        <div className="flex items-center gap-2 px-3 py-2 bg-orange-100 dark:bg-orange-800 rounded-lg">
-          <AlertCircle className="h-4 w-4 text-orange-600" />
-          <span className="text-sm text-orange-600 dark:text-orange-400">Offline</span>
-        </div>
-      )}
-
       {/* User Menu */}
       <div className="relative" ref={dropdownRef}>
         <Button
@@ -133,7 +91,7 @@ export function UserButtonWithBilling() {
               {/* User Info */}
               {billing && (
                 <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700 mb-2">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       {billing.plan === 'pro' ? 'Pro Plan' : 'Free Plan'}
                     </span>
@@ -146,11 +104,42 @@ export function UserButtonWithBilling() {
                       ) : 'Free'}
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <ZapIcon className="h-3 w-3 text-yellow-500" />
-                    <span className="text-xs text-gray-500">
-                      {billing.credits} credits available
-                    </span>
+                  
+                  {/* Credits Line */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Credits</span>
+                    <div className="flex items-center gap-2">
+                      <ZapIcon className="h-3 w-3 text-yellow-500" />
+                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {billing.plan === 'pro' ? `${billing.credits}/100` : `${billing.credits}/50`}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Loading State */}
+              {isLoading && (
+                <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700 mb-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Credits</span>
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-900"></div>
+                      <span className="text-sm text-gray-500">Loading...</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Error State */}
+              {error && !billing && (
+                <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700 mb-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Credits</span>
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="h-3 w-3 text-orange-500" />
+                      <span className="text-sm text-orange-600 dark:text-orange-400">Offline</span>
+                    </div>
                   </div>
                 </div>
               )}
