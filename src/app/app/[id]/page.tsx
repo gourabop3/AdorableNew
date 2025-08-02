@@ -5,7 +5,7 @@ import AppWrapper from "../../../components/app-wrapper";
 import { freestyle } from "@/lib/freestyle";
 import { db } from "@/lib/db";
 import { appUsers } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { getUser } from "@/auth/stack-auth";
 import { memory } from "@/mastra/agents/builder";
 import { buttonVariants } from "@/components/ui/button";
@@ -26,7 +26,7 @@ export default async function AppPage({
     await db
       .select()
       .from(appUsers)
-      .where(eq(appUsers.userId, user.userId))
+      .where(and(eq(appUsers.userId, user.userId), eq(appUsers.appId, id)))
       .limit(1)
   ).at(0);
 

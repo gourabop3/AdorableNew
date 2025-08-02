@@ -61,12 +61,12 @@ export default async function NewAppRedirectPage({
     console.log('🎯 Creating app with:', { message, templateId });
 
     console.log('🚀 Calling createApp...');
-    const { id } = await createApp({
+    const app = await createApp({
       initialMessage: message ? decodeURIComponent(message) : '',
       templateId: templateId,
     });
 
-    console.log('✅ App created successfully with ID:', id);
+    console.log('✅ App created successfully with ID:', app.id);
     
     // Increase delay to ensure all database operations complete
     console.log('⏳ Waiting for database operations to complete...');
@@ -75,7 +75,7 @@ export default async function NewAppRedirectPage({
     console.log('🔄 Redirecting to app page...');
     
     // Use a more explicit redirect
-    const redirectUrl = `/app/${id}`;
+    const redirectUrl = `/app/${app.id}`;
     console.log('📍 Redirect URL:', redirectUrl);
     
     redirect(redirectUrl);
