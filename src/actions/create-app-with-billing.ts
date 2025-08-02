@@ -11,6 +11,7 @@ import { eq } from "drizzle-orm";
 import { InsufficientCreditsError } from "@/lib/errors";
 import { deductCredits } from "@/lib/credits";
 import { deductCreditsWithDaily, getDailyCreditStatus } from "@/lib/daily-credits";
+import { deductCreditsForAppCreation, checkCreditsForAction } from "@/lib/credit-tracker";
 
 interface CreateAppOptions {
   initialMessage?: string;
@@ -70,17 +71,16 @@ export async function createAppWithBilling({
       const dbUser = await ensureUserInDatabase(user);
       
       if (dbUser) {
-        // Check if user has enough credits before proceeding (using daily credit system)
-        const creditStatus = await getDailyCreditStatus(user.userId);
-        const totalAvailable = creditStatus.dailyCreditsRemaining + creditStatus.monthlyCredits;
+        // Check if user has enough credits before proceeding
+        const creditCheck = await checkCreditsForAction(user.userId, 'app_creation');
         
-        if (totalAvailable < 1) {
-          throw new InsufficientCreditsError(totalAvailable, 1);
+        if (!creditCheck.hasCredits) {
+          throw new InsufficientCreditsError(creditCheck.availableCredits, 1);
         }
 
-        // Deduct credits using the daily credit system (like Lovable.dev)
+        // Deduct credits for app creation
         try {
-          const result = await deductCreditsWithDaily(user.userId, 1, 'App creation');
+          const result = await deductCreditsForAppCreation(user.userId);
           billingMode = 'full';
           console.log('✅ Credits deducted successfully for app creation (1 credit)');
           console.log(`Daily credits remaining: ${result.remainingCredits.dailyCreditsRemaining}`);
@@ -88,7 +88,7 @@ export async function createAppWithBilling({
         } catch (creditError: any) {
           console.error('Credit deduction failed:', creditError);
           if (creditError.message === 'Insufficient credits') {
-            throw new InsufficientCreditsError(totalAvailable, 1);
+            throw new InsufficientCreditsError(creditCheck.availableCredits, 1);
           }
           billingMode = 'fallback';
           warning = 'Credit deduction failed, using free mode';

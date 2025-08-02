@@ -4,6 +4,8 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 
 interface BillingData {
   credits: number;
+  dailyCreditsRemaining?: number;
+  dailyCreditsUsed?: number;
   plan: 'free' | 'pro';
   stripeCustomerId?: string;
 }

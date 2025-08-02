@@ -28,6 +28,25 @@ export async function POST(req: NextRequest) {
     return new Response("App not found", { status: 404 });
   }
 
+  // Parse request body once
+  const body = await req.json();
+  const { messages } = body;
+  
+  // Validate credits for chat message
+  const lastMessage = messages?.at(-1);
+  const messageContent = lastMessage?.parts?.[0]?.text || '';
+  
+  const creditValidation = await validateCreditsForChat(appId, messageContent);
+  if (!creditValidation.canProceed) {
+    return new Response(JSON.stringify({ 
+      error: creditValidation.error,
+      type: 'insufficient_credits' 
+    }), { 
+      status: 402, // Payment Required
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
   // Add request deduplication with shorter timeout
   const requestId = req.headers.get('x-request-id') || crypto.randomUUID();
   const cacheKey = `request:${appId}:${requestId}`;
@@ -74,7 +93,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const { messages }: { messages: UIMessage[] } = await req.json();
+  // Use messages from already parsed body
 
   const { mcpEphemeralUrl } = await freestyle.requestDevServer({
     repoId: app.info.gitRepo,
