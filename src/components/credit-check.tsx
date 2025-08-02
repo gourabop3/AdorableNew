@@ -68,7 +68,7 @@ export function CreditCheck({ onProceed, onCancel }: CreditCheckProps) {
     );
   }
 
-  const hasEnoughCredits = userData.credits >= 10; // 10 credits per app creation
+  const hasEnoughCredits = userData.credits >= 1; // 1 credit per app creation
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -79,7 +79,7 @@ export function CreditCheck({ onProceed, onCancel }: CreditCheckProps) {
             Credit Check
           </CardTitle>
           <CardDescription>
-            Creating an app requires 10 credits
+            Creating an app requires 1 credit
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -102,7 +102,7 @@ export function CreditCheck({ onProceed, onCancel }: CreditCheckProps) {
               </div>
               <div className="flex gap-2">
                 <Button onClick={onProceed} className="flex-1">
-                  Create App (10 credits)
+                  Create App (1 credit)
                 </Button>
                 <Button onClick={onCancel} variant="outline">
                   Cancel
@@ -116,7 +116,7 @@ export function CreditCheck({ onProceed, onCancel }: CreditCheckProps) {
                 <span className="text-sm font-medium">Insufficient credits</span>
               </div>
               <p className="text-sm text-gray-600">
-                You need {10 - userData.credits} more credits to create an app.
+                You need {1 - userData.credits} more credits to create an app.
               </p>
               <div className="space-y-2">
                 <Button onClick={handleUpgrade} className="w-full">

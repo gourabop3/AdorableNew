@@ -70,20 +70,20 @@ export async function createAppWithBilling({
       
       if (dbUser) {
         // Check if user has enough credits before proceeding
-        const creditCheck = await checkCredits(user.userId, 10);
+        const creditCheck = await checkCredits(user.userId, 1);
         if (!creditCheck.success) {
-          throw new InsufficientCreditsError(creditCheck.currentCredits, 10);
+          throw new InsufficientCreditsError(creditCheck.currentCredits, 1);
         }
 
         // Deduct credits using the proper credits library
         try {
-          await deductCredits(user.userId, 10, 'App creation');
+          await deductCredits(user.userId, 1, 'App creation');
           billingMode = 'full';
           console.log('✅ Credits deducted successfully for app creation');
         } catch (creditError: any) {
           console.error('Credit deduction failed:', creditError);
           if (creditError.message === 'Insufficient credits') {
-            throw new InsufficientCreditsError(creditCheck.currentCredits, 10);
+            throw new InsufficientCreditsError(creditCheck.currentCredits, 1);
           }
           billingMode = 'fallback';
           warning = 'Credit deduction failed, using free mode';
