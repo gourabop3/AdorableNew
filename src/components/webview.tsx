@@ -6,7 +6,7 @@ import {
   FreestyleDevServer,
   FreestyleDevServerHandle,
 } from "freestyle-sandboxes/react/dev-server";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { RefreshCwIcon } from "lucide-react";
 import { ShareButton } from "./share-button";
@@ -17,11 +17,22 @@ export default function WebView(props: {
   appId: string;
   domain?: string;
 }) {
+  const [showFallback, setShowFallback] = useState(false);
+  
   function requestDevServer({ repoId }: { repoId: string }) {
     return requestDevServerInner({ repoId });
   }
 
   const devServerRef = useRef<FreestyleDevServerHandle>(null);
+
+  // Show fallback message after 10 seconds if no preview loads
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowFallback(true);
+    }, 10000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div className="flex flex-col overflow-hidden h-screen border-l transition-opacity duration-700 mt-[2px]">
@@ -42,17 +53,35 @@ export default function WebView(props: {
         loadingComponent={({ iframeLoading, devCommandRunning }) =>
           !devCommandRunning && (
             <div className="flex items-center justify-center h-full">
-              <div>
-                <div className="text-center">
+              <div className="text-center">
+                <div className="mb-4">
                   {iframeLoading ? "JavaScript Loading" : "Starting VM"}
                 </div>
-                <div>
+                <div className="mb-8">
                   <div className="loader"></div>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Develop By Gourab
                 </div>
               </div>
             </div>
           )
         }
+        errorComponent={({ error }) => (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <div className="mb-4 text-lg font-medium">
+                No Preview Available
+              </div>
+              <div className="mb-8 text-sm text-muted-foreground">
+                Start chatting to generate your app
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Develop By Gourab
+              </div>
+            </div>
+          </div>
+        )}
       />
     </div>
   );
