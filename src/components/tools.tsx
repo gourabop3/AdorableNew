@@ -273,9 +273,7 @@ function ToolBlock(props: {
               )}
             ></div>
           </div>
-          <span className="font-medium">
-            {isWriting ? "writing file" : isEditing ? "editing file" : props.name}
-          </span>
+          <span className="font-medium">{props.name}</span>
           <span>{props.argsText}</span>
           {(isWriting || isEditing) && (
             <span className="text-gray-500 text-sm">writing...</span>
