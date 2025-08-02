@@ -22,13 +22,15 @@ export default async function NewAppRedirectPage({
     // Redirect to sign in if user is not authenticated
     const search = await searchParams;
     const newParams = new URLSearchParams();
-    Object.entries(search).forEach(([key, value]) => {
-      if (Array.isArray(value)) {
-        value.forEach((v) => newParams.append(key, v));
-      } else {
-        newParams.set(key, value);
-      }
-    });
+    if (search && typeof search === 'object') {
+      Object.entries(search).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          value.forEach((v) => newParams.append(key, v));
+        } else {
+          newParams.set(key, value);
+        }
+      });
+    }
 
     redirect(
       `/handler/sign-in?after_auth_return_to=${encodeURIComponent(
@@ -38,19 +40,22 @@ export default async function NewAppRedirectPage({
   }
 
   const search = await searchParams;
-  console.log('📝 Search params:', Object.fromEntries(search));
+  console.log('📝 Search params type:', typeof search);
+  console.log('📝 Search params keys:', search ? Object.keys(search) : 'null');
 
   if (!user || !user.userId) {
     console.log('❌ User data is invalid:', user);
     // reconstruct the search params
     const newParams = new URLSearchParams();
-    Object.entries(search).forEach(([key, value]) => {
-      if (Array.isArray(value)) {
-        value.forEach((v) => newParams.append(key, v));
-      } else {
-        newParams.set(key, value);
-      }
-    });
+    if (search && typeof search === 'object') {
+      Object.entries(search).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          value.forEach((v) => newParams.append(key, v));
+        } else {
+          newParams.set(key, value);
+        }
+      });
+    }
 
     // After sign in, redirect back to this page with the initial search params
     redirect(
@@ -61,13 +66,15 @@ export default async function NewAppRedirectPage({
   }
 
   let message: string | undefined;
-  if (Array.isArray(search.message)) {
-    message = search.message[0];
-  } else {
-    message = search.message;
+  if (search && search.message) {
+    if (Array.isArray(search.message)) {
+      message = search.message[0];
+    } else {
+      message = search.message;
+    }
   }
 
-  const templateId = search.template as string || 'nextjs';
+  const templateId = (search && search.template ? search.template as string : 'nextjs') || 'nextjs';
   console.log('🎯 Creating app with:', { message, templateId });
 
   try {
