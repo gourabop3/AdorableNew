@@ -74,21 +74,21 @@ export async function createAppWithBilling({
         const creditStatus = await getDailyCreditStatus(user.userId);
         const totalAvailable = creditStatus.dailyCreditsRemaining + creditStatus.monthlyCredits;
         
-        if (totalAvailable < 10) {
-          throw new InsufficientCreditsError(totalAvailable, 10);
+        if (totalAvailable < 1) {
+          throw new InsufficientCreditsError(totalAvailable, 1);
         }
 
         // Deduct credits using the daily credit system (like Lovable.dev)
         try {
-          const result = await deductCreditsWithDaily(user.userId, 10, 'App creation');
+          const result = await deductCreditsWithDaily(user.userId, 1, 'App creation');
           billingMode = 'full';
-          console.log('✅ Credits deducted successfully for app creation');
+          console.log('✅ Credits deducted successfully for app creation (1 credit)');
           console.log(`Daily credits remaining: ${result.remainingCredits.dailyCreditsRemaining}`);
           console.log(`Monthly credits remaining: ${result.remainingCredits.monthlyCredits}`);
         } catch (creditError: any) {
           console.error('Credit deduction failed:', creditError);
           if (creditError.message === 'Insufficient credits') {
-            throw new InsufficientCreditsError(totalAvailable, 10);
+            throw new InsufficientCreditsError(totalAvailable, 1);
           }
           billingMode = 'fallback';
           warning = 'Credit deduction failed, using free mode';
