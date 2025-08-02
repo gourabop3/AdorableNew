@@ -19,68 +19,46 @@ export default async function NewAppRedirectPage({
     console.log('✅ User authenticated:', user?.userId);
   } catch (error) {
     console.error('❌ Authentication error:', error);
-    // Redirect to sign in if user is not authenticated
-    const search = await searchParams;
-    const newParams = new URLSearchParams();
-    if (search && typeof search === 'object') {
-      Object.entries(search).forEach(([key, value]) => {
-        if (Array.isArray(value)) {
-          value.forEach((v) => newParams.append(key, v));
-        } else {
-          newParams.set(key, value);
-        }
-      });
-    }
-
-    redirect(
-      `/handler/sign-in?after_auth_return_to=${encodeURIComponent(
-        "/app/new?" + newParams.toString()
-      )}`
-    );
+    redirect('/handler/sign-in');
   }
-
-  const search = await searchParams;
-  console.log('📝 Search params type:', typeof search);
-  console.log('📝 Search params keys:', search ? Object.keys(search) : 'null');
 
   if (!user || !user.userId) {
     console.log('❌ User data is invalid:', user);
-    // reconstruct the search params
-    const newParams = new URLSearchParams();
-    if (search && typeof search === 'object') {
-      Object.entries(search).forEach(([key, value]) => {
-        if (Array.isArray(value)) {
-          value.forEach((v) => newParams.append(key, v));
-        } else {
-          newParams.set(key, value);
-        }
-      });
-    }
-
-    // After sign in, redirect back to this page with the initial search params
-    redirect(
-      `/handler/sign-in?after_auth_return_to=${encodeURIComponent(
-        "/app/new?" + newParams.toString()
-      )}`
-    );
+    redirect('/handler/sign-in');
   }
-
-  let message: string | undefined;
-  if (search && search.message) {
-    if (Array.isArray(search.message)) {
-      message = search.message[0];
-    } else {
-      message = search.message;
-    }
-  }
-
-  const templateId = (search && search.template ? search.template as string : 'nextjs') || 'nextjs';
-  console.log('🎯 Creating app with:', { message, templateId });
 
   try {
+    const search = await searchParams;
+    console.log('📝 Search params received');
+
+    let message: string | undefined;
+    let templateId = 'nextjs';
+
+    // Safely extract message
+    if (search && typeof search === 'object') {
+      if (search.message) {
+        if (Array.isArray(search.message)) {
+          message = search.message[0];
+        } else {
+          message = search.message;
+        }
+      }
+
+      // Safely extract template
+      if (search.template) {
+        if (Array.isArray(search.template)) {
+          templateId = search.template[0];
+        } else {
+          templateId = search.template;
+        }
+      }
+    }
+
+    console.log('🎯 Creating app with:', { message, templateId });
+
     console.log('🚀 Calling createApp...');
     const { id } = await createApp({
-      initialMessage: decodeURIComponent(message || ''),
+      initialMessage: message ? decodeURIComponent(message) : '',
       templateId: templateId,
     });
 
