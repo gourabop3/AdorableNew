@@ -1,10 +1,7 @@
 import { createApp } from "@/actions/create-app";
+import { createAppWithBilling } from "@/actions/create-app-with-billing";
 import { redirect } from "next/navigation";
 import { getUser } from "@/auth/stack-auth";
-
-// Force dynamic rendering to prevent build errors
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 // This page is never rendered. It is used to:
 // - Force user login without losing the user's initial message and template selection.
@@ -15,84 +12,58 @@ export default async function NewAppRedirectPage({
   searchParams: Promise<{ [key: string]: string | string[] }>;
   params: Promise<{ id: string }>;
 }) {
-  console.log('🚀 Starting app creation process...');
-  
-  let user;
-  try {
-    user = await getUser();
-    console.log('✅ User authenticated:', user?.userId);
-  } catch (error) {
-    console.error('❌ Authentication error:', error);
-    redirect('/handler/sign-in');
+  const user = await getUser().catch(() => undefined);
+  const search = await searchParams;
+
+  if (!user) {
+    // reconstruct the search params
+    const newParams = new URLSearchParams();
+    Object.entries(search).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        value.forEach((v) => newParams.append(key, v));
+      } else {
+        newParams.set(key, value);
+      }
+    });
+
+    // After sign in, redirect back to this page with the initial search params
+    redirect(
+      `/handler/sign-in?after_auth_return_to=${encodeURIComponent(
+        "/app/new?" + newParams.toString()
+      )}`
+    );
   }
 
-  if (!user || !user.userId) {
-    console.log('❌ User data is invalid:', user);
-    redirect('/handler/sign-in');
+  let message: string | undefined;
+  if (Array.isArray(search.message)) {
+    message = search.message[0];
+  } else {
+    message = search.message;
   }
 
+  // Try billing-aware app creation first, fallback to basic creation
+  let result;
   try {
-    const search = await searchParams;
-    console.log('📝 Search params received');
-
-    let message: string | undefined;
-    let templateId = 'nextjs';
-
-    // Safely extract message
-    if (search && typeof search === 'object') {
-      if (search.message) {
-        if (Array.isArray(search.message)) {
-          message = search.message[0];
-        } else {
-          message = search.message;
-        }
-      }
-
-      // Safely extract template
-      if (search.template) {
-        if (Array.isArray(search.template)) {
-          templateId = search.template[0];
-        } else {
-          templateId = search.template;
-        }
-      }
-    }
-
-    console.log('🎯 Creating app with:', { message, templateId });
-
-    console.log('🚀 Calling createApp...');
-    const app = await createApp({
+    result = await createAppWithBilling({
       initialMessage: message ? decodeURIComponent(message) : '',
-      templateId: templateId,
+      templateId: search.template as string,
     });
-
-    console.log('✅ App created successfully with ID:', app.id);
     
-    // Increase delay to ensure all database operations complete
-    console.log('⏳ Waiting for database operations to complete...');
-    await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds
-    
-    console.log('🔄 Redirecting to app page...');
-    
-    // Use a more explicit redirect
-    const redirectUrl = `/app/${app.id}`;
-    console.log('📍 Redirect URL:', redirectUrl);
-    
-    redirect(redirectUrl);
-  } catch (error) {
-    // Don't treat NEXT_REDIRECT as an error - it's the normal redirect mechanism
-    if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
-      console.log('✅ Redirect completed successfully');
-      return; // Let Next.js handle the redirect
+    // If there's a warning, we could show it to the user later
+    if (result.warning) {
+      console.warn('App created with warning:', result.warning);
     }
     
-    console.error('❌ Error creating app:', error);
-    console.error('❌ Error details:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
+    redirect(`/app/${result.id}`);
+  } catch (error) {
+    console.warn('Billing-aware app creation failed, trying fallback:', error);
+    
+    // Fallback to basic app creation without billing
+    const { id } = await createApp({
+      initialMessage: message ? decodeURIComponent(message) : '',
+      templateId: search.template as string,
     });
     
-    // Redirect to home page with error message
-    redirect('/?error=app_creation_failed');
+    redirect(`/app/${id}`);
   }
 }

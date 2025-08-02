@@ -29,8 +29,8 @@ export function useTypingAnimation({
 
     let currentTextIndex = 0;
     let currentCharIndex = 0;
-    let typingTimer: NodeJS.Timeout;
-    let pauseTimer: NodeJS.Timeout;
+    let typingTimer: NodeJS.Timeout | undefined;
+    let pauseTimer: NodeJS.Timeout | undefined;
 
     const typeNextCharacter = () => {
       const currentText = texts[currentTextIndex];
@@ -71,8 +71,8 @@ export function useTypingAnimation({
     typingTimer = setTimeout(typeNextCharacter, initialDelay);
 
     return () => {
-      clearTimeout(typingTimer);
-      clearTimeout(pauseTimer);
+      if (typingTimer) clearTimeout(typingTimer);
+      if (pauseTimer) clearTimeout(pauseTimer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMounted]); // Only depend on isMounted to avoid re-running
