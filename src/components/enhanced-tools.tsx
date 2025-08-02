@@ -40,15 +40,7 @@ export function EnhancedToolMessage({
   }
 
   if (toolInvocation.type === "tool-read_file") {
-    return (
-      <EnhancedToolBlock
-        name="Reading File"
-        icon={<FileText className="h-4 w-4" />}
-        argsText={toolInvocation.input?.path?.split("/").slice(2).join("/")}
-        toolInvocation={toolInvocation}
-        color="green"
-      />
-    );
+    return <EnhancedReadFileTool toolInvocation={toolInvocation} />;
   }
 
   if (toolInvocation.type === "tool-edit_file") {
@@ -256,6 +248,50 @@ function EnhancedWriteFileTool({
             {toolInvocation.input?.content?.split("\n").length > 12 && (
               <div 
                 className="text-emerald-600 px-4 text-xs font-mono py-2 cursor-pointer hover:bg-emerald-100 flex items-center justify-between"
+                onClick={() => setIsExpanded(!isExpanded)}
+              >
+                <span>{isExpanded ? 'Show less' : `+${toolInvocation.input?.content?.split("\n").length - 12} more lines`}</span>
+                {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+              </div>
+            )}
+          </CodeBlock>
+        </div>
+      )}
+    </EnhancedToolBlock>
+  );
+}
+
+function EnhancedReadFileTool({
+  toolInvocation,
+}: {
+  toolInvocation: UIMessage["parts"][number] & {
+    type: "tool-read_file";
+  };
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <EnhancedToolBlock
+      name="Reading File"
+      icon={<FileText className="h-4 w-4" />}
+      argsText={toolInvocation.input?.path?.split("/").slice(2).join("/")}
+      toolInvocation={toolInvocation}
+      color="green"
+    >
+      {toolInvocation.input?.content && (
+        <div className="mt-3 relative">
+          <div className="absolute -top-2 left-3 px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-t">
+            File Content
+          </div>
+          <CodeBlock className="border-green-200 bg-green-50">
+            <CodeBlockCode
+              code={isExpanded ? toolInvocation.input?.content : toolInvocation.input?.content?.split("\n").slice(0, 12).join("\n") ?? ""}
+              language={"tsx"}
+              className="text-green-800"
+            />
+            {toolInvocation.input?.content?.split("\n").length > 12 && (
+              <div 
+                className="text-green-600 px-4 text-xs font-mono py-2 cursor-pointer hover:bg-green-100 flex items-center justify-between"
                 onClick={() => setIsExpanded(!isExpanded)}
               >
                 <span>{isExpanded ? 'Show less' : `+${toolInvocation.input?.content?.split("\n").length - 12} more lines`}</span>
