@@ -6,7 +6,7 @@ import {
   FreestyleDevServer,
   FreestyleDevServerHandle,
 } from "freestyle-sandboxes/react/dev-server";
-import { useRef, useState, useEffect } from "react";
+import { useRef } from "react";
 import { Button } from "./ui/button";
 import { RefreshCwIcon } from "lucide-react";
 import { ShareButton } from "./share-button";
@@ -17,22 +17,11 @@ export default function WebView(props: {
   appId: string;
   domain?: string;
 }) {
-  const [showFallback, setShowFallback] = useState(false);
-  
   function requestDevServer({ repoId }: { repoId: string }) {
     return requestDevServerInner({ repoId });
   }
 
   const devServerRef = useRef<FreestyleDevServerHandle>(null);
-
-  // Show fallback message after 10 seconds if no preview loads
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowFallback(true);
-    }, 10000);
-
-    return () => clearTimeout(timer);
-  }, []);
 
   return (
     <div className="flex flex-col overflow-hidden h-screen border-l transition-opacity duration-700 mt-[2px]">
@@ -54,13 +43,15 @@ export default function WebView(props: {
           !devCommandRunning && (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
-                <div className="mb-4">
-                  {iframeLoading ? "JavaScript Loading" : "Starting VM"}
+                <div className="mb-6">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full border border-primary/20">
+                    <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                    <span className="text-sm font-medium">
+                      {iframeLoading ? "Loading Preview" : "Starting Development Server"}
+                    </span>
+                  </div>
                 </div>
-                <div className="mb-8">
-                  <div className="loader"></div>
-                </div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-xs text-muted-foreground">
                   Develop By Gourab
                 </div>
               </div>
@@ -70,13 +61,18 @@ export default function WebView(props: {
         errorComponent={({ error }) => (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
-              <div className="mb-4 text-lg font-medium">
-                No Preview Available
+              <div className="mb-6">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-muted text-muted-foreground rounded-full border">
+                  <div className="w-4 h-4 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin"></div>
+                  <span className="text-sm font-medium">
+                    No Preview Available
+                  </span>
+                </div>
               </div>
-              <div className="mb-8 text-sm text-muted-foreground">
+              <div className="text-xs text-muted-foreground">
                 Start chatting to generate your app
               </div>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-xs text-muted-foreground mt-2">
                 Develop By Gourab
               </div>
             </div>
