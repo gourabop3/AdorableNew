@@ -37,6 +37,27 @@ export async function createAppWithBilling({
     );
   }
 
+  // Check for existing app with same parameters to prevent duplicates
+  console.time("check existing app");
+  const existingApp = await db.query.apps.findFirst({
+    where: eq(appsTable.name, initialMessage || 'Unnamed App'),
+    with: {
+      appUsers: {
+        where: eq(appUsers.userId, user.userId)
+      }
+    }
+  });
+  
+  if (existingApp && existingApp.appUsers.length > 0) {
+    console.log('Found existing app with same parameters:', existingApp.id);
+    return {
+      id: existingApp.id,
+      warning: 'Using existing app with same parameters',
+      billingMode: 'skip'
+    };
+  }
+  console.timeEnd("check existing app");
+
   let billingMode: 'full' | 'fallback' | 'skip' = 'skip';
   let warning: string | undefined;
 
