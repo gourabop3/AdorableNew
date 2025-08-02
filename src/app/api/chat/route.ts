@@ -129,16 +129,37 @@ export async function sendMessage(
     maxRetries: 0,
     maxOutputTokens: 8000,
     toolsets,
-    async onChunk() {
+    async onChunk(chunk) {
+      // Enhanced chunk handling for better streaming
       if (Date.now() - lastKeepAlive > 5000) {
         lastKeepAlive = Date.now();
         redisPublisher.set(`app:${appId}:stream-state`, "running", {
           EX: 15,
         });
       }
+      
+      // Log chunk for debugging
+      if (chunk?.type === 'text-delta') {
+        console.log('Streaming chunk:', chunk.textDelta);
+      }
     },
     async onStepFinish(step) {
       messageList.add(step.response.messages, "response");
+
+      // Enhanced logging for code generation
+      if (step.response.messages.length > 0) {
+        const lastMessage = step.response.messages[step.response.messages.length - 1];
+        if (lastMessage.content?.parts) {
+          lastMessage.content.parts.forEach((part: any) => {
+            if (part.type === "text" && part.text) {
+              // Check if this contains code blocks
+              if (part.text.includes('```')) {
+                console.log('🔧 Code block detected in streaming response');
+              }
+            }
+          });
+        }
+      }
 
       if (shouldAbort) {
         await redisPublisher.del(`app:${appId}:stream-state`);

@@ -12,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { chatState } from "@/actions/chat-streaming";
 import { CompressedImage } from "@/lib/image-compression";
 import { useChatSafe } from "./use-chat";
+import { StreamingMessage } from "./streaming-message";
 
 export default function Chat(props: {
   appId: string;
@@ -110,8 +111,13 @@ export default function Chat(props: {
         style={{ overflowAnchor: "auto" }}
       >
         <ChatContainer autoScroll>
-          {messages.map((message: any) => (
-            <MessageBody key={message.id} message={message} />
+          {messages.map((message: any, index: number) => (
+            <StreamingMessage 
+              key={message.id} 
+              message={message} 
+              isStreaming={chat?.state === "running"}
+              isLastMessage={index === messages.length - 1}
+            />
           ))}
         </ChatContainer>
       </div>
