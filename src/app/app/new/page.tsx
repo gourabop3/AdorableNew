@@ -1,4 +1,5 @@
 import { createApp } from "@/actions/create-app";
+import { createAppWithBilling } from "@/actions/create-app-with-billing";
 import { redirect } from "next/navigation";
 import { getUser } from "@/auth/stack-auth";
 
@@ -40,10 +41,29 @@ export default async function NewAppRedirectPage({
     message = search.message;
   }
 
-  const { id } = await createApp({
-    initialMessage: message ? decodeURIComponent(message) : '',
-    templateId: search.template as string,
-  });
-
-  redirect(`/app/${id}`);
+  // Try billing-aware app creation first, fallback to basic creation
+  let result;
+  try {
+    result = await createAppWithBilling({
+      initialMessage: message ? decodeURIComponent(message) : '',
+      templateId: search.template as string,
+    });
+    
+    // If there's a warning, we could show it to the user later
+    if (result.warning) {
+      console.warn('App created with warning:', result.warning);
+    }
+    
+    redirect(`/app/${result.id}`);
+  } catch (error) {
+    console.warn('Billing-aware app creation failed, trying fallback:', error);
+    
+    // Fallback to basic app creation without billing
+    const { id } = await createApp({
+      initialMessage: message ? decodeURIComponent(message) : '',
+      templateId: search.template as string,
+    });
+    
+    redirect(`/app/${id}`);
+  }
 }
