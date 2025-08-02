@@ -15,6 +15,9 @@ export async function createApp({
   initialMessage?: string;
   templateId: string;
 }) {
+  const requestId = crypto.randomUUID();
+  console.log(`[${requestId}] Starting createApp...`);
+  
   console.time("get user");
   const user = await getUser();
   console.timeEnd("get user");
@@ -103,5 +106,6 @@ export async function createApp({
     console.timeEnd("send initial message");
   }
 
+  console.log(`[${requestId}] App created successfully:`, app.id);
   return app;
 }

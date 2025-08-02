@@ -57,8 +57,13 @@ export default async function NewAppRedirectPage({
   // Try billing-aware app creation first, fallback to basic creation
   let result;
   
-  // Set a temporary key to prevent duplicates
-  await redisPublisher.set(appCreationKey, "processing", { EX: 60 }); // 1 minute timeout
+  // Set a temporary key to prevent duplicates with better error handling
+  try {
+    await redisPublisher.set(appCreationKey, "processing", { EX: 60 }); // 1 minute timeout
+  } catch (error) {
+    console.error('Failed to set processing flag:', error);
+    // Continue anyway, but log the issue
+  }
   
   try {
     result = await createAppWithBilling({
@@ -67,7 +72,11 @@ export default async function NewAppRedirectPage({
     });
     
     // Store the successful app ID to prevent duplicates
-    await redisPublisher.set(appCreationKey, result.id, { EX: 300 }); // 5 minutes
+    try {
+      await redisPublisher.set(appCreationKey, result.id, { EX: 300 }); // 5 minutes
+    } catch (error) {
+      console.error('Failed to store app ID in Redis:', error);
+    }
     
     // If there's a warning, we could show it to the user later
     if (result.warning) {
@@ -77,7 +86,11 @@ export default async function NewAppRedirectPage({
     redirect(`/app/${result.id}`);
   } catch (error) {
     // Clean up the processing key
-    await redisPublisher.del(appCreationKey);
+    try {
+      await redisPublisher.del(appCreationKey);
+    } catch (cleanupError) {
+      console.error('Failed to clean up Redis key:', cleanupError);
+    }
     
     // Handle insufficient credits error
     if (error instanceof InsufficientCreditsError) {
@@ -100,7 +113,11 @@ export default async function NewAppRedirectPage({
     });
     
     // Store the successful app ID
-    await redisPublisher.set(appCreationKey, result.id, { EX: 300 });
+    try {
+      await redisPublisher.set(appCreationKey, result.id, { EX: 300 });
+    } catch (error) {
+      console.error('Failed to store app ID in Redis after fallback:', error);
+    }
     
     redirect(`/app/${result.id}`);
   }

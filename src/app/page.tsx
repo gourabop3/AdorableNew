@@ -37,6 +37,9 @@ export default function Home() {
   const plan = searchParams.get('plan');
   const credits = searchParams.get('credits');
 
+  // Development mode detection
+  const isDevelopment = process.env.NODE_ENV === 'development';
+
   useEffect(() => {
   if (success && !showPaymentSuccess) {
     setShowPaymentSuccess(true);
@@ -60,9 +63,24 @@ export default function Home() {
   };
 
   const handleSubmit = async () => {
+    // Generate a unique request ID for tracking
+    const requestId = crypto.randomUUID();
+    
     // Prevent multiple rapid submissions
     if (isLoading || checkingCredits) {
+      console.log(`[${requestId}] Submission blocked - already processing`);
       return;
+    }
+    
+    // Additional check to prevent empty submissions
+    if (!prompt.trim()) {
+      console.log(`[${requestId}] Submission blocked - empty prompt`);
+      return;
+    }
+    
+    console.log(`[${requestId}] Starting app creation process...`);
+    if (isDevelopment) {
+      console.log(`[${requestId}] Development mode detected - double execution possible`);
     }
     
     setIsLoading(true);
@@ -71,6 +89,7 @@ export default function Home() {
     try {
       // Check if user has enough credits before proceeding
       if (userData && userData.credits < 10) {
+        console.log(`[${requestId}] Insufficient credits, redirecting to upgrade`);
         // Redirect to upgrade page with current parameters
         const params = new URLSearchParams();
         params.set('message', encodeURIComponent(prompt));
@@ -79,12 +98,13 @@ export default function Home() {
         return;
       }
 
+      console.log(`[${requestId}] Proceeding with app creation...`);
       // Proceed with app creation
       router.push(
         `/app/new?message=${encodeURIComponent(prompt)}&template=${framework}`
       );
     } catch (error) {
-      console.error('Error checking credits:', error);
+      console.error(`[${requestId}] Error checking credits:`, error);
       // Fallback to normal app creation
       router.push(
         `/app/new?message=${encodeURIComponent(prompt)}&template=${framework}`
@@ -92,9 +112,10 @@ export default function Home() {
     } finally {
       // Don't reset loading state immediately to prevent rapid re-submissions
       setTimeout(() => {
+        console.log(`[${requestId}] Resetting loading states...`);
         setIsLoading(false);
         setCheckingCredits(false);
-      }, 1000); // 1 second delay to prevent rapid submissions
+      }, 2000); // Increased from 1 second to 2 seconds for better protection
     }
   };
 
