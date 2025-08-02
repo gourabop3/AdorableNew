@@ -71,7 +71,8 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    /* Background handled by custom gradient */
   }
 }
 
@@ -80,7 +81,8 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    /* Remove bg-background to allow the gradient to show */
   }
 }
 
@@ -275,6 +277,8 @@ body {
   margin: 0;
   height: 100vh;
   height: 100dvh; /* Dynamic viewport height for mobile */
+  background: linear-gradient(180deg, #FAFAF8 0%, #B9D6F8 50%, #D98DBA 100%);
+  background-attachment: fixed;
 }
 
 /* Safe area insets for mobile Safari */
