@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useRouter } from "next/navigation";
 import { PromptInput, PromptInputActions } from "@/components/ui/prompt-input";
 import { FrameworkSelector } from "@/components/framework-selector";
@@ -16,11 +17,37 @@ import { ErrorBoundary } from "@/components/error-boundary";
 
 const queryClient = new QueryClient();
 
-export default function Home() {
+export default function Home({
+  searchParams,
+}: {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) {
   const [prompt, setPrompt] = useState("");
   const [framework, setFramework] = useState("nextjs");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+
+  // Check for error messages in search params
+  React.useEffect(() => {
+    if (searchParams?.error) {
+      const errorParam = Array.isArray(searchParams.error) 
+        ? searchParams.error[0] 
+        : searchParams.error;
+      
+      if (errorParam === 'database_not_configured') {
+        setError('Database is not configured. Please set up your database connection.');
+      } else if (errorParam === 'freestyle_not_configured') {
+        setError('Freestyle API is not configured. Please set up your API keys.');
+      } else if (errorParam.includes('not authenticated')) {
+        setError('Authentication failed. Please sign in.');
+      } else if (errorParam.includes('credits')) {
+        setError('Insufficient credits. Please upgrade to Pro plan.');
+      } else {
+        setError('App creation failed. Please try again.');
+      }
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) {
@@ -67,6 +94,18 @@ export default function Home() {
             <p className="text-neutral-600 text-center mb-6 text-3xl sm:text-4xl md:text-5xl font-bold">
               Let AI Cook
             </p>
+
+            {error && (
+              <div className="w-full mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-red-600 text-sm text-center">{error}</p>
+                <button 
+                  onClick={() => setError(null)}
+                  className="text-red-500 text-xs underline block mx-auto mt-1"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
 
             <div className="w-full relative my-5">
               <div className="relative w-full max-w-full overflow-hidden">

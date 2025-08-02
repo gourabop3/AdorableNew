@@ -1,4 +1,5 @@
 import { createApp } from "@/actions/create-app";
+import { createDemoApp } from "@/actions/create-demo-app";
 import { redirect } from "next/navigation";
 import { getUser } from "@/auth/stack-auth";
 
@@ -33,7 +34,7 @@ export default async function NewAppRedirectPage({
 
   try {
     const search = await searchParams;
-    console.log('📝 Search params received');
+    console.log('📝 Search params received:', search);
 
     let message: string | undefined;
     let templateId = 'nextjs';
@@ -60,17 +61,33 @@ export default async function NewAppRedirectPage({
 
     console.log('🎯 Creating app with:', { message, templateId });
 
-    console.log('🚀 Calling createApp...');
-    const app = await createApp({
-      initialMessage: message ? decodeURIComponent(message) : '',
-      templateId: templateId,
-    });
+    // Check if required environment variables are set for full functionality
+    const isDemoMode = !process.env.DATABASE_URL || 
+                      process.env.DATABASE_URL === 'postgresql://localhost:5432/adorable_dev' ||
+                      !process.env.FREESTYLE_API_KEY || 
+                      process.env.FREESTYLE_API_KEY === 'fs_placeholder';
+
+    let app;
+    if (isDemoMode) {
+      console.log('⚠️ Running in demo mode - some services not configured');
+      console.log('🚀 Calling createDemoApp...');
+      app = await createDemoApp({
+        initialMessage: message ? decodeURIComponent(message) : '',
+        templateId: templateId,
+      });
+    } else {
+      console.log('🚀 Calling createApp...');
+      app = await createApp({
+        initialMessage: message ? decodeURIComponent(message) : '',
+        templateId: templateId,
+      });
+    }
 
     console.log('✅ App created successfully with ID:', app.id);
     
-    // Increase delay to ensure all database operations complete
-    console.log('⏳ Waiting for database operations to complete...');
-    await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds
+    // Reduce delay for better UX
+    console.log('⏳ Waiting for app initialization...');
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
     
     console.log('🔄 Redirecting to app page...');
     
@@ -90,9 +107,12 @@ export default async function NewAppRedirectPage({
     console.error('❌ Error details:', {
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined,
     });
     
-    // Redirect to home page with error message
-    redirect('/?error=app_creation_failed');
+    // Redirect to home page with more specific error message
+    const errorMessage = error instanceof Error ? error.message : 'app_creation_failed';
+    const encodedError = encodeURIComponent(errorMessage);
+    redirect(`/?error=${encodedError}`);
   }
 }
