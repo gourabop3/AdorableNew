@@ -163,27 +163,17 @@ function EditFileTool({
             (edit.oldText || edit.newText) && (
               <CodeBlock key={index} className="overflow-scroll py-2">
                 <CodeBlockCode
-                  code={edit.oldText?.split("\n").slice(0, 5).join("\n")}
-                  language={"tsx"}
-                  className="col-start-1 col-end-1 row-start-1 row-end-1 overflow-visible [&>pre]:py-0! [&_code]:bg-red-200! bg-red-200"
-                />
-                {edit.oldText?.split("\n").length > 5 && (
-                  <div className="text-red-700 px-4 text-xs font-mono">
-                    +{edit.oldText?.split("\n").length - 5} more
-                  </div>
-                )}
-                <CodeBlockCode
                   code={edit.newText
                     ?.trimEnd()
                     ?.split("\n")
-                    .slice(0, 5)
+                    .slice(0, 3)
                     .join("\n")}
                   language={"tsx"}
                   className="col-start-1 col-end-1 row-start-1 row-end-1 overflow-visible [&>pre]:py-0! [&_code]:bg-green-200! bg-green-200"
                 />
-                {edit.newText?.split("\n").length > 5 && (
+                {edit.newText?.split("\n").length > 3 && (
                   <div className="text-green-700 px-4 text-xs font-mono">
-                    +{edit.newText?.split("\n").length - 5} more
+                    +{edit.newText?.split("\n").length - 3} more lines
                   </div>
                 )}
               </CodeBlock>
@@ -223,20 +213,20 @@ function WriteFileTool({
       toolInvocation={toolInvocation}
     >
       {toolInvocation.input?.content && (
-        <CodeBlock className="overflow-scroll sticky bottom-0">
+        <CodeBlock className="overflow-scroll">
           <CodeBlockCode
             code={
               toolInvocation.input?.content
                 ?.split("\n")
-                .slice(0, 5)
+                .slice(0, 3)
                 .join("\n") ?? ""
             }
             language={"tsx"}
             className="col-start-1 col-end-1 row-start-1 row-end-1 overflow-visible [&_code]:bg-green-200! bg-green-200"
           />
-          {toolInvocation.input?.content?.split("\n").length > 5 && (
+          {toolInvocation.input?.content?.split("\n").length > 3 && (
             <div className="text-green-700 px-4 text-xs pb-2 font-mono">
-              +{toolInvocation.input?.content?.split("\n").length - 5} more
+              +{toolInvocation.input?.content?.split("\n").length - 3} more lines
             </div>
           )}
         </CodeBlock>
