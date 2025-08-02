@@ -181,8 +181,8 @@ export async function sendMessage(
               }
             }
           }
-        } catch (e) {
-          console.warn("Could not parse error details");
+        } catch (error) {
+          console.warn("Could not parse error details:", error);
         }
         
         console.log(`⏰ Suggested retry delay: ${retryDelay} seconds`);
