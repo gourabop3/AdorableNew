@@ -5,7 +5,7 @@ import { PromptInput, PromptInputActions } from "@/components/ui/prompt-input";
 import { FrameworkSelector } from "@/components/framework-selector";
 import Image from "next/image";
 import LogoSvg from "@/logo.svg";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ExampleButton } from "@/components/ExampleButton";
 import { UserButtonWithBilling } from "@/components/user-button-with-billing";
@@ -17,11 +17,18 @@ import { PaymentSuccessBanner } from "@/components/payment-success-banner";
 
 const queryClient = new QueryClient();
 
+interface UserData {
+  credits: number;
+  plan: "free" | "pro";
+}
+
 export default function Home() {
   const [prompt, setPrompt] = useState("");
   const [framework, setFramework] = useState("nextjs");
   const [isLoading, setIsLoading] = useState(false);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [checkingCredits, setCheckingCredits] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -34,12 +41,52 @@ export default function Home() {
     setShowPaymentSuccess(true);
   }
 
+  useEffect(() => {
+    // Fetch user data when component mounts
+    fetchUserData();
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      const response = await fetch('/api/user/billing');
+      if (response.ok) {
+        const data = await response.json();
+        setUserData(data.user);
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    }
+  };
+
   const handleSubmit = async () => {
     setIsLoading(true);
+    setCheckingCredits(true);
 
-    router.push(
-      `/app/new?message=${encodeURIComponent(prompt)}&template=${framework}`
-    );
+    try {
+      // Check if user has enough credits before proceeding
+      if (userData && userData.credits < 10) {
+        // Redirect to upgrade page with current parameters
+        const params = new URLSearchParams();
+        params.set('message', encodeURIComponent(prompt));
+        params.set('template', framework);
+        router.push(`/app/upgrade?${params.toString()}`);
+        return;
+      }
+
+      // Proceed with app creation
+      router.push(
+        `/app/new?message=${encodeURIComponent(prompt)}&template=${framework}`
+      );
+    } catch (error) {
+      console.error('Error checking credits:', error);
+      // Fallback to normal app creation
+      router.push(
+        `/app/new?message=${encodeURIComponent(prompt)}&template=${framework}`
+      );
+    } finally {
+      setIsLoading(false);
+      setCheckingCredits(false);
+    }
   };
 
   return (
@@ -88,7 +135,7 @@ export default function Home() {
                           onChange={setFramework}
                         />
                       }
-                      isLoading={isLoading}
+                      isLoading={isLoading || checkingCredits}
                       value={prompt}
                       onValueChange={setPrompt}
                       onSubmit={handleSubmit}
@@ -100,13 +147,15 @@ export default function Home() {
                           variant={"ghost"}
                           size="sm"
                           onClick={handleSubmit}
-                          disabled={isLoading || !prompt.trim()}
+                          disabled={isLoading || checkingCredits || !prompt.trim()}
                           className="h-7 text-xs"
                         >
                           <span className="hidden sm:inline">
-                            Start Creating ⏎
+                            {checkingCredits ? 'Checking Credits...' : 'Start Creating ⏎'}
                           </span>
-                          <span className="sm:hidden">Create ⏎</span>
+                          <span className="sm:hidden">
+                            {checkingCredits ? 'Checking...' : 'Create ⏎'}
+                          </span>
                         </Button>
                       </PromptInputActions>
                     </PromptInput>

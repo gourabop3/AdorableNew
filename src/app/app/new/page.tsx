@@ -1,11 +1,12 @@
 import { createApp } from "@/actions/create-app";
-import { createAppWithBilling } from "@/actions/create-app-with-billing";
+import { createAppWithBilling, InsufficientCreditsError } from "@/actions/create-app-with-billing";
 import { redirect } from "next/navigation";
 import { getUser } from "@/auth/stack-auth";
 
 // This page is never rendered. It is used to:
 // - Force user login without losing the user's initial message and template selection.
 // - Force a loading page to be rendered (loading.tsx) while the app is being created.
+// - Handle insufficient credits by redirecting to upgrade page.
 export default async function NewAppRedirectPage({
   searchParams,
 }: {
@@ -56,6 +57,18 @@ export default async function NewAppRedirectPage({
     
     redirect(`/app/${result.id}`);
   } catch (error) {
+    // Handle insufficient credits error
+    if (error instanceof InsufficientCreditsError) {
+      console.log('Insufficient credits detected, redirecting to upgrade page');
+      
+      // Redirect to upgrade page with original parameters
+      const upgradeParams = new URLSearchParams();
+      if (message) upgradeParams.set('message', message);
+      if (search.template) upgradeParams.set('template', search.template as string);
+      
+      redirect(`/app/upgrade?${upgradeParams.toString()}`);
+    }
+    
     console.warn('Billing-aware app creation failed, trying fallback:', error);
     
     // Fallback to basic app creation without billing

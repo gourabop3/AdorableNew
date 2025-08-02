@@ -21,6 +21,13 @@ interface CreateAppResult {
   billingMode: 'full' | 'fallback' | 'skip';
 }
 
+export class InsufficientCreditsError extends Error {
+  constructor(public currentCredits: number, public requiredCredits: number) {
+    super(`Insufficient credits. Need ${requiredCredits}, have ${currentCredits}`);
+    this.name = 'InsufficientCreditsError';
+  }
+}
+
 export async function createAppWithBilling({
   initialMessage,
   templateId,
@@ -46,6 +53,12 @@ export async function createAppWithBilling({
       const dbUser = await ensureUserInDatabase(user);
       
       if (dbUser) {
+        // Check if user has enough credits before proceeding
+        const creditCheck = await checkCredits(user.userId, 10);
+        if (!creditCheck.success) {
+          throw new InsufficientCreditsError(creditCheck.currentCredits, 10);
+        }
+
         // Try to deduct credits
         const creditResult = await tryDeductCredits(user.userId, 10);
         if (creditResult.success) {
@@ -59,6 +72,9 @@ export async function createAppWithBilling({
         warning = 'Billing unavailable, using free mode';
       }
     } catch (error) {
+      if (error instanceof InsufficientCreditsError) {
+        throw error; // Re-throw insufficient credits error
+      }
       console.warn('Billing operations failed, continuing without billing:', error);
       billingMode = 'fallback';
       warning = 'Billing service temporarily unavailable';
@@ -171,6 +187,27 @@ async function ensureUserInDatabase(user: any) {
   } catch (error) {
     console.warn('Database user operations failed:', error);
     return null;
+  }
+}
+
+async function checkCredits(userId: string, requiredAmount: number): Promise<{ success: boolean; currentCredits: number; message?: string }> {
+  try {
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+    });
+
+    if (!user) {
+      return { success: false, currentCredits: 0, message: 'User not found in database' };
+    }
+
+    if (user.credits < requiredAmount) {
+      return { success: false, currentCredits: user.credits, message: `Insufficient credits. Need ${requiredAmount}, have ${user.credits}` };
+    }
+
+    return { success: true, currentCredits: user.credits };
+  } catch (error) {
+    console.warn('Credit check failed:', error);
+    return { success: false, currentCredits: 0, message: 'Credit system temporarily unavailable' };
   }
 }
 
