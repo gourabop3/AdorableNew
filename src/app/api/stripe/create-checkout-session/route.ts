@@ -57,6 +57,10 @@ export async function POST(request: NextRequest) {
         .where(eq(users.id, dbUser.id));
     }
 
+    // Use environment variable for base URL, fallback to request origin
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+    console.log('🔗 Using base URL for Stripe checkout:', baseUrl);
+
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -68,8 +72,8 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'subscription',
-      success_url: `${request.nextUrl.origin}/billing?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${request.nextUrl.origin}/billing?canceled=true`,
+      success_url: `${baseUrl}/billing?success=true&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/billing?canceled=true`,
       metadata: {
         userId: dbUser.id,
         plan,
