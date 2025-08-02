@@ -243,24 +243,20 @@ function ToolBlock(props: {
   argsText?: string;
   children?: React.ReactNode;
 }) {
+  const isWriting = props.name === "write file" && props.toolInvocation?.state !== "output-available";
+  const isEditing = props.name === "edit file" && props.toolInvocation?.state !== "output-available";
+  
   return (
     <div>
       <div className="flex py-1">
         <div
           className="flex items-center gap-2"
-          // className={cn(
-          //   "text-sm  px-2 mt-2 py-1 rounded max-h-24 overflow-scroll max-w-sm transition-colors duration-500",
-          //   props.toolInvocation?.state !== "result"
-          //     ? "border border-gray-800 animate-pulse bg-gray-800 text-white"
-          //     : "border border-neutral-500 text-neutral-500 bg-transparent"
-          // )}
         >
           <div className="grid translate-y-[1px]">
             {props.toolInvocation?.state !== "output-available" && (
               <div
                 className={cn(
                   "border border-black w-2 h-2 rounded-full inline-block col-start-1 col-end-1 row-start-1 row-end-1",
-
                   "bg-black animate-ping"
                 )}
               ></div>
@@ -277,8 +273,13 @@ function ToolBlock(props: {
               )}
             ></div>
           </div>
-          <span className="font-medium">{props.name}</span>
+          <span className="font-medium">
+            {isWriting ? "writing file" : isEditing ? "editing file" : props.name}
+          </span>
           <span>{props.argsText}</span>
+          {(isWriting || isEditing) && (
+            <span className="text-gray-500 text-sm">writing...</span>
+          )}
         </div>
       </div>
       {(props.children && <div className="mb-2">{props.children}</div>) ||
