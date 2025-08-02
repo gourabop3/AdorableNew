@@ -8,6 +8,7 @@ import { freestyle } from "@/lib/freestyle";
 import { templates } from "@/lib/templates";
 import { memory } from "@/mastra/agents/builder";
 import { eq } from "drizzle-orm";
+import { InsufficientCreditsError } from "@/lib/errors";
 
 interface CreateAppOptions {
   initialMessage?: string;
@@ -19,13 +20,6 @@ interface CreateAppResult {
   id: string;
   warning?: string;
   billingMode: 'full' | 'fallback' | 'skip';
-}
-
-export class InsufficientCreditsError extends Error {
-  constructor(public currentCredits: number, public requiredCredits: number) {
-    super(`Insufficient credits. Need ${requiredCredits}, have ${currentCredits}`);
-    this.name = 'InsufficientCreditsError';
-  }
 }
 
 export async function createAppWithBilling({

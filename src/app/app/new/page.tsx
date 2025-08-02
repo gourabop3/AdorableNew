@@ -1,5 +1,6 @@
 import { createApp } from "@/actions/create-app";
-import { createAppWithBilling, InsufficientCreditsError } from "@/actions/create-app-with-billing";
+import { createAppWithBilling } from "@/actions/create-app-with-billing";
+import { InsufficientCreditsError } from "@/lib/errors";
 import { redirect } from "next/navigation";
 import { getUser } from "@/auth/stack-auth";
 
