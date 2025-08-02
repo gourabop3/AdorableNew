@@ -64,8 +64,9 @@ export default async function NewAppRedirectPage({
 
     console.log('✅ App created successfully with ID:', id);
     
-    // Add a small delay to ensure all async operations complete
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Increase delay to ensure all database operations complete
+    console.log('⏳ Waiting for database operations to complete...');
+    await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds
     
     console.log('🔄 Redirecting to app page...');
     
