@@ -19,56 +19,76 @@ export default async function AppPage({
   searchParams: Promise<{ [key: string]: string | string[] }>;
 }) {
   const { id } = await params;
+  console.log('🔍 Loading app page for ID:', id);
 
-  const user = await getUser();
+  try {
+    const user = await getUser();
+    console.log('✅ User authenticated for app page:', user?.userId);
 
-  const userPermission = (
-    await db
-      .select()
-      .from(appUsers)
-      .where(eq(appUsers.userId, user.userId))
-      .limit(1)
-  ).at(0);
+    const userPermission = (
+      await db
+        .select()
+        .from(appUsers)
+        .where(eq(appUsers.userId, user.userId))
+        .limit(1)
+    ).at(0);
 
-  if (!userPermission?.permissions) {
+    console.log('🔐 User permission:', userPermission?.permissions);
+
+    if (!userPermission?.permissions) {
+      console.log('❌ User has no permissions for app:', id);
+      return <ProjectNotFound />;
+    }
+
+    const app = await getApp(id).catch((error) => {
+      console.error('❌ Error getting app:', error);
+      return undefined;
+    });
+
+    if (!app) {
+      console.log('❌ App not found:', id);
+      return <ProjectNotFound />;
+    }
+
+    console.log('✅ App found:', app.info.id);
+
+    const { uiMessages } = await memory.query({
+      threadId: id,
+      resourceId: id,
+    });
+
+    console.log('✅ UI messages loaded:', uiMessages.length);
+
+    const { codeServerUrl, ephemeralUrl } = await freestyle.requestDevServer({
+      repoId: app?.info.gitRepo,
+    });
+
+    console.log("✅ Dev server requested");
+
+    // Use the previewDomain from the database, or fall back to a generated domain
+    const domain = app.info.previewDomain;
+
+    console.log('🎉 Rendering app wrapper for:', app.info.id);
+
+    return (
+      <AppWrapper
+        key={app.info.id}
+        baseId={app.info.baseId}
+        codeServerUrl={codeServerUrl}
+        appName={app.info.name}
+        initialMessages={uiMessages}
+        consoleUrl={ephemeralUrl + "/__console"}
+        repo={app.info.gitRepo}
+        appId={app.info.id}
+        repoId={app.info.gitRepo}
+        domain={domain ?? undefined}
+        running={(await chatState(app.info.id)).state === "running"}
+      />
+    );
+  } catch (error) {
+    console.error('❌ Error in app page:', error);
     return <ProjectNotFound />;
   }
-
-  const app = await getApp(id).catch(() => undefined);
-
-  if (!app) {
-    return <ProjectNotFound />;
-  }
-
-  const { uiMessages } = await memory.query({
-    threadId: id,
-    resourceId: id,
-  });
-
-  const { codeServerUrl, ephemeralUrl } = await freestyle.requestDevServer({
-    repoId: app?.info.gitRepo,
-  });
-
-  console.log("requested dev server");
-
-  // Use the previewDomain from the database, or fall back to a generated domain
-  const domain = app.info.previewDomain;
-
-  return (
-    <AppWrapper
-      key={app.info.id}
-      baseId={app.info.baseId}
-      codeServerUrl={codeServerUrl}
-      appName={app.info.name}
-      initialMessages={uiMessages}
-      consoleUrl={ephemeralUrl + "/__console"}
-      repo={app.info.gitRepo}
-      appId={app.info.id}
-      repoId={app.info.gitRepo}
-      domain={domain ?? undefined}
-      running={(await chatState(app.info.id)).state === "running"}
-    />
-  );
 }
 
 function ProjectNotFound() {
