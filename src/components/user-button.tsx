@@ -112,6 +112,16 @@ export function UserButton() {
         window.location.reload();
       }, 100);
     } catch (error) {
+      // Don't treat NEXT_REDIRECT as an error - it's the normal redirect mechanism
+      if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
+        console.log('✅ Signout redirect completed successfully');
+        setUserData(null);
+        setIsAuthenticated(false);
+        setIsDropdownOpen(false);
+        window.location.reload();
+        return;
+      }
+      
       console.log('⚠️ Signout error (continuing anyway):', error);
       // Even if there's an error, clear the local state
       setUserData(null);
