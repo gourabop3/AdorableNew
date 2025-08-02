@@ -41,7 +41,9 @@ export default function AppWrapper({
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768); // md breakpoint
+      const mobile = window.innerWidth < 768; // md breakpoint
+      setIsMobile(mobile);
+      console.log('📱 Mobile detection:', { isMobile: mobile, width: window.innerWidth });
     };
 
     checkMobile();
@@ -55,6 +57,15 @@ export default function AppWrapper({
       document.body.style.overflow = "auto"; // or 'visible'
     };
   }, []);
+
+  console.log('🎨 AppWrapper rendering:', {
+    isMobile,
+    mobileActiveTab,
+    appName,
+    appId,
+    initialMessagesCount: initialMessages.length,
+    running
+  });
 
   return (
     <div className="h-screen flex flex-col" style={{ height: "100dvh" }}>
@@ -136,7 +147,10 @@ export default function AppWrapper({
           style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         >
           <button
-            onClick={() => setMobileActiveTab("chat")}
+            onClick={() => {
+              setMobileActiveTab("chat");
+              console.log('📱 Switched to chat tab');
+            }}
             className={`flex-1 flex flex-col items-center justify-center py-2 px-1 transition-colors ${
               mobileActiveTab === "chat"
                 ? "text-primary"
@@ -151,7 +165,10 @@ export default function AppWrapper({
             <span className="text-xs font-medium">Chat</span>
           </button>
           <button
-            onClick={() => setMobileActiveTab("preview")}
+            onClick={() => {
+              setMobileActiveTab("preview");
+              console.log('📱 Switched to preview tab');
+            }}
             className={`flex-1 flex flex-col items-center justify-center py-2 px-1 transition-colors ${
               mobileActiveTab === "preview"
                 ? "text-primary"
