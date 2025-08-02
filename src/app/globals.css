@@ -71,8 +71,7 @@
     @apply border-border;
   }
   body {
-    @apply text-foreground;
-    /* Background handled by custom gradient */
+    @apply bg-background text-foreground;
   }
 }
 
@@ -81,8 +80,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply text-foreground;
-    /* Remove bg-background to allow the gradient to show */
+    @apply bg-background text-foreground;
   }
 }
 
@@ -277,8 +275,6 @@ body {
   margin: 0;
   height: 100vh;
   height: 100dvh; /* Dynamic viewport height for mobile */
-  background: linear-gradient(180deg, #FAFAF8 0%, #B9D6F8 50%, #D98DBA 100%);
-  background-attachment: fixed;
 }
 
 /* Safe area insets for mobile Safari */
@@ -310,4 +306,11 @@ body {
 .dot-pattern {
   background-image: radial-gradient(circle, #000 1px, transparent 1px);
   background-size: 30px 30px;
+}
+
+/* Lovable-inspired gradient for homepage */
+.homepage-gradient {
+  background: linear-gradient(180deg, #FAFAF8 0%, #B9D6F8 50%, #D98DBA 100%);
+  min-height: 100vh;
+  min-height: 100dvh;
 }

@@ -122,7 +122,7 @@ export default function Home() {
   return (
     <QueryClientProvider client={queryClient}>
       <BillingProvider>
-        <main className="min-h-screen p-4 relative bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <main className="min-h-screen p-4 relative homepage-gradient">
           {/* Payment Success Banner */}
           {showPaymentSuccess && (
             <PaymentSuccessBanner
@@ -134,11 +134,11 @@ export default function Home() {
           )}
 
           <div className="flex w-full justify-between items-center">
-            <h1 className="text-lg font-bold flex-1 sm:w-80 text-white">
+            <h1 className="text-lg font-bold flex-1 sm:w-80 text-gray-800">
               Vibe
             </h1>
             <Image
-              className="dark:invert mx-2"
+              className="mx-2"
               src={LogoSvg}
               alt="Vibe Logo"
               width={36}
@@ -151,13 +151,13 @@ export default function Home() {
 
           <div>
             <div className="w-full max-w-lg px-4 sm:px-0 mx-auto flex flex-col items-center mt-16 sm:mt-24 md:mt-32 col-start-1 col-end-1 row-start-1 row-end-1 z-10">
-              <p className="text-white text-center mb-6 text-3xl sm:text-4xl md:text-5xl font-bold">
+              <p className="text-gray-800 text-center mb-6 text-3xl sm:text-4xl md:text-5xl font-bold">
                 Build Something With Vibe
               </p>
 
               <div className="w-full relative my-5">
                 <div className="relative w-full max-w-full overflow-hidden">
-                  <div className="w-full bg-white/10 backdrop-blur-sm rounded-md relative z-10 border border-white/20 transition-colors">
+                  <div className="w-full bg-white/80 backdrop-blur-sm rounded-md relative z-10 border border-gray-300 transition-colors">
                     <PromptInput
                       leftSlot={
                         <FrameworkSelector
@@ -169,7 +169,7 @@ export default function Home() {
                       value={prompt}
                       onValueChange={setPrompt}
                       onSubmit={handleSubmit}
-                      className="relative z-10 border-none bg-transparent shadow-none focus-within:border-white/40 focus-within:ring-1 focus-within:ring-white/20 transition-all duration-200 ease-in-out text-white placeholder-white/60"
+                      className="relative z-10 border-none bg-transparent shadow-none focus-within:border-gray-400 focus-within:ring-1 focus-within:ring-gray-400/50 transition-all duration-200 ease-in-out text-gray-800 placeholder-gray-500"
                     >
                       <PromptInputTextareaWithTypingAnimation />
                       <PromptInputActions>
@@ -194,18 +194,18 @@ export default function Home() {
               </div>
               <Examples setPrompt={setPrompt} />
               <div className="mt-8 mb-16">
-                <div className="border border-white/20 rounded-md px-4 py-2 mt-4 text-sm font-semibold w-full max-w-72 text-center block bg-white/10 backdrop-blur-sm">
-                  <span className="block font-bold text-white">
+                <div className="border border-gray-300 rounded-md px-4 py-2 mt-4 text-sm font-semibold w-full max-w-72 text-center block bg-white/60 backdrop-blur-sm">
+                  <span className="block font-bold text-gray-800">
                     By <span className="underline">Vibe</span>
                   </span>
-                  <span className="text-xs text-white/80">
+                  <span className="text-xs text-gray-600">
                     AI-powered development platform.
                   </span>
                 </div>
               </div>
             </div>
           </div>
-          <div className="border-t border-white/20 py-8 mx-0 sm:-mx-4">
+          <div className="border-t border-gray-300 py-8 mx-0 sm:-mx-4">
             <UserApps />
           </div>
         </main>
