@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { UserButton as StackUserButton } from "@stackframe/stack";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ZapIcon, CrownIcon, UserIcon, LogOutIcon, LogInIcon, AlertCircle, SparklesIcon } from "lucide-react";
+import { ZapIcon, CrownIcon, UserIcon, LogOutIcon, LogInIcon, AlertCircle, SparklesIcon, ClockIcon, RotateCcwIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useBilling } from "@/contexts/billing-context";
 
@@ -105,54 +105,72 @@ export function UserButtonWithBilling() {
                     </Badge>
                   </div>
                   
-                  {/* Credits Display with Progress Bar */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-white/80">Credits</span>
-                      <div className="flex items-center gap-2">
-                        <ZapIcon className="h-3 w-3 text-yellow-400" />
-                        <span className="text-sm font-medium text-white">
-                          {billing.plan === 'pro' ? `${billing.credits}/100` : `${billing.credits}/50`}
+                  {/* Daily Credits Display (Lovable.dev style) */}
+                  <div className="space-y-3">
+                    {/* Daily Credits */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-white/80 flex items-center gap-1">
+                          <RotateCcwIcon className="h-3 w-3" />
+                          Daily Credits
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <ZapIcon className="h-3 w-3 text-green-400" />
+                          <span className="text-sm font-medium text-white">
+                            5/5 {/* This will be dynamic */}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* Daily Progress Bar */}
+                      <div className="w-full bg-white/10 rounded-full h-1.5">
+                        <div 
+                          className="h-1.5 rounded-full bg-green-400 transition-all duration-300"
+                          style={{ width: `100%` }} {/* This will be dynamic */}
+                        ></div>
+                      </div>
+                      
+                      {/* Reset Timer */}
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-white/60 flex items-center gap-1">
+                          <ClockIcon className="h-3 w-3" />
+                          Resets in 8h 23m {/* This will be dynamic */}
                         </span>
                       </div>
                     </div>
+
+                    {/* Monthly Credits (Pro plans only) */}
+                    {billing.plan === 'pro' && (
+                      <div className="space-y-2 pt-2 border-t border-white/10">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-white/80">Monthly Credits</span>
+                          <div className="flex items-center gap-2">
+                            <ZapIcon className="h-3 w-3 text-purple-400" />
+                            <span className="text-sm font-medium text-white">
+                              {billing.credits}/100
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Monthly Progress Bar */}
+                        <div className="w-full bg-white/10 rounded-full h-1.5">
+                          <div 
+                            className={`h-1.5 rounded-full transition-all duration-300 ${
+                              billing.credits > 80 
+                                ? 'bg-red-500' 
+                                : billing.credits > 50 
+                                  ? 'bg-yellow-500' 
+                                  : 'bg-purple-400'
+                            }`}
+                            style={{ width: `${(billing.credits / 100) * 100}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    )}
                     
-                    {/* Progress Bar */}
-                    <div className="w-full bg-white/10 rounded-full h-2">
-                      <div 
-                        className={`h-2 rounded-full transition-all duration-300 ${
-                          billing.plan === 'pro' 
-                            ? billing.credits > 80 
-                              ? 'bg-red-500' 
-                              : billing.credits > 50 
-                                ? 'bg-yellow-500' 
-                                : 'bg-green-500'
-                            : billing.credits > 40 
-                              ? 'bg-red-500' 
-                              : billing.credits > 25 
-                                ? 'bg-yellow-500' 
-                                : 'bg-green-500'
-                        }`}
-                        style={{ 
-                          width: `${billing.plan === 'pro' ? (billing.credits / 100) * 100 : (billing.credits / 50) * 100}%` 
-                        }}
-                      ></div>
-                    </div>
-                    
-                    {/* Usage Stats */}
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-white/60">
-                        {billing.plan === 'pro' 
-                          ? `${100 - billing.credits} credits remaining`
-                          : `${50 - billing.credits} credits remaining`
-                        }
-                      </span>
-                      <span className="text-white/60">
-                        {billing.plan === 'pro' 
-                          ? `${Math.round((billing.credits / 100) * 100)}% used`
-                          : `${Math.round((billing.credits / 50) * 100)}% used`
-                        }
-                      </span>
+                    {/* Total Usage Info */}
+                    <div className="text-xs text-white/60 pt-1">
+                      <span>1 credit per chat • App creation: 10 credits</span>
                     </div>
                   </div>
                 </div>

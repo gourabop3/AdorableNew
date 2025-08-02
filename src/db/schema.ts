@@ -68,7 +68,10 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   name: text("name"),
   image: text("image"),
-  credits: integer("credits").notNull().default(50), // Free users get 50 credits
+  credits: integer("credits").notNull().default(50), // Total credits (includes monthly + daily)
+  dailyCredits: integer("daily_credits").notNull().default(5), // Daily credits available
+  dailyCreditsUsed: integer("daily_credits_used").notNull().default(0), // Daily credits used today
+  lastDailyCreditReset: timestamp("last_daily_credit_reset").defaultNow(), // When daily credits were last reset
   plan: subscriptionPlans("plan").notNull().default("free"),
   stripeCustomerId: text("stripe_customer_id").unique(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
