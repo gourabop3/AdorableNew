@@ -135,7 +135,7 @@ export default function Home() {
 
           <div className="flex w-full justify-between items-center">
             <h1 className="text-lg font-bold flex-1 sm:w-80">
-              <a href="https://www.vibe.dev">vibe.dev</a>
+              Vibe
             </h1>
             <Image
               className="dark:invert mx-2"
@@ -194,17 +194,14 @@ export default function Home() {
               </div>
               <Examples setPrompt={setPrompt} />
               <div className="mt-8 mb-16">
-                <a
-                  href="https://vibe.dev"
-                  className="border rounded-md px-4 py-2 mt-4 text-sm font-semibold transition-colors duration-200 ease-in-out cursor-pointer w-full max-w-72 text-center block"
-                >
+                <div className="border rounded-md px-4 py-2 mt-4 text-sm font-semibold w-full max-w-72 text-center block">
                   <span className="block font-bold">
-                    By <span className="underline">vibe.dev</span>
+                    By <span className="underline">Vibe</span>
                   </span>
                   <span className="text-xs">
                     AI-powered development platform.
                   </span>
-                </a>
+                </div>
               </div>
             </div>
           </div>
