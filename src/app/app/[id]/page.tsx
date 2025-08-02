@@ -39,16 +39,21 @@ export default async function AppPage({
     console.log('❌ User has no permissions for this specific app:', id);
     console.log('❌ User ID:', user.userId);
     console.log('❌ App ID:', id);
+    console.log('❌ User permission object:', userPermission);
     return <ProjectNotFound />;
   }
 
-  const app = await getApp(id).catch((error) => {
+  let app;
+  try {
+    app = await getApp(id);
+    console.log('✅ App found:', app.info.id);
+  } catch (error) {
     console.error('❌ Error getting app:', error);
-    return undefined;
-  });
-
-  if (!app) {
-    console.log('❌ App not found:', id);
+    console.error('❌ App ID that failed:', id);
+    console.error('❌ Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return <ProjectNotFound />;
   }
 
