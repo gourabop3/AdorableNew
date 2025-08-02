@@ -58,18 +58,44 @@ export default async function AppPage({
 
     console.log('✅ App found:', app.info.id);
 
-    const { uiMessages } = await memory.query({
-      threadId: id,
-      resourceId: id,
-    });
+    // Load UI messages with error handling
+    let uiMessages = [];
+    try {
+      const messagesResult = await memory.query({
+        threadId: id,
+        resourceId: id,
+      });
+      uiMessages = messagesResult.uiMessages || [];
+      console.log('✅ UI messages loaded:', uiMessages.length);
+    } catch (error) {
+      console.error('❌ Error loading UI messages:', error);
+      // Continue without messages
+    }
 
-    console.log('✅ UI messages loaded:', uiMessages.length);
+    // Request dev server with error handling
+    let codeServerUrl = '';
+    let ephemeralUrl = '';
+    try {
+      const devServerResult = await freestyle.requestDevServer({
+        repoId: app?.info.gitRepo,
+      });
+      codeServerUrl = devServerResult.codeServerUrl || '';
+      ephemeralUrl = devServerResult.ephemeralUrl || '';
+      console.log("✅ Dev server requested");
+    } catch (error) {
+      console.error('❌ Error requesting dev server:', error);
+      // Continue with empty URLs
+    }
 
-    const { codeServerUrl, ephemeralUrl } = await freestyle.requestDevServer({
-      repoId: app?.info.gitRepo,
-    });
-
-    console.log("✅ Dev server requested");
+    // Get chat state with error handling
+    let isRunning = false;
+    try {
+      const chatStateResult = await chatState(app.info.id);
+      isRunning = chatStateResult.state === "running";
+    } catch (error) {
+      console.error('❌ Error getting chat state:', error);
+      // Default to not running
+    }
 
     // Use the previewDomain from the database, or fall back to a generated domain
     const domain = app.info.previewDomain;
@@ -81,14 +107,14 @@ export default async function AppPage({
         key={app.info.id}
         baseId={app.info.baseId}
         codeServerUrl={codeServerUrl}
-        appName={app.info.name}
+        appName={app.info.name || 'Unnamed App'}
         initialMessages={uiMessages}
         consoleUrl={ephemeralUrl + "/__console"}
         repo={app.info.gitRepo}
         appId={app.info.id}
         repoId={app.info.gitRepo}
         domain={domain ?? undefined}
-        running={(await chatState(app.info.id)).state === "running"}
+        running={isRunning}
       />
     );
   } catch (error) {
