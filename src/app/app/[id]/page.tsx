@@ -148,20 +148,28 @@ export default async function AppPage({
       isRunning
     });
 
+    // Add a simple fallback to test if the issue is with AppWrapper
+    console.log('🚀 About to render AppWrapper component...');
+    
     return (
-      <AppWrapper
-        key={app.info.id}
-        baseId={app.info.baseId}
-        codeServerUrl={codeServerUrl}
-        appName={app.info.name || 'Unnamed App'}
-        initialMessages={uiMessages}
-        consoleUrl={ephemeralUrl + "/__console"}
-        repo={app.info.gitRepo}
-        appId={app.info.id}
-        repoId={app.info.gitRepo}
-        domain={domain ?? undefined}
-        running={isRunning}
-      />
+      <div>
+        <div style={{ position: 'fixed', top: '10px', left: '10px', background: 'red', color: 'white', padding: '10px', zIndex: 9999 }}>
+          DEBUG: AppWrapper should render below
+        </div>
+        <AppWrapper
+          key={app.info.id}
+          baseId={app.info.baseId}
+          codeServerUrl={codeServerUrl}
+          appName={app.info.name || 'Unnamed App'}
+          initialMessages={uiMessages}
+          consoleUrl={ephemeralUrl + "/__console"}
+          repo={app.info.gitRepo}
+          appId={app.info.id}
+          repoId={app.info.gitRepo}
+          domain={domain ?? undefined}
+          running={isRunning}
+        />
+      </div>
     );
   } catch (error) {
     console.error('❌ Error in app page:', error);
