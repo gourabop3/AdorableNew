@@ -9,6 +9,7 @@ import { templates } from "@/lib/templates";
 import { memory } from "@/mastra/agents/builder";
 import { eq } from "drizzle-orm";
 import { InsufficientCreditsError } from "@/lib/errors";
+import { deductCredits } from "@/lib/credits";
 
 interface CreateAppOptions {
   initialMessage?: string;
@@ -74,13 +75,18 @@ export async function createAppWithBilling({
           throw new InsufficientCreditsError(creditCheck.currentCredits, 10);
         }
 
-        // Try to deduct credits
-        const creditResult = await tryDeductCredits(user.userId, 10);
-        if (creditResult.success) {
+        // Deduct credits using the proper credits library
+        try {
+          await deductCredits(user.userId, 10, 'App creation');
           billingMode = 'full';
-        } else {
+          console.log('✅ Credits deducted successfully for app creation');
+        } catch (creditError: any) {
+          console.error('Credit deduction failed:', creditError);
+          if (creditError.message === 'Insufficient credits') {
+            throw new InsufficientCreditsError(creditCheck.currentCredits, 10);
+          }
           billingMode = 'fallback';
-          warning = creditResult.message;
+          warning = 'Credit deduction failed, using free mode';
         }
       } else {
         billingMode = 'fallback';
@@ -226,29 +232,3 @@ async function checkCredits(userId: string, requiredAmount: number): Promise<{ s
   }
 }
 
-async function tryDeductCredits(userId: string, amount: number): Promise<{ success: boolean; message?: string }> {
-  try {
-    // Check current credits
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, userId),
-    });
-
-    if (!user) {
-      return { success: false, message: 'User not found in database' };
-    }
-
-    if (user.credits < amount) {
-      return { success: false, message: `Insufficient credits. Need ${amount}, have ${user.credits}` };
-    }
-
-    // Deduct credits
-    await db.update(users)
-      .set({ credits: user.credits - amount })
-      .where(eq(users.id, userId));
-
-    return { success: true };
-  } catch (error) {
-    console.warn('Credit deduction failed:', error);
-    return { success: false, message: 'Credit system temporarily unavailable' };
-  }
-}
