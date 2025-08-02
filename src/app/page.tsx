@@ -37,10 +37,11 @@ export default function Home() {
   const plan = searchParams.get('plan');
   const credits = searchParams.get('credits');
 
+  useEffect(() => {
   if (success && !showPaymentSuccess) {
     setShowPaymentSuccess(true);
   }
-
+}, [success, showPaymentSuccess]);
   useEffect(() => {
     // Fetch user data when component mounts
     fetchUserData();
