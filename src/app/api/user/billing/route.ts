@@ -18,13 +18,23 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    console.log('Billing API: Fetching data for user:', user.userId);
+
     // Get user data
     let dbUser = await db.query.users.findFirst({
       where: eq(users.id, user.userId),
     });
 
+    console.log('Billing API: Found user in database:', dbUser ? {
+      id: dbUser.id,
+      plan: dbUser.plan,
+      credits: dbUser.credits,
+      updatedAt: dbUser.updatedAt
+    } : 'User not found');
+
     if (!dbUser) {
       try {
+        console.log('Billing API: Creating new user with 50 free credits');
         // Create new user with 50 free credits
         const newUser = await db.insert(users).values({
           id: user.userId,
@@ -36,6 +46,11 @@ export async function GET() {
         }).returning();
 
         dbUser = newUser[0];
+        console.log('Billing API: New user created:', {
+          id: dbUser.id,
+          plan: dbUser.plan,
+          credits: dbUser.credits
+        });
       } catch (insertError) {
         console.error('Database error creating user:', insertError);
         return NextResponse.json({ error: 'Database temporarily unavailable' }, { status: 503 });
@@ -50,6 +65,12 @@ export async function GET() {
     const subscription = await db.query.subscriptions.findFirst({
       where: eq(subscriptions.userId, dbUser.id),
     });
+
+    console.log('Billing API: Found subscription:', subscription ? {
+      id: subscription.id,
+      status: subscription.status,
+      stripeSubscriptionId: subscription.stripeSubscriptionId
+    } : 'No subscription found');
 
     const responseData = {
       user: {
@@ -67,6 +88,13 @@ export async function GET() {
         cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
       } : null,
     };
+
+    console.log('Billing API: Returning data:', {
+      userId: responseData.user.id,
+      plan: responseData.user.plan,
+      credits: responseData.user.credits,
+      hasSubscription: !!responseData.subscription
+    });
 
     return NextResponse.json(responseData);
   } catch (error) {
