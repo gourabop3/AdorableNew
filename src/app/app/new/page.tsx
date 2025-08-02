@@ -92,7 +92,7 @@ export default async function NewAppRedirectPage({
       stack: error instanceof Error ? error.stack : undefined,
     });
     
-    // Redirect to home page with error message
-    redirect('/?error=app_creation_failed');
+    // Instead of redirecting to home, show a more helpful error page
+    throw new Error(`App creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
