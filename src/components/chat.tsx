@@ -4,7 +4,8 @@ import Image from "next/image";
 
 import { PromptInputBasic } from "./chatinput";
 import { Markdown } from "./ui/markdown";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
+import React from "react";
 import { ChatContainer } from "./ui/chat-container";
 import { UIMessage } from "ai";
 import { ToolMessage } from "./tools";
@@ -26,14 +27,26 @@ export default function Chat(props: {
     queryFn: async () => {
       return chatState(props.appId);
     },
-    refetchInterval: 1000,
-    refetchOnWindowFocus: true,
+    refetchInterval: 2000, // Slower polling to reduce blinking
+    refetchOnWindowFocus: false, // Disable refetch on window focus to reduce blinking
+    staleTime: 1000, // Keep data fresh for 1 second
   });
+
+  // Debounce the running state to reduce blinking
+  const [debouncedRunning, setDebouncedRunning] = useState(false);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedRunning(props.running && chat?.state === "running");
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timer);
+  }, [props.running, chat?.state]);
 
   const { messages, sendMessage } = useChatSafe({
     messages: props.initialMessages,
     id: props.appId,
-    resume: props.running && chat?.state === "running",
+    resume: debouncedRunning,
   });
 
   const [input, setInput] = useState("");
@@ -107,7 +120,7 @@ export default function Chat(props: {
     >
       {props.topBar}
       <div
-        className="flex-1 overflow-y-auto flex flex-col space-y-6 min-h-0"
+        className="flex-1 overflow-y-auto flex flex-col space-y-6 min-h-0 transition-all duration-300"
         style={{ overflowAnchor: "auto" }}
       >
         <ChatContainer autoScroll>
@@ -125,14 +138,14 @@ export default function Chat(props: {
           }}
           onSubmit={onSubmit}
           onSubmitWithImages={onSubmitWithImages}
-          isGenerating={props.isLoading || chat?.state === "running"}
+          isGenerating={props.isLoading || debouncedRunning}
         />
       </div>
     </div>
   );
 }
 
-function MessageBody({ message }: { message: any }) {
+const MessageBody = React.memo(function MessageBody({ message }: { message: any }) {
   if (message.role === "user") {
     return (
       <div className="flex justify-end py-1 mb-4">
