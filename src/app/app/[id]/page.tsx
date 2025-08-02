@@ -22,9 +22,11 @@ export default async function AppPage({
   console.log('🔍 Loading app page for ID:', id);
 
   try {
+    console.log('👤 Getting user...');
     const user = await getUser();
     console.log('✅ User authenticated for app page:', user?.userId);
 
+    console.log('🔐 Checking user permissions...');
     // Check if user has permission for THIS specific app
     const userPermission = (
       await db
@@ -40,12 +42,21 @@ export default async function AppPage({
     ).at(0);
 
     console.log('🔐 User permission for this app:', userPermission?.permissions);
+    console.log('🔐 User permission full object:', userPermission);
 
     if (!userPermission?.permissions) {
       console.log('❌ User has no permissions for this specific app:', id);
+      console.log('❌ User ID:', user.userId);
+      console.log('❌ App ID:', id);
+      
+      // Let's also check if the app exists at all
+      const allApps = await db.select().from(appUsers).where(eq(appUsers.userId, user.userId));
+      console.log('📋 All apps for this user:', allApps.map(a => ({ appId: a.appId, permissions: a.permissions })));
+      
       return <ProjectNotFound />;
     }
 
+    console.log('📱 Getting app data...');
     const app = await getApp(id).catch((error) => {
       console.error('❌ Error getting app:', error);
       return undefined;
@@ -57,10 +68,17 @@ export default async function AppPage({
     }
 
     console.log('✅ App found:', app.info.id);
+    console.log('✅ App data:', {
+      id: app.info.id,
+      name: app.info.name,
+      gitRepo: app.info.gitRepo,
+      baseId: app.info.baseId
+    });
 
     // Load UI messages with error handling
     let uiMessages = [];
     try {
+      console.log('💬 Loading UI messages...');
       const messagesResult = await memory.query({
         threadId: id,
         resourceId: id,
@@ -76,6 +94,7 @@ export default async function AppPage({
     let codeServerUrl = '';
     let ephemeralUrl = '';
     try {
+      console.log('🖥️ Requesting dev server...');
       const devServerResult = await freestyle.requestDevServer({
         repoId: app?.info.gitRepo,
       });
@@ -90,8 +109,10 @@ export default async function AppPage({
     // Get chat state with error handling
     let isRunning = false;
     try {
+      console.log('💭 Getting chat state...');
       const chatStateResult = await chatState(app.info.id);
       isRunning = chatStateResult.state === "running";
+      console.log('✅ Chat state:', chatStateResult.state);
     } catch (error) {
       console.error('❌ Error getting chat state:', error);
       // Default to not running
@@ -101,6 +122,16 @@ export default async function AppPage({
     const domain = app.info.previewDomain;
 
     console.log('🎉 Rendering app wrapper for:', app.info.id);
+    console.log('🎉 App wrapper props:', {
+      baseId: app.info.baseId,
+      appName: app.info.name || 'Unnamed App',
+      appId: app.info.id,
+      repoId: app.info.gitRepo,
+      codeServerUrl: codeServerUrl ? 'set' : 'empty',
+      ephemeralUrl: ephemeralUrl ? 'set' : 'empty',
+      uiMessagesCount: uiMessages.length,
+      isRunning
+    });
 
     return (
       <AppWrapper
@@ -119,6 +150,7 @@ export default async function AppPage({
     );
   } catch (error) {
     console.error('❌ Error in app page:', error);
+    console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack');
     return <ProjectNotFound />;
   }
 }
