@@ -63,8 +63,17 @@ export default async function NewAppRedirectPage({
     });
 
     console.log('✅ App created successfully with ID:', id);
+    
+    // Add a small delay to ensure all async operations complete
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
     console.log('🔄 Redirecting to app page...');
-    redirect(`/app/${id}`);
+    
+    // Use a more explicit redirect
+    const redirectUrl = `/app/${id}`;
+    console.log('📍 Redirect URL:', redirectUrl);
+    
+    redirect(redirectUrl);
   } catch (error) {
     // Don't treat NEXT_REDIRECT as an error - it's the normal redirect mechanism
     if (error instanceof Error && error.message === 'NEXT_REDIRECT') {

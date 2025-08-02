@@ -112,7 +112,9 @@ export async function createApp({
         .insert(appsTable)
         .values({
           gitRepo: repo.repoId,
-          name: initialMessage,
+          name: initialMessage || 'Unnamed App',
+          description: initialMessage || 'No description',
+          baseId: templateId, // Set the baseId to the template ID
         })
         .returning();
 
