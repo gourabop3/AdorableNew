@@ -8,6 +8,7 @@ import { freestyle } from "@/lib/freestyle";
 import { templates } from "@/lib/templates";
 import { memory } from "@/mastra/agents/builder";
 import { eq } from "drizzle-orm";
+import { InsufficientCreditsError } from "@/lib/errors";
 
 interface CreateAppOptions {
   initialMessage?: string;
