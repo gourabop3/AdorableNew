@@ -78,9 +78,12 @@ export async function createAppWithBilling({
 
         // Try to deduct credits
         try {
-          await deductCredits(user.userId, APP_CREDIT_COST, `App creation: ${initialMessage || 'Unnamed App'}`);
+          console.log(`💰 Attempting to deduct ${APP_CREDIT_COST} credits from user ${user.userId}`);
+          const result = await deductCredits(user.userId, APP_CREDIT_COST, `App creation: ${initialMessage || 'Unnamed App'}`);
+          console.log(`✅ Credit deduction successful:`, result);
           billingMode = 'full';
         } catch (error) {
+          console.error(`❌ Credit deduction failed:`, error);
           billingMode = 'fallback';
           warning = error.message;
         }
