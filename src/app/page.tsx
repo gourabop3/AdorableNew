@@ -135,12 +135,12 @@ export default function Home() {
 
           <div className="flex w-full justify-between items-center">
             <h1 className="text-lg font-bold flex-1 sm:w-80">
-              <a href="https://www.freestyle.sh">freestyle.sh</a>
+              <a href="https://www.vibe.dev">vibe.dev</a>
             </h1>
             <Image
               className="dark:invert mx-2"
               src={LogoSvg}
-              alt="Adorable Logo"
+              alt="Vibe Logo"
               width={36}
               height={36}
             />
@@ -152,7 +152,7 @@ export default function Home() {
           <div>
             <div className="w-full max-w-lg px-4 sm:px-0 mx-auto flex flex-col items-center mt-16 sm:mt-24 md:mt-32 col-start-1 col-end-1 row-start-1 row-end-1 z-10">
               <p className="text-neutral-600 text-center mb-6 text-3xl sm:text-4xl md:text-5xl font-bold">
-                Let AI Cook
+                Build Something With Vibe
               </p>
 
               <div className="w-full relative my-5">
@@ -195,14 +195,14 @@ export default function Home() {
               <Examples setPrompt={setPrompt} />
               <div className="mt-8 mb-16">
                 <a
-                  href="https://freestyle.sh"
+                  href="https://vibe.dev"
                   className="border rounded-md px-4 py-2 mt-4 text-sm font-semibold transition-colors duration-200 ease-in-out cursor-pointer w-full max-w-72 text-center block"
                 >
                   <span className="block font-bold">
-                    By <span className="underline">freestyle.sh</span>
+                    By <span className="underline">vibe.dev</span>
                   </span>
                   <span className="text-xs">
-                    JavaScript infrastructure for AI.
+                    AI-powered development platform.
                   </span>
                 </a>
               </div>
