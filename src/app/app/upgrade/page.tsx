@@ -16,7 +16,7 @@ export default function UpgradePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const requiredCredits = 10; // Credits needed to create an app
+  const requiredCredits = 5; // Credits needed to create an app
 
   useEffect(() => {
     fetchUserData();

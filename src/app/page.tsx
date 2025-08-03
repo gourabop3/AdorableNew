@@ -88,7 +88,7 @@ export default function Home() {
 
     try {
       // Check if user has enough credits before proceeding
-      if (userData && userData.credits < 10) {
+      if (userData && userData.credits < 5) {
         console.log(`[${requestId}] Insufficient credits, redirecting to upgrade`);
         // Redirect to upgrade page with current parameters
         const params = new URLSearchParams();

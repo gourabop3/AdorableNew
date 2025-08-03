@@ -68,7 +68,7 @@ export function CreditCheck({ onProceed, onCancel }: CreditCheckProps) {
     );
   }
 
-  const hasEnoughCredits = userData.credits >= 10; // 10 credits per app creation
+  const hasEnoughCredits = userData.credits >= 5; // 5 credits per app creation
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">

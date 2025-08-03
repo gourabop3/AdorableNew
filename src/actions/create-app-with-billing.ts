@@ -69,13 +69,14 @@ export async function createAppWithBilling({
       
       if (dbUser) {
         // Check if user has enough credits before proceeding
-        const creditCheck = await checkCredits(user.userId, 10);
+        const APP_CREDIT_COST = 5;
+        const creditCheck = await checkCredits(user.userId, APP_CREDIT_COST);
         if (!creditCheck.success) {
-          throw new InsufficientCreditsError(creditCheck.currentCredits, 10);
+          throw new InsufficientCreditsError(creditCheck.currentCredits, APP_CREDIT_COST);
         }
 
         // Try to deduct credits
-        const creditResult = await tryDeductCredits(user.userId, 10);
+        const creditResult = await tryDeductCredits(user.userId, APP_CREDIT_COST);
         if (creditResult.success) {
           billingMode = 'full';
         } else {
