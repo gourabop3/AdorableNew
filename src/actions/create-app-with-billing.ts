@@ -77,11 +77,17 @@ export async function createAppWithBilling({
 
         // Deduct credits using the proper credits library
         try {
+          console.log(`Attempting to deduct 1 credit for user ${user.userId}...`);
           await deductCredits(user.userId, 1, 'App creation');
           billingMode = 'full';
           console.log('✅ Credits deducted successfully for app creation');
         } catch (creditError: any) {
           console.error('Credit deduction failed:', creditError);
+          console.error('Error details:', {
+            message: creditError.message,
+            stack: creditError.stack,
+            userId: user.userId
+          });
           if (creditError.message === 'Insufficient credits') {
             throw new InsufficientCreditsError(creditCheck.currentCredits, 1);
           }
