@@ -28,7 +28,6 @@ export async function deductCredits(userId: string, amount: number, description:
     await db.update(users)
       .set({ 
         credits: user.credits - amount,
-        updatedAt: new Date(),
       })
       .where(eq(users.id, userId));
 
@@ -66,7 +65,6 @@ export async function addCredits(userId: string, amount: number, description: st
     await db.update(users)
       .set({ 
         credits: user.credits + amount,
-        updatedAt: new Date(),
       })
       .where(eq(users.id, userId));
 

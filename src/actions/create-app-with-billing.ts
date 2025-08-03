@@ -28,18 +28,23 @@ export async function createAppWithBilling({
   templateId,
   skipBilling = false,
 }: CreateAppOptions): Promise<CreateAppResult> {
+  console.log(`🚀 createAppWithBilling called with skipBilling=${skipBilling}`);
   console.time("get user");
   const user = await getUser();
   console.timeEnd("get user");
 
+  console.log(`🔍 Template check: templateId=${templateId}`);
   if (!templates[templateId]) {
+    console.log(`❌ Template ${templateId} not found. Available templates: ${Object.keys(templates).join(", ")}`);
     throw new Error(
       `Template ${templateId} not found. Available templates: ${Object.keys(templates).join(", ")}`
     );
   }
+  console.log(`✅ Template ${templateId} found`);
 
   // Check for existing app with same parameters to prevent duplicates
   console.time("check existing app");
+  console.log(`🔍 Checking for existing app: name="${initialMessage || 'Unnamed App'}", userId=${user.userId}`);
   const existingApp = await db.query.apps.findFirst({
     where: eq(appsTable.name, initialMessage || 'Unnamed App'),
     with: {
@@ -50,19 +55,21 @@ export async function createAppWithBilling({
   });
   
   if (existingApp && existingApp.appUsers.length > 0) {
-    console.log('Found existing app with same parameters:', existingApp.id);
+    console.log(`✅ Found existing app with same parameters: ${existingApp.id}`);
     return {
       id: existingApp.id,
       warning: 'Using existing app with same parameters',
       billingMode: 'skip'
     };
   }
+  console.log(`✅ No existing app found, proceeding with creation`);
   console.timeEnd("check existing app");
 
   let billingMode: 'full' | 'fallback' | 'skip' = 'skip';
   let warning: string | undefined;
 
   // Try billing operations, but don't fail if they don't work
+  console.log(`🔍 Billing check: skipBilling=${skipBilling}`);
   if (!skipBilling) {
     try {
       // Check if database is available
