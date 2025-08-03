@@ -122,7 +122,7 @@ export default function Home() {
   return (
     <QueryClientProvider client={queryClient}>
       <BillingProvider>
-        <main className="min-h-screen p-4 relative">
+        <main className="min-h-screen p-4 relative bg-gradient-to-b from-[#FAFAF8] via-[#B9D6F8] to-[#D98DBA]">
           {/* Payment Success Banner */}
           {showPaymentSuccess && (
             <PaymentSuccessBanner
