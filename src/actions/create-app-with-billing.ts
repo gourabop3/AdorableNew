@@ -77,28 +77,33 @@ export async function createAppWithBilling({
 
         // Deduct credits using the proper credits library
         try {
+          console.log(`Attempting to deduct 1 credit for user ${user.userId}...`);
           await deductCredits(user.userId, 1, 'App creation');
           billingMode = 'full';
           console.log('✅ Credits deducted successfully for app creation');
         } catch (creditError: any) {
           console.error('Credit deduction failed:', creditError);
+          console.error('Error details:', {
+            message: creditError.message,
+            stack: creditError.stack,
+            userId: user.userId
+          });
           if (creditError.message === 'Insufficient credits') {
             throw new InsufficientCreditsError(creditCheck.currentCredits, 1);
           }
-          billingMode = 'fallback';
-          warning = 'Credit deduction failed, using free mode';
+          // Don't allow fallback for credit deduction failures
+          throw new Error(`Credit deduction failed: ${creditError.message}`);
         }
       } else {
-        billingMode = 'fallback';
-        warning = 'Billing unavailable, using free mode';
+        // Don't allow fallback if user can't be created in database
+        throw new Error('User database operations failed - billing system unavailable');
       }
     } catch (error) {
       if (error instanceof InsufficientCreditsError) {
         throw error; // Re-throw insufficient credits error
       }
-      console.warn('Billing operations failed, continuing without billing:', error);
-      billingMode = 'fallback';
-      warning = 'Billing service temporarily unavailable';
+      console.error('Billing operations failed:', error);
+      throw new Error(`Billing system error: ${error.message}`);
     }
   }
 
@@ -188,6 +193,8 @@ export async function createAppWithBilling({
 
 async function ensureUserInDatabase(user: any) {
   try {
+    console.log(`Ensuring user ${user.userId} exists in database...`);
+    
     let dbUser = await db.query.users.findFirst({
       where: eq(users.id, user.userId),
     });
@@ -202,32 +209,52 @@ async function ensureUserInDatabase(user: any) {
         credits: 50, // Give new users 50 free credits
         plan: 'free',
       }).returning()[0];
+      console.log(`✅ New user created with ${dbUser.credits} credits`);
+    } else {
+      console.log(`✅ Existing user found with ${dbUser.credits} credits`);
     }
 
     return dbUser;
   } catch (error) {
-    console.warn('Database user operations failed:', error);
+    console.error('Database user operations failed:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      userId: user.userId
+    });
     return null;
   }
 }
 
 async function checkCredits(userId: string, requiredAmount: number): Promise<{ success: boolean; currentCredits: number; message?: string }> {
   try {
+    console.log(`Checking credits for user ${userId} (need ${requiredAmount})...`);
+    
     const user = await db.query.users.findFirst({
       where: eq(users.id, userId),
     });
 
     if (!user) {
+      console.error(`User ${userId} not found in database`);
       return { success: false, currentCredits: 0, message: 'User not found in database' };
     }
 
+    console.log(`User has ${user.credits} credits, needs ${requiredAmount}`);
+
     if (user.credits < requiredAmount) {
+      console.error(`Insufficient credits: need ${requiredAmount}, have ${user.credits}`);
       return { success: false, currentCredits: user.credits, message: `Insufficient credits. Need ${requiredAmount}, have ${user.credits}` };
     }
 
+    console.log(`✅ Credit check passed: ${user.credits} >= ${requiredAmount}`);
     return { success: true, currentCredits: user.credits };
   } catch (error) {
-    console.warn('Credit check failed:', error);
+    console.error('Credit check failed:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      userId: userId
+    });
     return { success: false, currentCredits: 0, message: 'Credit system temporarily unavailable' };
   }
 }

@@ -1,9 +1,20 @@
 import { db } from '@/lib/db';
 import { users, creditTransactions } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 export async function deductCredits(userId: string, amount: number, description: string) {
   try {
+    console.log(`Deducting ${amount} credits for user ${userId}...`);
+    
+    // Test database connection first
+    try {
+      await db.execute(sql`SELECT 1`);
+      console.log('Database connection test successful');
+    } catch (dbError) {
+      console.error('Database connection failed:', dbError);
+      throw new Error('Database connection unavailable');
+    }
+    
     // Get current user
     const user = await db.query.users.findFirst({
       where: eq(users.id, userId),
