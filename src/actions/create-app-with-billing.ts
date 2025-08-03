@@ -9,6 +9,7 @@ import { templates } from "@/lib/templates";
 import { memory } from "@/mastra/agents/builder";
 import { eq } from "drizzle-orm";
 import { InsufficientCreditsError } from "@/lib/errors";
+import { deductCredits } from "@/lib/credits";
 
 interface CreateAppOptions {
   initialMessage?: string;
@@ -76,12 +77,12 @@ export async function createAppWithBilling({
         }
 
         // Try to deduct credits
-        const creditResult = await tryDeductCredits(user.userId, APP_CREDIT_COST);
-        if (creditResult.success) {
+        try {
+          await deductCredits(user.userId, APP_CREDIT_COST, `App creation: ${initialMessage || 'Unnamed App'}`);
           billingMode = 'full';
-        } else {
+        } catch (error) {
           billingMode = 'fallback';
-          warning = creditResult.message;
+          warning = error.message;
         }
       } else {
         billingMode = 'fallback';
@@ -227,29 +228,3 @@ async function checkCredits(userId: string, requiredAmount: number): Promise<{ s
   }
 }
 
-async function tryDeductCredits(userId: string, amount: number): Promise<{ success: boolean; message?: string }> {
-  try {
-    // Check current credits
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, userId),
-    });
-
-    if (!user) {
-      return { success: false, message: 'User not found in database' };
-    }
-
-    if (user.credits < amount) {
-      return { success: false, message: `Insufficient credits. Need ${amount}, have ${user.credits}` };
-    }
-
-    // Deduct credits
-    await db.update(users)
-      .set({ credits: user.credits - amount })
-      .where(eq(users.id, userId));
-
-    return { success: true };
-  } catch (error) {
-    console.warn('Credit deduction failed:', error);
-    return { success: false, message: 'Credit system temporarily unavailable' };
-  }
-}
