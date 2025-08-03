@@ -86,20 +86,20 @@
           "primaryKey": false,
           "notNull": false
         },
-        "freestyle_identity": {
-          "name": "freestyle_identity",
+        "github_username": {
+          "name": "github_username",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "freestyle_access_token": {
-          "name": "freestyle_access_token",
+        "github_access_token": {
+          "name": "github_access_token",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "freestyle_access_token_id": {
-          "name": "freestyle_access_token_id",
+        "github_installation_id": {
+          "name": "github_installation_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
