@@ -4,7 +4,7 @@ import { sendMessage } from "@/app/api/chat/route";
 import { getUser } from "@/auth/stack-auth";
 import { appsTable, appUsers } from "@/db/schema";
 import { db } from "@/lib/db";
-import { freestyle } from "@/lib/freestyle";
+import { githubSandboxes } from "@/lib/github";
 import { templates } from "@/lib/templates";
 import { memory } from "@/mastra/agents/builder";
 
@@ -22,38 +22,28 @@ export async function createApp({
   const user = await getUser();
   console.timeEnd("get user");
 
-  if (!templates[templateId]) {
+  const template = templates.find(t => t.id === templateId);
+  if (!template) {
     throw new Error(
-      `Template ${templateId} not found. Available templates: ${Object.keys(templates).join(", ")}`
+      `Template ${templateId} not found. Available templates: ${templates.map(t => t.id).join(", ")}`
     );
   }
 
   console.time("git");
-  const repo = await freestyle.createGitRepository({
-    name: "Unnamed App",
-    public: true,
-    source: {
-      type: "git",
-      url: templates[templateId].repo,
-    },
-  });
-  await freestyle.grantGitPermission({
-    identityId: user.freestyleIdentity,
-    repoId: repo.repoId,
-    permission: "write",
-  });
-
-  const token = await freestyle.createGitAccessToken({
-    identityId: user.freestyleIdentity,
-  });
-
+  const repo = await githubSandboxes.createRepository(
+    `adorable-app-${Date.now()}`,
+    initialMessage || 'Unnamed App',
+    false // public repository
+  );
   console.timeEnd("git");
 
-  console.time("dev server");
-  const { mcpEphemeralUrl } = await freestyle.requestDevServer({
-    repoId: repo.repoId,
-  });
-  console.timeEnd("dev server");
+  console.time("codespace");
+  const codespace = await githubSandboxes.createCodespace(
+    repo.full_name,
+    'main',
+    'basicLinux'
+  );
+  console.timeEnd("codespace");
 
   console.time("database: create app");
     
@@ -61,7 +51,7 @@ export async function createApp({
     const appInsertion = await tx
       .insert(appsTable)
       .values({
-        gitRepo: repo.repoId,
+        gitRepo: repo.full_name,
         name: initialMessage || 'Unnamed App',
         description: initialMessage || 'No description',
         baseId: templateId,
@@ -74,9 +64,9 @@ export async function createApp({
         appId: appInsertion[0].id,
         userId: user.userId,
         permissions: "admin",
-        freestyleAccessToken: token.token,
-        freestyleAccessTokenId: token.id,
-        freestyleIdentity: user.freestyleIdentity,
+        githubUsername: user.githubUsername,
+        githubAccessToken: user.githubAccessToken,
+        githubInstallationId: user.githubInstallationId,
       })
       .returning();
 
@@ -93,7 +83,7 @@ export async function createApp({
 
   if (initialMessage) {
     console.time("send initial message");
-    await sendMessage(app.id, mcpEphemeralUrl, {
+    await sendMessage(app.id, codespace.web_ide_url, {
       id: crypto.randomUUID(),
       parts: [
         {

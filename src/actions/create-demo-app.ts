@@ -65,9 +65,9 @@ export async function createDemoApp({
           appId: appInsertion[0].id,
           userId: user.userId,
           permissions: "admin",
-          freestyleAccessToken: 'demo-token',
-          freestyleAccessTokenId: 'demo-token-id',
-          freestyleIdentity: user.freestyleIdentity || 'demo-identity',
+          githubUsername: user.githubUsername || 'demo-user',
+          githubAccessToken: 'demo-token',
+          githubInstallationId: 'demo-installation',
         })
         .returning();
 

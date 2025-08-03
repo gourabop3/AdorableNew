@@ -1,7 +1,7 @@
 import "server-only";
 
 import { StackServerApp } from "@stackframe/stack";
-import { freestyle } from "@/lib/freestyle";
+import { createGitHubIdentity } from "./github-auth";
 
 export const stackServerApp = new StackServerApp({
   tokenStore: "nextjs-cookie",
@@ -14,16 +14,18 @@ export async function getUser() {
     throw new Error("User not found");
   }
 
-  if (!user?.serverMetadata?.freestyleIdentity) {
-    const gitIdentity = await freestyle.createGitIdentity();
+  if (!user?.serverMetadata?.githubUsername) {
+    const gitIdentity = await createGitHubIdentity();
 
     await user.update({
       serverMetadata: {
-        freestyleIdentity: gitIdentity.id,
+        githubUsername: gitIdentity.username,
+        githubAccessToken: process.env.GITHUB_PERSONAL_ACCESS_TOKEN,
+        githubInstallationId: 'personal', // For personal access tokens
       },
     });
 
-    user.serverMetadata.freestyleIdentity = gitIdentity.id;
+    user.serverMetadata.githubUsername = gitIdentity.username;
   }
 
   return {
@@ -31,6 +33,28 @@ export async function getUser() {
     email: user.email || '',
     name: user.name || '',
     image: user.image || '',
-    freestyleIdentity: user.serverMetadata.freestyleIdentity,
+    githubUsername: user.serverMetadata.githubUsername,
+    githubAccessToken: user.serverMetadata.githubAccessToken,
+    githubInstallationId: user.serverMetadata.githubInstallationId,
+  };
+}
+
+export async function getOrCreateGitHubIdentity(user: any) {
+  if (!user?.serverMetadata?.githubUsername) {
+    const gitIdentity = await createGitHubIdentity();
+    
+    await user.updateServerMetadata({
+      githubUsername: gitIdentity.username,
+      githubAccessToken: process.env.GITHUB_PERSONAL_ACCESS_TOKEN,
+      githubInstallationId: 'personal', // For personal access tokens
+    });
+    
+    user.serverMetadata.githubUsername = gitIdentity.username;
+  }
+  
+  return {
+    githubUsername: user.serverMetadata.githubUsername,
+    githubAccessToken: user.serverMetadata.githubAccessToken,
+    githubInstallationId: user.serverMetadata.githubInstallationId,
   };
 }

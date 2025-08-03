@@ -1,16 +1,13 @@
 "use server";
 
-import { freestyle } from "@/lib/freestyle";
+import { githubSandboxes } from "@/lib/github";
 
-export async function getCodeServerUrl({
-  repoId,
-}: {
-  repoId: string;
-  baseId: string;
-}): Promise<string> {
-  const { codeServerUrl } = await freestyle.requestDevServer({
-    repoId: repoId,
-  });
-
-  return codeServerUrl;
+export async function getCodeServerUrl(repoName: string) {
+  const codespace = await githubSandboxes.createCodespace(
+    repoName,
+    'main',
+    'basicLinux'
+  );
+  
+  return codespace.web_ide_url;
 }

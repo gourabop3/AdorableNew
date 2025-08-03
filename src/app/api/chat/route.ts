@@ -1,5 +1,5 @@
 import { getApp } from "@/actions/get-app";
-import { freestyle } from "@/lib/freestyle";
+import { githubSandboxes } from "@/lib/github";
 import { getAppIdFromHeaders } from "@/lib/utils";
 import { MCPClient } from "@mastra/mcp";
 import { builderAgent } from "@/mastra/agents/builder";
@@ -75,13 +75,16 @@ export async function POST(req: NextRequest) {
 
   const { messages }: { messages: UIMessage[] } = await req.json();
 
-  const { mcpEphemeralUrl } = await freestyle.requestDevServer({
-    repoId: app.info.gitRepo,
-  });
+  // Create a codespace for the repository
+  const codespace = await githubSandboxes.createCodespace(
+    app.info.gitRepo,
+    'main',
+    'basicLinux'
+  );
 
   const resumableStream = await sendMessage(
     appId,
-    mcpEphemeralUrl,
+    codespace.web_ide_url,
     messages.at(-1)!
   );
 

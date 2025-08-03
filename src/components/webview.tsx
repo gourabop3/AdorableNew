@@ -1,14 +1,10 @@
 "use client";
 
-import { requestDevServer as requestDevServerInner } from "./webview-actions";
+import { getCodespaceUrl } from "./webview-actions";
 import "./loader.css";
-import {
-  FreestyleDevServer,
-  FreestyleDevServerHandle,
-} from "freestyle-sandboxes/react/dev-server";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Button } from "./ui/button";
-import { RefreshCwIcon } from "lucide-react";
+import { RefreshCwIcon, ExternalLinkIcon } from "lucide-react";
 import { ShareButton } from "./share-button";
 
 export default function WebView(props: {
@@ -17,11 +13,46 @@ export default function WebView(props: {
   appId: string;
   domain?: string;
 }) {
-  function requestDevServer({ repoId }: { repoId: string }) {
-    return requestDevServerInner({ repoId });
-  }
+  const [codespaceUrl, setCodespaceUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const devServerRef = useRef<FreestyleDevServerHandle>(null);
+  useEffect(() => {
+    const loadCodespace = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const url = await getCodespaceUrl(props.repo);
+        setCodespaceUrl(url);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load codespace');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadCodespace();
+  }, [props.repo]);
+
+  const handleRefresh = () => {
+    setCodespaceUrl(null);
+    setIsLoading(true);
+    setError(null);
+    loadCodespace();
+  };
+
+  const loadCodespace = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const url = await getCodespaceUrl(props.repo);
+      setCodespaceUrl(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load codespace');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="flex flex-col overflow-hidden h-screen border-l transition-opacity duration-700 mt-[2px]">
@@ -29,31 +60,58 @@ export default function WebView(props: {
         <Button
           variant={"ghost"}
           size={"icon"}
-          onClick={() => devServerRef.current?.refresh()}
+          onClick={handleRefresh}
+          disabled={isLoading}
         >
-          <RefreshCwIcon />
+          <RefreshCwIcon className={isLoading ? "animate-spin" : ""} />
         </Button>
+        {codespaceUrl && (
+          <Button
+            variant={"ghost"}
+            size={"icon"}
+            onClick={() => window.open(codespaceUrl, '_blank')}
+          >
+            <ExternalLinkIcon />
+          </Button>
+        )}
         <ShareButton domain={props.domain} appId={props.appId} />
       </div>
-      <FreestyleDevServer
-        ref={devServerRef}
-        actions={{ requestDevServer }}
-        repoId={props.repo}
-        loadingComponent={({ iframeLoading, devCommandRunning }) =>
-          !devCommandRunning && (
-            <div className="flex items-center justify-center h-full">
+      
+      <div className="flex-1 relative">
+        {isLoading && (
+          <div className="flex items-center justify-center h-full">
+            <div>
+              <div className="text-center">
+                Starting GitHub Codespace...
+              </div>
               <div>
-                <div className="text-center">
-                  {iframeLoading ? "JavaScript Loading" : "Starting VM"}
-                </div>
-                <div>
-                  <div className="loader"></div>
-                </div>
+                <div className="loader"></div>
               </div>
             </div>
-          )
-        }
-      />
+          </div>
+        )}
+        
+        {error && (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center text-red-500">
+              <div className="text-lg font-semibold mb-2">Error</div>
+              <div className="text-sm">{error}</div>
+              <Button onClick={handleRefresh} className="mt-4">
+                Retry
+              </Button>
+            </div>
+          </div>
+        )}
+        
+        {codespaceUrl && !isLoading && (
+          <iframe
+            src={codespaceUrl}
+            className="w-full h-full border-0"
+            title="GitHub Codespace"
+            allow="camera; microphone; geolocation; encrypted-media"
+          />
+        )}
+      </div>
     </div>
   );
 }

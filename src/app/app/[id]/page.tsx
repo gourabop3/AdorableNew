@@ -2,7 +2,7 @@
 
 import { getApp } from "@/actions/get-app";
 import AppWrapper from "../../../components/app-wrapper";
-import { freestyle } from "@/lib/freestyle";
+import { githubSandboxes } from "@/lib/github";
 import { db } from "@/lib/db";
 import { appUsers } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -61,11 +61,14 @@ export default async function AppPage({
 
   console.log('✅ UI messages loaded:', uiMessages.length);
 
-  const { codeServerUrl, ephemeralUrl } = await freestyle.requestDevServer({
-    repoId: app?.info.gitRepo,
-  });
+  // Create a codespace for the repository
+  const codespace = await githubSandboxes.createCodespace(
+    app?.info.gitRepo,
+    'main',
+    'basicLinux'
+  );
 
-  console.log("✅ Dev server requested");
+  console.log("✅ Codespace created");
 
   // Use the previewDomain from the database, or fall back to a generated domain
   const domain = app.info.previewDomain;
@@ -76,8 +79,7 @@ export default async function AppPage({
     appName: app.info.name,
     appId: app.info.id,
     repoId: app.info.gitRepo,
-    codeServerUrl: codeServerUrl ? 'set' : 'empty',
-    ephemeralUrl: ephemeralUrl ? 'set' : 'empty',
+    codespaceUrl: codespace.web_ide_url ? 'set' : 'empty',
     uiMessagesCount: uiMessages.length
   });
 
@@ -85,10 +87,10 @@ export default async function AppPage({
     <AppWrapper
       key={app.info.id}
       baseId={app.info.baseId}
-      codeServerUrl={codeServerUrl}
+      codeServerUrl={codespace.web_ide_url}
       appName={app.info.name}
       initialMessages={uiMessages}
-      consoleUrl={ephemeralUrl + "/__console"}
+      consoleUrl={codespace.web_ide_url + "/__console"}
       repo={app.info.gitRepo}
       appId={app.info.id}
       repoId={app.info.gitRepo}
