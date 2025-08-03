@@ -2,14 +2,12 @@
 
 import { sendMessage } from "@/app/api/chat/route";
 import { getUser } from "@/auth/stack-auth";
-import { appsTable, appUsers, users } from "@/db/schema";
+import { appsTable, appUsers, users, creditTransactions } from "@/db/schema";
 import { db } from "@/lib/db";
 import { freestyle } from "@/lib/freestyle";
 import { templates } from "@/lib/templates";
 import { memory } from "@/mastra/agents/builder";
 import { eq } from "drizzle-orm";
-import { InsufficientCreditsError } from "@/lib/errors";
-import { deductCredits } from "@/lib/credits";
 
 interface CreateAppOptions {
   initialMessage?: string;
@@ -28,89 +26,39 @@ export async function createAppWithBilling({
   templateId,
   skipBilling = false,
 }: CreateAppOptions): Promise<CreateAppResult> {
-  console.log(`🚀 createAppWithBilling called with skipBilling=${skipBilling}`);
   console.time("get user");
   const user = await getUser();
   console.timeEnd("get user");
 
-  console.log(`🔍 Template check: templateId=${templateId}`);
   if (!templates[templateId]) {
-    console.log(`❌ Template ${templateId} not found. Available templates: ${Object.keys(templates).join(", ")}`);
     throw new Error(
       `Template ${templateId} not found. Available templates: ${Object.keys(templates).join(", ")}`
     );
   }
-  console.log(`✅ Template ${templateId} found`);
-
-  // Check for existing app with same parameters to prevent duplicates
-  console.time("check existing app");
-  console.log(`🔍 Checking for existing app: name="${initialMessage || 'Unnamed App'}", userId=${user.userId}`);
-  const existingApp = await db.query.apps.findFirst({
-    where: eq(appsTable.name, initialMessage || 'Unnamed App'),
-    with: {
-      appUsers: {
-        where: eq(appUsers.userId, user.userId)
-      }
-    }
-  });
-  
-  if (existingApp && existingApp.appUsers.length > 0) {
-    console.log(`✅ Found existing app with same parameters: ${existingApp.id}`);
-    return {
-      id: existingApp.id,
-      warning: 'Using existing app with same parameters',
-      billingMode: 'skip'
-    };
-  }
-  console.log(`✅ No existing app found, proceeding with creation`);
-  console.timeEnd("check existing app");
 
   let billingMode: 'full' | 'fallback' | 'skip' = 'skip';
   let warning: string | undefined;
 
   // Try billing operations, but don't fail if they don't work
-  console.log(`🔍 Billing check: skipBilling=${skipBilling}`);
   if (!skipBilling) {
     try {
       // Check if database is available
-      console.log(`🔍 Ensuring user ${user.userId} is in database...`);
       const dbUser = await ensureUserInDatabase(user);
       
       if (dbUser) {
-        console.log(`✅ User found in database:`, { id: dbUser.id, credits: dbUser.credits, plan: dbUser.plan });
-        
-        // Check if user has enough credits before proceeding
-        const APP_CREDIT_COST = 5;
-        console.log(`🔍 Checking if user has enough credits (need ${APP_CREDIT_COST})...`);
-        const creditCheck = await checkCredits(user.userId, APP_CREDIT_COST);
-        
-        if (!creditCheck.success) {
-          console.log(`❌ Credit check failed:`, creditCheck.message);
-          throw new InsufficientCreditsError(creditCheck.currentCredits, APP_CREDIT_COST);
-        }
-        
-        console.log(`✅ Credit check passed: user has ${creditCheck.currentCredits} credits`);
-
         // Try to deduct credits
-        try {
-          console.log(`💰 Attempting to deduct ${APP_CREDIT_COST} credits from user ${user.userId}`);
-          const result = await deductCredits(user.userId, APP_CREDIT_COST, `App creation: ${initialMessage || 'Unnamed App'}`);
-          console.log(`✅ Credit deduction successful:`, result);
+        const creditResult = await tryDeductCredits(user.userId, 5);
+        if (creditResult.success) {
           billingMode = 'full';
-        } catch (error) {
-          console.error(`❌ Credit deduction failed:`, error);
+        } else {
           billingMode = 'fallback';
-          warning = error.message;
+          warning = creditResult.message;
         }
       } else {
-        console.log(`❌ User not found in database, skipping billing`);
         billingMode = 'fallback';
         warning = 'Billing unavailable, using free mode';
       }
     } catch (error) {
-      if (error instanceof InsufficientCreditsError) {
-        throw error; // Re-throw insufficient credits error
-      }
       console.warn('Billing operations failed, continuing without billing:', error);
       billingMode = 'fallback';
       warning = 'Billing service temporarily unavailable';
@@ -203,62 +151,64 @@ export async function createAppWithBilling({
 
 async function ensureUserInDatabase(user: any) {
   try {
-    console.log(`🔍 Looking for user ${user.userId} in database...`);
     let dbUser = await db.query.users.findFirst({
       where: eq(users.id, user.userId),
     });
 
     if (!dbUser) {
-      console.log(`👤 User not found, creating new user ${user.userId}...`);
-      try {
-        dbUser = await db.insert(users).values({
-          id: user.userId,
-          email: user.email || `user-${user.userId}@example.com`,
-          name: user.name || 'User',
-          image: user.image || '',
-          credits: 50, // Give new users 50 free credits
-          plan: 'free',
-        }).returning()[0];
-        console.log(`✅ New user created successfully:`, { id: dbUser.id, credits: dbUser.credits });
-      } catch (insertError) {
-        console.error(`❌ Failed to create new user:`, insertError);
-        return null;
-      }
-    } else {
-      console.log(`✅ Existing user found:`, { id: dbUser.id, credits: dbUser.credits, plan: dbUser.plan });
+      console.log('Creating new user in database...');
+      dbUser = await db.insert(users).values({
+        id: user.userId,
+        email: user.email || `user-${user.userId}@example.com`,
+        name: user.name || 'User',
+        image: user.image || '',
+        credits: 50, // Give new users 50 free credits
+        plan: 'free',
+      }).returning()[0];
     }
 
     return dbUser;
   } catch (error) {
-    console.error(`❌ Database user operations failed:`, error);
+    console.warn('Database user operations failed:', error);
     return null;
   }
 }
 
-async function checkCredits(userId: string, requiredAmount: number): Promise<{ success: boolean; currentCredits: number; message?: string }> {
+async function tryDeductCredits(userId: string, amount: number): Promise<{ success: boolean; message?: string }> {
   try {
-    console.log(`🔍 Checking credits for user ${userId} (need ${requiredAmount})...`);
+    // Check current credits
     const user = await db.query.users.findFirst({
       where: eq(users.id, userId),
     });
 
     if (!user) {
-      console.log(`❌ User ${userId} not found in database`);
-      return { success: false, currentCredits: 0, message: 'User not found in database' };
+      return { success: false, message: 'User not found in database' };
     }
 
-    console.log(`👤 User ${userId} found with ${user.credits} credits`);
-
-    if (user.credits < requiredAmount) {
-      console.log(`❌ Insufficient credits: need ${requiredAmount}, have ${user.credits}`);
-      return { success: false, currentCredits: user.credits, message: `Insufficient credits. Need ${requiredAmount}, have ${user.credits}` };
+    if (user.credits < amount) {
+      return { success: false, message: `Insufficient credits. Need ${amount}, have ${user.credits}` };
     }
 
-    console.log(`✅ Sufficient credits: have ${user.credits}, need ${requiredAmount}`);
-    return { success: true, currentCredits: user.credits };
+    // Deduct credits
+    await db.update(users)
+      .set({ credits: user.credits - amount })
+      .where(eq(users.id, userId));
+
+    // Record transaction (optional - won't fail if this doesn't work)
+    try {
+      await db.insert(creditTransactions).values({
+        userId,
+        amount: -amount, // Negative for usage
+        description: 'App creation',
+        type: 'usage',
+      });
+    } catch (transactionError) {
+      console.warn('Transaction recording failed, but credits were deducted:', transactionError);
+    }
+
+    return { success: true };
   } catch (error) {
-    console.error(`❌ Credit check failed for user ${userId}:`, error);
-    return { success: false, currentCredits: 0, message: 'Credit system temporarily unavailable' };
+    console.warn('Credit deduction failed:', error);
+    return { success: false, message: 'Credit system temporarily unavailable' };
   }
 }
-
