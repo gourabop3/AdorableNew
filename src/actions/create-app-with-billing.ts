@@ -66,15 +66,23 @@ export async function createAppWithBilling({
   if (!skipBilling) {
     try {
       // Check if database is available
+      console.log(`🔍 Ensuring user ${user.userId} is in database...`);
       const dbUser = await ensureUserInDatabase(user);
       
       if (dbUser) {
+        console.log(`✅ User found in database:`, { id: dbUser.id, credits: dbUser.credits, plan: dbUser.plan });
+        
         // Check if user has enough credits before proceeding
         const APP_CREDIT_COST = 5;
+        console.log(`🔍 Checking if user has enough credits (need ${APP_CREDIT_COST})...`);
         const creditCheck = await checkCredits(user.userId, APP_CREDIT_COST);
+        
         if (!creditCheck.success) {
+          console.log(`❌ Credit check failed:`, creditCheck.message);
           throw new InsufficientCreditsError(creditCheck.currentCredits, APP_CREDIT_COST);
         }
+        
+        console.log(`✅ Credit check passed: user has ${creditCheck.currentCredits} credits`);
 
         // Try to deduct credits
         try {
@@ -88,6 +96,7 @@ export async function createAppWithBilling({
           warning = error.message;
         }
       } else {
+        console.log(`❌ User not found in database, skipping billing`);
         billingMode = 'fallback';
         warning = 'Billing unavailable, using free mode';
       }
@@ -187,46 +196,61 @@ export async function createAppWithBilling({
 
 async function ensureUserInDatabase(user: any) {
   try {
+    console.log(`🔍 Looking for user ${user.userId} in database...`);
     let dbUser = await db.query.users.findFirst({
       where: eq(users.id, user.userId),
     });
 
     if (!dbUser) {
-      console.log('Creating new user in database...');
-      dbUser = await db.insert(users).values({
-        id: user.userId,
-        email: user.email || `user-${user.userId}@example.com`,
-        name: user.name || 'User',
-        image: user.image || '',
-        credits: 50, // Give new users 50 free credits
-        plan: 'free',
-      }).returning()[0];
+      console.log(`👤 User not found, creating new user ${user.userId}...`);
+      try {
+        dbUser = await db.insert(users).values({
+          id: user.userId,
+          email: user.email || `user-${user.userId}@example.com`,
+          name: user.name || 'User',
+          image: user.image || '',
+          credits: 50, // Give new users 50 free credits
+          plan: 'free',
+        }).returning()[0];
+        console.log(`✅ New user created successfully:`, { id: dbUser.id, credits: dbUser.credits });
+      } catch (insertError) {
+        console.error(`❌ Failed to create new user:`, insertError);
+        return null;
+      }
+    } else {
+      console.log(`✅ Existing user found:`, { id: dbUser.id, credits: dbUser.credits, plan: dbUser.plan });
     }
 
     return dbUser;
   } catch (error) {
-    console.warn('Database user operations failed:', error);
+    console.error(`❌ Database user operations failed:`, error);
     return null;
   }
 }
 
 async function checkCredits(userId: string, requiredAmount: number): Promise<{ success: boolean; currentCredits: number; message?: string }> {
   try {
+    console.log(`🔍 Checking credits for user ${userId} (need ${requiredAmount})...`);
     const user = await db.query.users.findFirst({
       where: eq(users.id, userId),
     });
 
     if (!user) {
+      console.log(`❌ User ${userId} not found in database`);
       return { success: false, currentCredits: 0, message: 'User not found in database' };
     }
 
+    console.log(`👤 User ${userId} found with ${user.credits} credits`);
+
     if (user.credits < requiredAmount) {
+      console.log(`❌ Insufficient credits: need ${requiredAmount}, have ${user.credits}`);
       return { success: false, currentCredits: user.credits, message: `Insufficient credits. Need ${requiredAmount}, have ${user.credits}` };
     }
 
+    console.log(`✅ Sufficient credits: have ${user.credits}, need ${requiredAmount}`);
     return { success: true, currentCredits: user.credits };
   } catch (error) {
-    console.warn('Credit check failed:', error);
+    console.error(`❌ Credit check failed for user ${userId}:`, error);
     return { success: false, currentCredits: 0, message: 'Credit system temporarily unavailable' };
   }
 }
