@@ -34,9 +34,9 @@ export const appUsers = pgTable("app_users", {
     .references(() => appsTable.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   permissions: appPermissions("permissions"),
-  freestyleIdentity: text("freestyle_identity").notNull(),
-  freestyleAccessToken: text("freestyle_access_token").notNull(),
-  freestyleAccessTokenId: text("freestyle_access_token_id").notNull(),
+  githubUsername: text("github_username").notNull(),
+  githubAccessToken: text("github_access_token").notNull(),
+  githubInstallationId: text("github_installation_id").notNull(),
 });
 
 export const messagesTable = pgTable("messages", {

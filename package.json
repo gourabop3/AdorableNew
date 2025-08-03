@@ -1,5 +1,5 @@
 {
-  "name": "adorable",
+  "name": "adorable-github",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -20,6 +20,8 @@
     "@mastra/pg": "^0.0.0-ai-v5-20250718021026",
     "@modelcontextprotocol/sdk": "^1.10.1",
     "@neondatabase/serverless": "^1.0.0",
+    "@octokit/rest": "^21.0.2",
+    "@octokit/auth-app": "^6.0.0",
     "@radix-ui/react-dialog": "^1.1.13",
     "@radix-ui/react-dropdown-menu": "^2.1.12",
     "@radix-ui/react-label": "^2.1.3",
@@ -35,7 +37,6 @@
     "dotenv": "^16.5.0",
     "drizzle-orm": "^0.42.0",
     "drizzle-zod": "^0.7.1",
-    "freestyle-sandboxes": "^0.0.92",
     "isomorphic-git": "^1.30.1",
     "lucide-react": "^0.487.0",
     "marked": "^15.0.8",
@@ -73,7 +74,6 @@
     "drizzle-kit": "^0.31.0",
     "eslint": "^9",
     "eslint-config-next": "15.3.0",
-    "freestyle-sh": "^0.4.31",
     "tailwindcss": "^4.1.3",
     "tsx": "^4.19.3",
     "typescript": "5.8.3"
