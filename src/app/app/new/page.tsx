@@ -66,10 +66,12 @@ export default async function NewAppRedirectPage({
   }
   
   try {
+    console.log(`🚀 Calling createAppWithBilling with templateId=${search.template}, message=${message}`);
     result = await createAppWithBilling({
       initialMessage: message ? decodeURIComponent(message) : '',
       templateId: search.template as string,
     });
+    console.log(`✅ createAppWithBilling completed successfully:`, { id: result.id, billingMode: result.billingMode, warning: result.warning });
     
     // Store the successful app ID to prevent duplicates
     try {
@@ -107,10 +109,12 @@ export default async function NewAppRedirectPage({
     console.warn('Billing-aware app creation failed, trying fallback:', error);
     
     // Use the original createApp function to avoid duplicate creation
+    console.log(`🔄 Falling back to createApp function`);
     result = await createApp({
       initialMessage: message ? decodeURIComponent(message) : '',
       templateId: search.template as string,
     });
+    console.log(`✅ createApp fallback completed successfully:`, { id: result.id });
     
     // Store the successful app ID
     try {
