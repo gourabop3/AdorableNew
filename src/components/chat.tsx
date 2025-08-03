@@ -27,22 +27,22 @@ export default function Chat(props: {
     queryFn: async () => {
       return chatState(props.appId);
     },
-    refetchInterval: 2000, // Faster polling for better responsiveness
+    refetchInterval: 5000, // Reduced from 2000 to 5000ms to reduce interference
     refetchOnWindowFocus: false, // Disable refetch on window focus to reduce blinking
-    staleTime: 1000, // Keep data fresh for 1 second for better responsiveness
+    staleTime: 2000, // Increased from 1000 to 2000ms for better stability
     refetchOnMount: false, // Prevent refetch on mount
     refetchOnReconnect: false, // Prevent refetch on reconnect
-    gcTime: 5000, // Keep cache for 5 seconds
+    gcTime: 10000, // Increased from 5000 to 10000ms to reduce cache invalidation
   });
 
-  // Debounce the running state to reduce blinking
+  // Improved debouncing for better stream stability
   const [debouncedRunning, setDebouncedRunning] = useState(false);
   const [lastMessageId, setLastMessageId] = useState<string | null>(null);
   
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedRunning(props.running && chat?.state === "running");
-    }, 300); // Reduced debounce for better responsiveness
+    }, 500); // Increased from 300 to 500ms for better stability
 
     return () => clearTimeout(timer);
   }, [props.running, chat?.state]);

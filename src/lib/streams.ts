@@ -43,6 +43,62 @@ export async function getStream(appId: string) {
   }
 }
 
+// Rate limiting transform stream for better readability
+class RateLimitedTransformStream extends TransformStream {
+  constructor(delayMs: number = 30) {
+    super({
+      transform(chunk, controller) {
+        // Add small delay between chunks for better readability
+        setTimeout(() => {
+          controller.enqueue(chunk);
+        }, delayMs);
+      }
+    });
+  }
+}
+
+// Smart chunking transform stream
+class SmartChunkTransformStream extends TransformStream {
+  private buffer = '';
+  private isCodeBlock = false;
+  
+  constructor() {
+    super({
+      transform(chunk, controller) {
+        const text = chunk.toString();
+        this.buffer += text;
+        
+        // Check if we're in a code block
+        if (text.includes('```') || text.includes('`')) {
+          this.isCodeBlock = !this.isCodeBlock;
+        }
+        
+        // For code blocks, send smaller chunks for smoother streaming
+        if (this.isCodeBlock) {
+          // Send character by character for code
+          for (const char of text) {
+            controller.enqueue(new TextEncoder().encode(char));
+          }
+        } else {
+          // For regular text, send in small chunks
+          const chunks = this.buffer.match(/.{1,10}/g) || [];
+          this.buffer = '';
+          
+          for (const chunk of chunks) {
+            controller.enqueue(new TextEncoder().encode(chunk));
+          }
+        }
+      },
+      
+      flush(controller) {
+        if (this.buffer) {
+          controller.enqueue(new TextEncoder().encode(this.buffer));
+        }
+      }
+    });
+  }
+}
+
 export async function setStream(
   appId: string,
   prompt: UIMessage,
@@ -63,9 +119,11 @@ export async function setStream(
   const resumableStream = await streamContext.createNewResumableStream(
     appId,
     () => {
-      return responseBody.pipeThrough(
-        new TextDecoderStream()
-      ) as ReadableStream<string>;
+      return responseBody
+        .pipeThrough(new TextDecoderStream())
+        .pipeThrough(new SmartChunkTransformStream())
+        .pipeThrough(new RateLimitedTransformStream(30)) // 30ms delay for readability
+        .pipeThrough(new TextEncoderStream()) as ReadableStream<string>;
     }
   );
 

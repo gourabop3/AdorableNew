@@ -8,6 +8,7 @@ import { UIMessage } from "ai";
 // "fix" mastra mcp bug
 import { EventEmitter } from "events";
 import { getAbortCallback, setStream, stopStream } from "@/lib/streams";
+import { StreamContinuityManager, StreamHealthMonitor } from "@/lib/stream-utils";
 EventEmitter.defaultMaxListeners = 1000;
 
 import { NextRequest } from "next/server";
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
     return new Response("Missing App Id header", { status: 400 });
   }
 
-  const app = await getApp(appId);
+  const app = await getApp();
   if (!app) {
     return new Response("App not found", { status: 404 });
   }
@@ -45,31 +46,51 @@ export async function POST(req: NextRequest) {
     "app:" + appId + ":stream-state"
   );
 
+  // Improved stream state management - don't force stop unless necessary
   if (streamState === "running") {
-    console.log("Stopping previous stream for appId:", appId);
-    stopStream(appId);
-
-    // Wait until stream state is cleared
-    const maxAttempts = 60;
-    let attempts = 0;
-    while (attempts < maxAttempts) {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+    console.log("Stream already running for appId:", appId);
+    
+    // Check if stream is actually active using continuity manager
+    const continuityManager = StreamContinuityManager.getInstance();
+    const isActuallyActive = await continuityManager.isStreamActive(appId);
+    
+    if (isActuallyActive) {
+      // Stream is genuinely active, wait a bit before forcing stop
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      
       const updatedState = await redisPublisher.get(
         "app:" + appId + ":stream-state"
       );
-      if (updatedState !== "running") {
-        break;
-      }
-      attempts++;
-    }
+      
+      // Only force stop if stream is still running after 1 second
+      if (updatedState === "running") {
+        console.log("Force stopping previous stream for appId:", appId);
+        stopStream(appId);
+        await continuityManager.endStream(appId);
 
-    // If stream is still running after max attempts, return an error
-    if (attempts >= maxAttempts) {
-      await redisPublisher.del(`app:${appId}:stream-state`);
-      return new Response(
-        "Previous stream is still shutting down, please try again",
-        { status: 429 }
-      );
+        // Wait with timeout instead of infinite loop
+        const maxAttempts = 30; // 15 seconds max
+        let attempts = 0;
+        while (attempts < maxAttempts) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          const currentState = await redisPublisher.get(
+            "app:" + appId + ":stream-state"
+          );
+          if (currentState !== "running") {
+            break;
+          }
+          attempts++;
+        }
+
+        // If stream is still running after max attempts, return an error
+        if (attempts >= maxAttempts) {
+          await redisPublisher.del(`app:${appId}:stream-state`);
+          return new Response(
+            "Previous stream is still shutting down, please try again",
+            { status: 429 }
+          );
+        }
+      }
     }
   }
 
@@ -84,6 +105,11 @@ export async function POST(req: NextRequest) {
     mcpEphemeralUrl,
     messages.at(-1)!
   );
+
+  // Initialize stream tracking
+  const continuityManager = StreamContinuityManager.getInstance();
+  await continuityManager.startStream(appId);
+  await redisPublisher.set(`app:${appId}:stream-start`, Date.now().toString(), { EX: 30 });
 
   return resumableStream.response();
 }
@@ -144,18 +170,22 @@ export async function sendMessage(
     maxOutputTokens: 8000,
     toolsets,
     async onChunk() {
-      if (Date.now() - lastKeepAlive > 5000) {
+      // More frequent keep-alive updates to prevent buffering
+      if (Date.now() - lastKeepAlive > 2000) { // Reduced from 5000 to 2000ms
         lastKeepAlive = Date.now();
-        redisPublisher.set(`app:${appId}:stream-state`, "running", {
-          EX: 15,
-        });
+        
+        // Use continuity manager for better stream tracking
+        const continuityManager = StreamContinuityManager.getInstance();
+        await continuityManager.updateStreamActivity(appId);
+        await StreamHealthMonitor.markStreamActivity(appId);
       }
     },
     async onStepFinish(step) {
       messageList.add(step.response.messages, "response");
 
       if (shouldAbort) {
-        await redisPublisher.del(`app:${appId}:stream-state`);
+        const continuityManager = StreamContinuityManager.getInstance();
+        await continuityManager.endStream(appId);
         controller.abort("Aborted stream after step finish");
         const messages = messageList.drainUnsavedMessages();
         console.log(messages);
@@ -166,7 +196,8 @@ export async function sendMessage(
     },
     onError: async (error) => {
       await mcp.disconnect();
-      await redisPublisher.del(`app:${appId}:stream-state`);
+      const continuityManager = StreamContinuityManager.getInstance();
+      await continuityManager.endStream(appId);
       await redisPublisher.del(cacheKey); // Clean up request deduplication
       
       // Enhanced error handling for quota issues
@@ -212,7 +243,8 @@ export async function sendMessage(
       }
     },
     onFinish: async () => {
-      await redisPublisher.del(`app:${appId}:stream-state`);
+      const continuityManager = StreamContinuityManager.getInstance();
+      await continuityManager.endStream(appId);
       await redisPublisher.del(cacheKey); // Clean up request deduplication
       await mcp.disconnect();
     },
