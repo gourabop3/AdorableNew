@@ -15,6 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
+import { useSearchParams } from "next/navigation";
 
 export function TopBar({
   appName,
@@ -30,10 +31,12 @@ export function TopBar({
   codeServerUrl: string;
 }) {
   const [modalOpen, setModalOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const appCreated = searchParams.get('app_created');
 
   return (
     <div className="h-12 sticky top-0 flex items-center px-4 border-b border-gray-200 bg-background justify-between">
-      <Link href={"/"}>
+      <Link href={appCreated === 'true' ? "/?app_created=true" : "/"}>
         <HomeIcon className="h-5 w-5" />
       </Link>
 

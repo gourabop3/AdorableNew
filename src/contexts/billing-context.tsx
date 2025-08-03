@@ -14,6 +14,7 @@ interface BillingContextType {
   error: string | null;
   isAuthenticated: boolean;
   refetch: () => Promise<void>;
+  triggerRefresh: () => void;
 }
 
 const defaultBilling: BillingData = {
@@ -26,7 +27,8 @@ const BillingContext = createContext<BillingContextType>({
   isLoading: false,
   error: null,
   isAuthenticated: false,
-  refetch: async () => {}
+  refetch: async () => {},
+  triggerRefresh: () => {}
 });
 
 export const useBilling = () => {
@@ -46,6 +48,7 @@ export const BillingProvider: React.FC<BillingProviderProps> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const fetchBillingData = async () => {
     try {
@@ -98,14 +101,20 @@ export const BillingProvider: React.FC<BillingProviderProps> = ({ children }) =>
 
   useEffect(() => {
     fetchBillingData();
-  }, []);
+  }, [refreshTrigger]);
+
+  const triggerRefresh = () => {
+    console.log('Triggering billing context refresh...');
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   const value: BillingContextType = {
     billing,
     isLoading,
     error,
     isAuthenticated,
-    refetch: fetchBillingData
+    refetch: fetchBillingData,
+    triggerRefresh
   };
 
   return (

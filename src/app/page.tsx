@@ -12,7 +12,7 @@ import { UserButtonWithBilling } from "@/components/user-button-with-billing";
 import { UserApps } from "@/components/user-apps";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PromptInputTextareaWithTypingAnimation } from "@/components/prompt-input";
-import { BillingProvider } from "@/contexts/billing-context";
+import { BillingProvider, useBilling } from "@/contexts/billing-context";
 import { PaymentSuccessBanner } from "@/components/payment-success-banner";
 
 const queryClient = new QueryClient();
@@ -22,7 +22,7 @@ interface UserData {
   plan: "free" | "pro";
 }
 
-export default function Home() {
+function HomeContent() {
   const [prompt, setPrompt] = useState("");
   const [framework, setFramework] = useState("nextjs");
   const [isLoading, setIsLoading] = useState(false);
@@ -31,20 +31,35 @@ export default function Home() {
   const [checkingCredits, setCheckingCredits] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { triggerRefresh } = useBilling();
 
   // Check for payment success parameters
   const success = searchParams.get('success');
   const plan = searchParams.get('plan');
   const credits = searchParams.get('credits');
+  const appCreated = searchParams.get('app_created');
 
   // Development mode detection
   const isDevelopment = process.env.NODE_ENV === 'development';
 
   useEffect(() => {
-  if (success && !showPaymentSuccess) {
-    setShowPaymentSuccess(true);
-  }
-}, [success, showPaymentSuccess]);
+    if (success && !showPaymentSuccess) {
+      setShowPaymentSuccess(true);
+    }
+  }, [success, showPaymentSuccess]);
+
+  useEffect(() => {
+    // Refresh billing data if user just returned from app creation
+    if (appCreated === 'true') {
+      console.log('App creation detected, refreshing billing data...');
+      triggerRefresh();
+      // Clean up the URL parameter
+      const url = new URL(window.location.href);
+      url.searchParams.delete('app_created');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [appCreated, triggerRefresh]);
+
   useEffect(() => {
     // Fetch user data when component mounts
     fetchUserData();
@@ -120,95 +135,95 @@ export default function Home() {
   };
 
   return (
+    <main className="min-h-screen p-4 relative bg-gradient-to-br from-[#FAFAF8] via-[#B9D6F8] to-[#D98DBA]">
+      {/* Payment Success Banner */}
+      {showPaymentSuccess && (
+        <PaymentSuccessBanner
+          credits={credits ? parseInt(credits) : 100}
+          plan={plan || "pro"}
+          onClose={() => setShowPaymentSuccess(false)}
+          showHomeButton={false}
+        />
+      )}
+
+      <div className="flex w-full justify-between items-center">
+        <h1 className="text-lg font-bold flex-1 sm:w-80 text-gray-800">
+          Vibe
+        </h1>
+        <Image
+          className="dark:invert mx-2"
+          src={LogoSvg}
+          alt="Vibe Logo"
+          width={36}
+          height={36}
+        />
+        <div className="flex items-center gap-2 flex-1 sm:w-80 justify-end">
+          <UserButtonWithBilling />
+        </div>
+      </div>
+
+      <div>
+        <div className="w-full max-w-lg px-4 sm:px-0 mx-auto flex flex-col items-center mt-16 sm:mt-24 md:mt-32 col-start-1 col-end-1 row-start-1 row-end-1 z-10">
+          <p className="text-gray-800 text-center mb-6 text-3xl sm:text-4xl md:text-5xl font-bold">
+            Build Something With Vibe
+          </p>
+
+          <div className="w-full relative my-5">
+            <div className="relative w-full max-w-full overflow-hidden">
+              <div className="w-full bg-white/20 backdrop-blur-sm rounded-md relative z-10 border border-gray-300 transition-colors">
+                <PromptInput
+                  leftSlot={
+                    <FrameworkSelector
+                      value={framework}
+                      onChange={setFramework}
+                    />
+                  }
+                  isLoading={isLoading || checkingCredits}
+                  value={prompt}
+                  onValueChange={setPrompt}
+                  onSubmit={handleSubmit}
+                  className="relative z-10 border-none bg-transparent shadow-none focus-within:border-gray-400 focus-within:ring-1 focus-within:ring-gray-300 transition-all duration-200 ease-in-out text-gray-800 placeholder-gray-500"
+                >
+                  <PromptInputTextareaWithTypingAnimation />
+                  <PromptInputActions>
+                    <Button
+                      variant={"ghost"}
+                      size="sm"
+                      onClick={handleSubmit}
+                      disabled={isLoading || checkingCredits || !prompt.trim()}
+                      className="h-7 text-xs"
+                    >
+                      <span className="hidden sm:inline">
+                        {checkingCredits ? 'Checking Credits...' : 'Start Creating ⏎'}
+                      </span>
+                      <span className="sm:hidden">
+                        {checkingCredits ? 'Checking...' : 'Create ⏎'}
+                      </span>
+                    </Button>
+                  </PromptInputActions>
+                </PromptInput>
+              </div>
+            </div>
+          </div>
+          <Examples setPrompt={setPrompt} />
+          <div className="mt-8 mb-16">
+            <div className="border border-gray-300 rounded-md px-4 py-2 mt-4 text-sm font-semibold w-full max-w-72 text-center block bg-white/20 backdrop-blur-sm">
+              <span className="block font-bold text-gray-800">
+                By <span className="underline">Vibe</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+export default function Home() {
+  return (
     <QueryClientProvider client={queryClient}>
       <BillingProvider>
-        <main className="min-h-screen p-4 relative bg-gradient-to-br from-[#FAFAF8] via-[#B9D6F8] to-[#D98DBA]">
-          {/* Payment Success Banner */}
-          {showPaymentSuccess && (
-            <PaymentSuccessBanner
-              credits={credits ? parseInt(credits) : 100}
-              plan={plan || "pro"}
-              onClose={() => setShowPaymentSuccess(false)}
-              showHomeButton={false}
-            />
-          )}
-
-          <div className="flex w-full justify-between items-center">
-            <h1 className="text-lg font-bold flex-1 sm:w-80 text-gray-800">
-              Vibe
-            </h1>
-            <Image
-              className="dark:invert mx-2"
-              src={LogoSvg}
-              alt="Vibe Logo"
-              width={36}
-              height={36}
-            />
-            <div className="flex items-center gap-2 flex-1 sm:w-80 justify-end">
-              <UserButtonWithBilling />
-            </div>
-          </div>
-
-          <div>
-            <div className="w-full max-w-lg px-4 sm:px-0 mx-auto flex flex-col items-center mt-16 sm:mt-24 md:mt-32 col-start-1 col-end-1 row-start-1 row-end-1 z-10">
-              <p className="text-gray-800 text-center mb-6 text-3xl sm:text-4xl md:text-5xl font-bold">
-                Build Something With Vibe
-              </p>
-
-              <div className="w-full relative my-5">
-                <div className="relative w-full max-w-full overflow-hidden">
-                                      <div className="w-full bg-white/20 backdrop-blur-sm rounded-md relative z-10 border border-gray-300 transition-colors">
-                      <PromptInput
-                        leftSlot={
-                          <FrameworkSelector
-                            value={framework}
-                            onChange={setFramework}
-                          />
-                        }
-                        isLoading={isLoading || checkingCredits}
-                        value={prompt}
-                        onValueChange={setPrompt}
-                        onSubmit={handleSubmit}
-                        className="relative z-10 border-none bg-transparent shadow-none focus-within:border-gray-400 focus-within:ring-1 focus-within:ring-gray-300 transition-all duration-200 ease-in-out text-gray-800 placeholder-gray-500"
-                      >
-                      <PromptInputTextareaWithTypingAnimation />
-                      <PromptInputActions>
-                        <Button
-                          variant={"ghost"}
-                          size="sm"
-                          onClick={handleSubmit}
-                          disabled={isLoading || checkingCredits || !prompt.trim()}
-                          className="h-7 text-xs"
-                        >
-                          <span className="hidden sm:inline">
-                            {checkingCredits ? 'Checking Credits...' : 'Start Creating ⏎'}
-                          </span>
-                          <span className="sm:hidden">
-                            {checkingCredits ? 'Checking...' : 'Create ⏎'}
-                          </span>
-                        </Button>
-                      </PromptInputActions>
-                    </PromptInput>
-                  </div>
-                </div>
-              </div>
-              <Examples setPrompt={setPrompt} />
-              <div className="mt-8 mb-16">
-                <div className="border border-gray-300 rounded-md px-4 py-2 mt-4 text-sm font-semibold w-full max-w-72 text-center block bg-white/20 backdrop-blur-sm">
-                  <span className="block font-bold text-gray-800">
-                    By <span className="underline">Vibe</span>
-                  </span>
-                  <span className="text-xs text-gray-600">
-                    AI-powered development platform.
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="border-t border-gray-300 py-8 mx-0 sm:-mx-4">
-            <UserApps />
-          </div>
-        </main>
+        <HomeContent />
       </BillingProvider>
     </QueryClientProvider>
   );

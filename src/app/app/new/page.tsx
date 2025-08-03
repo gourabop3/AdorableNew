@@ -83,7 +83,8 @@ export default async function NewAppRedirectPage({
       console.warn('App created with warning:', result.warning);
     }
     
-    redirect(`/app/${result.id}`);
+    // Redirect to app page with app_created parameter for home navigation
+    redirect(`/app/${result.id}?app_created=true`);
   } catch (error) {
     // Clean up the processing key
     try {
@@ -119,6 +120,7 @@ export default async function NewAppRedirectPage({
       console.error('Failed to store app ID in Redis after fallback:', error);
     }
     
-    redirect(`/app/${result.id}`);
+    // Redirect to app page with app_created parameter for home navigation
+    redirect(`/app/${result.id}?app_created=true`);
   }
 }
