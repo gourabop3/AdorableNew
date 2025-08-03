@@ -12,7 +12,7 @@ import { UserButtonWithBilling } from "@/components/user-button-with-billing";
 import { UserApps } from "@/components/user-apps";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PromptInputTextareaWithTypingAnimation } from "@/components/prompt-input";
-import { BillingProvider } from "@/contexts/billing-context";
+import { BillingProvider, useBilling } from "@/contexts/billing-context";
 import { PaymentSuccessBanner } from "@/components/payment-success-banner";
 
 const queryClient = new QueryClient();
@@ -22,45 +22,52 @@ interface UserData {
   plan: "free" | "pro";
 }
 
-export default function Home() {
+function HomeContent() {
   const [prompt, setPrompt] = useState("");
   const [framework, setFramework] = useState("nextjs");
   const [isLoading, setIsLoading] = useState(false);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
-  const [userData, setUserData] = useState<UserData | null>(null);
   const [checkingCredits, setCheckingCredits] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { billing, refetch, isAuthenticated } = useBilling();
 
   // Check for payment success parameters
   const success = searchParams.get('success');
   const plan = searchParams.get('plan');
   const credits = searchParams.get('credits');
+  const appCreated = searchParams.get('app_created');
 
   // Development mode detection
   const isDevelopment = process.env.NODE_ENV === 'development';
 
   useEffect(() => {
-  if (success && !showPaymentSuccess) {
-    setShowPaymentSuccess(true);
-  }
-}, [success, showPaymentSuccess]);
-  useEffect(() => {
-    // Fetch user data when component mounts
-    fetchUserData();
-  }, []);
-
-  const fetchUserData = async () => {
-    try {
-      const response = await fetch('/api/user/billing');
-      if (response.ok) {
-        const data = await response.json();
-        setUserData(data.user);
-      }
-    } catch (error) {
-      console.error('Error fetching user data:', error);
+    if (success && !showPaymentSuccess) {
+      setShowPaymentSuccess(true);
     }
-  };
+  }, [success, showPaymentSuccess]);
+
+  // Refresh billing data when user returns from app creation
+  useEffect(() => {
+    if (appCreated === 'true') {
+      refetch();
+      // Remove the parameter from URL
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('app_created');
+      window.history.replaceState({}, '', newUrl.toString());
+    }
+  }, [appCreated, refetch]);
+
+  // Refresh billing data when window regains focus (user returns from app creation)
+  useEffect(() => {
+    const handleFocus = () => {
+      console.log('Window focused, refreshing billing data...');
+      refetch();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [refetch]);
 
   const handleSubmit = async () => {
     // Generate a unique request ID for tracking
@@ -88,7 +95,7 @@ export default function Home() {
 
     try {
       // Check if user has enough credits before proceeding
-      if (userData && userData.credits < 5) {
+      if (billing && billing.credits < 5) {
         console.log(`[${requestId}] Insufficient credits, redirecting to upgrade`);
         // Redirect to upgrade page with current parameters
         const params = new URLSearchParams();
@@ -120,9 +127,7 @@ export default function Home() {
   };
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <BillingProvider>
-        <main className="min-h-screen p-4 relative bg-gradient-to-b from-[#FAFAF8] via-[#B9D6F8] to-[#D98DBA]">
+    <main className="min-h-screen p-4 relative bg-gradient-to-b from-[#FAFAF8] via-[#B9D6F8] to-[#D98DBA]">
           {/* Payment Success Banner */}
           {showPaymentSuccess && (
             <PaymentSuccessBanner
@@ -212,8 +217,6 @@ export default function Home() {
             <UserApps />
           </div>
         </main>
-      </BillingProvider>
-    </QueryClientProvider>
   );
 }
 
@@ -247,5 +250,15 @@ function Examples({ setPrompt }: { setPrompt: (text: string) => void }) {
         />
       </div>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BillingProvider>
+        <HomeContent />
+      </BillingProvider>
+    </QueryClientProvider>
   );
 }
