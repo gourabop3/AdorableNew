@@ -67,6 +67,7 @@ export default async function NewAppRedirectPage({
   
   try {
     console.log(`🚀 Calling createAppWithBilling with templateId=${search.template}, message=${message}`);
+    console.log(`👤 User info:`, { userId: user.userId, email: user.email });
     result = await createAppWithBilling({
       initialMessage: message ? decodeURIComponent(message) : '',
       templateId: search.template as string,
@@ -87,6 +88,7 @@ export default async function NewAppRedirectPage({
     
     redirect(`/app/${result.id}`);
   } catch (error) {
+    console.error(`❌ Error in createAppWithBilling:`, error);
     // Clean up the processing key
     try {
       await redisPublisher.del(appCreationKey);
