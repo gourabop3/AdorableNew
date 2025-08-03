@@ -119,3 +119,5 @@ Or use the included deployment script:
 ./deploy.sh
 ```
 # Billing system deployed
+
+<!-- Last updated: 2025-01-08 09:40 UTC - Restored to eeb7ecf commit -->
