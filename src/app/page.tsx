@@ -209,7 +209,7 @@ function HomeContent() {
                     By <span className="underline">Vibe</span>
                   </span>
                   <span className="text-xs">
-                    AI-powered development platform.
+                    Development platform.
                   </span>
                 </a>
               </div>
@@ -235,7 +235,7 @@ function HomeContent() {
                     <h3 className="text-xl font-bold text-gray-900">Vibe</h3>
                   </div>
                   <p className="text-gray-600 text-sm leading-relaxed">
-                    AI-powered development platform that helps you build amazing applications faster than ever before.
+                    Development platform that helps you build amazing applications faster than ever before.
                   </p>
                 </div>
 
