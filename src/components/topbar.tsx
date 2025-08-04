@@ -8,6 +8,8 @@ import {
 import Link from "next/link";
 import React, { useState } from "react";
 import { Button } from "./ui/button";
+import Image from "next/image";
+import VibeLogo from "@/vibe-logo.svg";
 import {
   Dialog,
   DialogContent,
@@ -40,17 +42,13 @@ export function TopBar({
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogTrigger asChild>
           <Button size="sm" variant={"ghost"}>
-            <img
-              src="/logos/vscode.svg"
-              className="h-4 w-4"
-              alt="VS Code Logo"
+            <Image
+              src={VibeLogo}
+              className="h-5 w-5"
+              alt="Vibe Logo"
+              width={20}
+              height={20}
             />
-            {/* <img
-              src="/logos/cursor.png"
-              className="h-4 w-4"
-              alt="Cursor Logo"
-            /> */}
-            <TerminalIcon className="h-4 w-4" />
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-md">
