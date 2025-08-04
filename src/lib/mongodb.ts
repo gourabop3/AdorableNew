@@ -160,7 +160,7 @@ const creditTransactionSchema = new mongoose.Schema({
 appSchema.index({ previewDomain: 1 });
 appUserSchema.index({ userId: 1, appId: 1 }, { unique: true });
 messageSchema.index({ appId: 1, createdAt: -1 });
-userSchema.index({ email: 1 });
+// Note: email index is already created by unique: true in schema
 subscriptionSchema.index({ userId: 1 });
 creditTransactionSchema.index({ userId: 1, createdAt: -1 });
 

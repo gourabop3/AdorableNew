@@ -6,7 +6,7 @@ import { freestyle } from "@/lib/freestyle";
 import { db } from "@/lib/db";
 import { appUsers } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
-import { getUser } from "@/auth/stack-auth";
+import { getUserBasic } from "@/auth/stack-auth";
 import { memory } from "@/mastra/agents/builder";
 import { buttonVariants } from "@/components/ui/button";
 import Link from "next/dist/client/link";
@@ -21,7 +21,7 @@ export default async function AppPage({
   const { id } = await params;
   console.log('🔍 Loading app page for ID:', id);
 
-  const user = await getUser();
+  const user = await getUserBasic();
   console.log('✅ User authenticated for app page:', user?.userId);
 
   const userPermission = (

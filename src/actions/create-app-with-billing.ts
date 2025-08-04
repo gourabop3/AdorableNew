@@ -1,7 +1,7 @@
 "use server";
 
 import { sendMessage } from "@/app/api/chat/route";
-import { getUser } from "@/auth/stack-auth";
+import { getUserBasic } from "@/auth/stack-auth";
 import { connectToDatabase, db } from "@/lib/mongodb";
 import { freestyle } from "@/lib/freestyle";
 import { templates } from "@/lib/templates";
@@ -25,7 +25,7 @@ export async function createAppWithBilling({
   skipBilling = false,
 }: CreateAppOptions): Promise<CreateAppResult> {
   console.time("get user");
-  const user = await getUser();
+  const user = await getUserBasic();
   console.timeEnd("get user");
 
   if (!templates[templateId]) {

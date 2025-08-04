@@ -1,10 +1,10 @@
 "use server";
 
-import { getUser } from "@/auth/stack-auth";
+import { getUserBasic } from "@/auth/stack-auth";
 import { connectToDatabase, db } from "@/lib/mongodb";
 
 export async function getUserApps() {
-  const user = await getUser();
+  const user = await getUserBasic();
   await connectToDatabase();
 
   const userApps = await db.appUsers.findMany({ userId: user.userId });
