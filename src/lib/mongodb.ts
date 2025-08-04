@@ -157,7 +157,7 @@ const creditTransactionSchema = new mongoose.Schema({
 });
 
 // Create indexes
-appSchema.index({ previewDomain: 1 });
+// Note: previewDomain index is already created by unique: true in schema
 appUserSchema.index({ userId: 1, appId: 1 }, { unique: true });
 messageSchema.index({ appId: 1, createdAt: -1 });
 // Note: email index is already created by unique: true in schema
