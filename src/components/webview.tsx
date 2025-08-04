@@ -53,7 +53,7 @@ export default function WebView(props: {
                     height={48}
                     className="animate-pulse"
                   />
-                  <h2 className="text-2xl font-bold text-gray-800">Vibe</h2>
+                  <h2 className="text-2xl font-bold text-gray-800">AdorableNew</h2>
                 </div>
                 <div className="text-center space-y-2">
                   <p className="text-xl font-semibold text-gray-700">
