@@ -20,7 +20,12 @@ export async function connectToDatabase() {
       maxPoolSize: 10,
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
-      family: 4
+      family: 4,
+      // Vercel serverless optimizations
+      maxIdleTimeMS: 30000,
+      minPoolSize: 1,
+      // Connection pooling for serverless
+      maxConnecting: 1,
     };
 
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
