@@ -34,6 +34,7 @@ export function PromptInputBasic({
   const [isLoading, setIsLoading] = useState(false);
   const [images, setImages] = useState<CompressedImage[]>([]);
   const [isCompressing, setIsCompressing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Add submitting state
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -74,12 +75,21 @@ export function PromptInputBasic({
   };
 
   const handleSubmitWithData = () => {
+    if (isSubmitting || isLoading) return; // Prevent multiple submissions
+    
+    setIsSubmitting(true);
+    
     if (onSubmitWithImages && (input.trim() || images.length > 0)) {
       onSubmitWithImages(input, images);
       setImages([]);
     } else if (handleSubmit) {
       handleSubmit();
     }
+    
+    // Reset submitting state after a delay
+    setTimeout(() => {
+      setIsSubmitting(false);
+    }, 1000);
   };
 
   return (
@@ -150,30 +160,19 @@ export function PromptInputBasic({
           <Paperclip className="h-4 w-4" />
         </Button>
 
-        {isGenerating ? (
-          <Button
-            variant={"default"}
-            size="icon"
-            className="h-8 w-8 rounded-full"
-            onClick={stop}
-          >
+        <Button
+          type="submit"
+          size="icon"
+          disabled={isLoading || isSubmitting || isCompressing || !input.trim()}
+          className="shrink-0"
+          onClick={handleSubmitWithData}
+        >
+          {isLoading || isSubmitting ? (
             <SquareIcon className="h-4 w-4" />
-          </Button>
-        ) : (
-          <Button
-            variant={"default"}
-            size="icon"
-            className="h-8 w-8 rounded-full"
-            disabled={
-              isGenerating ||
-              disabled ||
-              (input.trim() === "" && images.length === 0)
-            }
-            onClick={handleSubmitWithData}
-          >
+          ) : (
             <ArrowUp className="h-4 w-4" />
-          </Button>
-        )}
+          )}
+        </Button>
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import { after } from "next/server";
 
 import { createResumableStreamContext } from "resumable-stream";
 import { redis, redisPublisher } from "./redis";
+import { STREAMING_CONFIG } from "./streaming-config";
 
 const streamContext = createResumableStreamContext({
   waitUntil: after,
@@ -60,10 +61,33 @@ export async function setStream(
 
   await redisPublisher.set(`app:${appId}:stream-state`, "running", { EX: 15 });
 
+  // Create a slower stream for better readability
+  const slowStream = new ReadableStream({
+    async start(controller) {
+      const reader = responseBody.getReader();
+      const decoder = new TextDecoder();
+      
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          
+          // Add delay between chunks for better readability
+          await new Promise(resolve => setTimeout(resolve, STREAMING_CONFIG.STREAMING.CHUNK_DELAY));
+          
+          controller.enqueue(value);
+        }
+        controller.close();
+      } catch (error) {
+        controller.error(error);
+      }
+    }
+  });
+
   const resumableStream = await streamContext.createNewResumableStream(
     appId,
     () => {
-      return responseBody.pipeThrough(
+      return slowStream.pipeThrough(
         new TextDecoderStream()
       ) as ReadableStream<string>;
     }
