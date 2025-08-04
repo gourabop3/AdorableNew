@@ -99,9 +99,9 @@ const appUserSchema = new mongoose.Schema({
   userId: { type: String, required: true },
   appId: { type: mongoose.Schema.Types.ObjectId, ref: 'App', required: true },
   permissions: { type: String, enum: ['read', 'write', 'admin'], default: 'read' },
-  freestyleIdentity: { type: String, required: true },
-  freestyleAccessToken: { type: String, required: true },
-  freestyleAccessTokenId: { type: String, required: true },
+  freestyleIdentity: { type: String, required: false }, // Made optional for fallback mode
+  freestyleAccessToken: { type: String, required: false }, // Made optional for fallback mode
+  freestyleAccessTokenId: { type: String, required: false }, // Made optional for fallback mode
 }, {
   timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' }
 });
