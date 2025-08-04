@@ -27,17 +27,24 @@ export default function WebView(props: {
   const [showOverlay, setShowOverlay] = useState(true);
   const [iframeLoaded, setIframeLoaded] = useState(false);
   const [devCommandRunning, setDevCommandRunning] = useState(false);
-  const [appFullyLoaded, setAppFullyLoaded] = useState(false);
 
-  // Hide overlay only when app is fully loaded and ready
+  // Hide overlay when iframe is loaded and dev command is not running
   useEffect(() => {
-    if (iframeLoaded && !devCommandRunning && appFullyLoaded) {
+    if (iframeLoaded && !devCommandRunning) {
       const timer = setTimeout(() => {
         setShowOverlay(false);
-      }, 1000);
+      }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [iframeLoaded, devCommandRunning, appFullyLoaded]);
+  }, [iframeLoaded, devCommandRunning]);
+
+  // Fallback: Hide overlay after 10 seconds to ensure app shows
+  useEffect(() => {
+    const fallbackTimer = setTimeout(() => {
+      setShowOverlay(false);
+    }, 10000);
+    return () => clearTimeout(fallbackTimer);
+  }, []);
 
   return (
     <div className="flex flex-col overflow-hidden h-screen border-l transition-opacity duration-700 mt-[2px]">
@@ -60,8 +67,6 @@ export default function WebView(props: {
           hideWatermark={true}
           onLoad={() => {
             setIframeLoaded(true);
-            // Mark app as fully loaded after a delay
-            setTimeout(() => setAppFullyLoaded(true), 2000);
           }}
           loadingComponent={({ iframeLoading, devCommandRunning: running }) => {
             // Update the dev command running state
