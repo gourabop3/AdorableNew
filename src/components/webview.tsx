@@ -41,6 +41,8 @@ export default function WebView(props: {
         ref={devServerRef}
         actions={{ requestDevServer }}
         repoId={props.repo}
+        disableBranding={true}
+        hideWatermark={true}
         loadingComponent={({ iframeLoading, devCommandRunning }) =>
           !devCommandRunning && (
             <div className="flex items-center justify-center h-full bg-gradient-to-b from-[#FAFAF8] via-[#B9D6F8] to-[#D98DBA]">
