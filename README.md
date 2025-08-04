@@ -132,6 +132,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Auto-deploy trigger** - Updated README to ensure Vercel deployment is working correctly.
 
+**AI Improvements** - Fixed file editing issues, added HTTP testing capabilities, and improved error handling to prevent AI from asking users to verify things it can check itself.
+
 ---
 
 **Built with ❤️ using Next.js and AI**
