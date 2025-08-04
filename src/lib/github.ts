@@ -66,6 +66,18 @@ export class GitHubSandboxes {
   ): Promise<GitHubCodespace> {
     const [owner, repo] = repository.split('/');
     
+    // First, check if a codespace already exists for this repository
+    const existingCodespaces = await this.getCodespaces();
+    const existingCodespace = existingCodespaces.find(
+      cs => cs.repository.full_name === repository && cs.state !== 'deleted'
+    );
+    
+    if (existingCodespace) {
+      console.log(`✅ Reusing existing codespace: ${existingCodespace.name}`);
+      return existingCodespace;
+    }
+    
+    console.log(`🚀 Creating new codespace for repository: ${repository}`);
     const response = await this.octokit.codespaces.createForAuthenticatedUser({
       repository_id: await this.getRepositoryId(owner, repo),
       ref: branch || 'main',
@@ -73,6 +85,13 @@ export class GitHubSandboxes {
     });
     
     return response.data;
+  }
+
+  async getCodespaceForRepository(repository: string): Promise<GitHubCodespace | null> {
+    const codespaces = await this.getCodespaces();
+    return codespaces.find(
+      cs => cs.repository.full_name === repository && cs.state !== 'deleted'
+    ) || null;
   }
 
   async getCodespaces(): Promise<GitHubCodespace[]> {
