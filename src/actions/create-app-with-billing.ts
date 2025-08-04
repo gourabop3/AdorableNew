@@ -2,12 +2,13 @@
 
 import { sendMessage } from "@/app/api/chat/route";
 import { getUser } from "@/auth/stack-auth";
-import { appsTable, appUsers, users, creditTransactions } from "@/db/schema";
+import { appsTable, users, creditTransactions } from "@/db/schema";
 import { db } from "@/lib/db";
 import { githubSandboxes } from "@/lib/github";
 import { templates } from "@/lib/templates";
 import { memory } from "@/mastra/agents/builder";
 import { eq } from "drizzle-orm";
+import { insertAppUser } from "@/lib/db-compatibility";
 
 interface CreateAppOptions {
   initialMessage?: string;
@@ -95,17 +96,14 @@ export async function createAppWithBilling({
       })
       .returning();
 
-    await tx
-      .insert(appUsers)
-      .values({
-        appId: appInsertion[0].id,
-        userId: user.userId,
-        permissions: "admin",
-        githubUsername: user.githubUsername,
-        githubAccessToken: user.githubAccessToken,
-        githubInstallationId: user.githubInstallationId,
-      })
-      .returning();
+    await insertAppUser(tx, {
+      appId: appInsertion[0].id,
+      userId: user.userId,
+      permissions: "admin",
+      githubUsername: user.githubUsername,
+      githubAccessToken: user.githubAccessToken,
+      githubInstallationId: user.githubInstallationId,
+    });
 
     return appInsertion[0];
   });
