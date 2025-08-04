@@ -2,12 +2,10 @@
 
 import { sendMessage } from "@/app/api/chat/route";
 import { getUser } from "@/auth/stack-auth";
-import { appsTable, appUsers, users, creditTransactions } from "@/db/schema";
-import { db } from "@/lib/db";
+import { connectToDatabase, db } from "@/lib/mongodb";
 import { freestyle } from "@/lib/freestyle";
 import { templates } from "@/lib/templates";
 import { memory } from "@/mastra/agents/builder";
-import { eq } from "drizzle-orm";
 
 interface CreateAppOptions {
   initialMessage?: string;
@@ -42,6 +40,8 @@ export async function createAppWithBilling({
   // Try billing operations, but don't fail if they don't work
   if (!skipBilling) {
     try {
+      await connectToDatabase();
+      
       // Check if database is available
       const dbUser = await ensureUserInDatabase(user);
       
@@ -93,48 +93,40 @@ export async function createAppWithBilling({
   console.timeEnd("dev server");
 
   console.time("database: create app");
-  const app = await db.transaction(async (tx) => {
-    const appInsertion = await tx
-      .insert(appsTable)
-      .values({
-        gitRepo: repo.repoId,
-        name: initialMessage || 'Unnamed App',
-        description: initialMessage || 'No description',
-        baseId: templateId,
-      })
-      .returning();
-
-    await tx
-      .insert(appUsers)
-      .values({
-        appId: appInsertion[0].id,
-        userId: user.userId,
-        permissions: "admin",
-        freestyleAccessToken: token.token,
-        freestyleAccessTokenId: token.id,
-        freestyleIdentity: user.freestyleIdentity,
-      })
-      .returning();
-
-    return appInsertion[0];
+  await connectToDatabase();
+    
+  const app = await db.apps.create({
+    gitRepo: repo.repoId,
+    name: initialMessage || 'Unnamed App',
+    description: initialMessage || 'No description',
+    baseId: templateId,
   });
+
+  await db.appUsers.create({
+    appId: app._id,
+    userId: user.userId,
+    permissions: "admin",
+    freestyleAccessToken: token.token,
+    freestyleAccessTokenId: token.id,
+    freestyleIdentity: user.freestyleIdentity,
+  });
+
   console.timeEnd("database: create app");
 
   console.time("mastra: create thread");
   await memory.createThread({
-    threadId: app.id,
-    resourceId: app.id,
+    threadId: app._id.toString(),
+    resourceId: app._id.toString(),
   });
   console.timeEnd("mastra: create thread");
 
   if (initialMessage) {
     console.time("send initial message");
-    await sendMessage(app.id, mcpEphemeralUrl, {
+    await sendMessage(app._id.toString(), mcpEphemeralUrl, {
       id: crypto.randomUUID(),
       parts: [
         {
           text: initialMessage,
-          type: "text",
         },
       ],
       role: "user",
@@ -143,72 +135,60 @@ export async function createAppWithBilling({
   }
 
   return {
-    id: app.id,
+    id: app._id.toString(),
+    billingMode,
     warning,
-    billingMode
   };
 }
 
 async function ensureUserInDatabase(user: any) {
   try {
-    let dbUser = await db.query.users.findFirst({
-      where: eq(users.id, user.userId),
-    });
-
+    let dbUser = await db.users.findById(user.userId);
+    
     if (!dbUser) {
-      console.log('Creating new user in database...');
-      dbUser = await db.insert(users).values({
+      // Create new user with 50 free credits
+      dbUser = await db.users.create({
         id: user.userId,
         email: user.email || `user-${user.userId}@example.com`,
         name: user.name || 'User',
         image: user.image || '',
-        credits: 50, // Give new users 50 free credits
+        credits: 50,
         plan: 'free',
-      }).returning()[0];
+      });
     }
-
+    
     return dbUser;
   } catch (error) {
-    console.warn('Database user operations failed:', error);
+    console.error('Error ensuring user in database:', error);
     return null;
   }
 }
 
 async function tryDeductCredits(userId: string, amount: number): Promise<{ success: boolean; message?: string }> {
   try {
-    // Check current credits
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, userId),
-    });
-
+    const user = await db.users.findById(userId);
     if (!user) {
-      return { success: false, message: 'User not found in database' };
+      return { success: false, message: 'User not found' };
     }
 
     if (user.credits < amount) {
-      return { success: false, message: `Insufficient credits. Need ${amount}, have ${user.credits}` };
+      return { success: false, message: 'Insufficient credits' };
     }
 
     // Deduct credits
-    await db.update(users)
-      .set({ credits: user.credits - amount })
-      .where(eq(users.id, userId));
-
-    // Record transaction (optional - won't fail if this doesn't work)
-    try {
-      await db.insert(creditTransactions).values({
-        userId,
-        amount: -amount, // Negative for usage
-        description: 'App creation',
-        type: 'usage',
-      });
-    } catch (transactionError) {
-      console.warn('Transaction recording failed, but credits were deducted:', transactionError);
-    }
+    await db.users.update(userId, { credits: user.credits - amount });
+    
+    // Record transaction
+    await db.creditTransactions.create({
+      userId,
+      amount: -amount,
+      description: 'App creation - 5 credits',
+      type: 'usage',
+    });
 
     return { success: true };
   } catch (error) {
-    console.warn('Credit deduction failed:', error);
-    return { success: false, message: 'Credit system temporarily unavailable' };
+    console.error('Error deducting credits:', error);
+    return { success: false, message: 'Credit deduction failed' };
   }
 }
