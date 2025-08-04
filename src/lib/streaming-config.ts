@@ -1,23 +1,23 @@
 // Streaming configuration for optimal performance and stability
 export const STREAMING_CONFIG = {
-  // Stream speed control (in milliseconds) - Faster for better responsiveness
+  // Stream speed control (in milliseconds) - Minimal delays for fast streaming
   STREAMING: {
-    CHUNK_DELAY: 5, // Minimal delay for fast streaming
-    STEP_DELAY: 5, // Minimal delay between AI steps
+    CHUNK_DELAY: 0, // No delay for instant streaming
+    STEP_DELAY: 0, // No delay between AI steps
   },
   
   // Chat polling intervals (in milliseconds) - Less frequent to reduce refreshes
   POLLING: {
-    REFETCH_INTERVAL: 5000, // Less frequent polling to reduce refreshes
-    STALE_TIME: 3000, // Keep data fresh longer
-    GC_TIME: 10000, // Longer cache time
+    REFETCH_INTERVAL: 8000, // Much less frequent polling to reduce refreshes
+    STALE_TIME: 5000, // Keep data fresh longer
+    GC_TIME: 15000, // Longer cache time
   },
   
-  // UI debouncing (in milliseconds) - Faster for better responsiveness
+  // UI debouncing (in milliseconds) - Minimal for responsiveness
   DEBOUNCE: {
-    RUNNING_STATE: 200, // Faster debounce for running state changes
-    MESSAGE_SENDING: 100, // Faster input clearing
-    SENDING_RESET: 300, // Faster state reset
+    RUNNING_STATE: 100, // Minimal debounce for running state changes
+    MESSAGE_SENDING: 50, // Minimal input clearing delay
+    SENDING_RESET: 200, // Faster state reset
   },
   
   // Request deduplication (in seconds)

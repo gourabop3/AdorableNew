@@ -38,8 +38,7 @@ export default function Chat(props: {
 
   // Debounce the running state to reduce blinking
   const [debouncedRunning, setDebouncedRunning] = useState(false);
-  const [lastMessageId, setLastMessageId] = useState<string | null>(null);
-  const [isSending, setIsSending] = useState(false); // Add sending state to prevent text disappearing
+  const [isSending, setIsSending] = useState(false);
   
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -55,15 +54,6 @@ export default function Chat(props: {
     resume: debouncedRunning,
   });
 
-  // Prevent unnecessary re-renders when chat state hasn't changed
-  const [lastChatState, setLastChatState] = useState<string | null>(null);
-  
-  useEffect(() => {
-    if (chat?.state !== lastChatState) {
-      setLastChatState(chat?.state || null);
-    }
-  }, [chat?.state, lastChatState]);
-
   const [input, setInput] = useState("");
 
   const onSubmit = (e?: React.FormEvent<HTMLFormElement>) => {
@@ -71,46 +61,41 @@ export default function Chat(props: {
       e.preventDefault();
     }
     
-    // Prevent duplicate message sending and ensure text doesn't disappear
+    // Prevent duplicate message sending
     if (!input.trim() || debouncedRunning || isSending) {
       return;
     }
     
     const messageText = input.trim();
-    setIsSending(true); // Set sending state to prevent disappearing
+    setIsSending(true);
     
-    // Clear input after a small delay to ensure it's captured
-    setTimeout(() => {
-      setInput("");
-      
-      // Send message after input is cleared
-      setTimeout(() => {
-        const messageId = crypto.randomUUID();
-        setLastMessageId(messageId);
-        
-        sendMessage(
+    // Clear input immediately
+    setInput("");
+    
+    // Send message immediately
+    const messageId = crypto.randomUUID();
+    
+    sendMessage(
+      {
+        id: messageId,
+        parts: [
           {
-            id: messageId,
-            parts: [
-              {
-                type: "text",
-                text: messageText,
-              },
-            ],
+            type: "text",
+            text: messageText,
           },
-          {
-            headers: {
-              "Adorable-App-Id": props.appId,
-            },
-          }
-        );
-        
-        // Reset sending state after message is sent
-        setTimeout(() => {
-          setIsSending(false);
-        }, STREAMING_CONFIG.DEBOUNCE.SENDING_RESET);
-      }, STREAMING_CONFIG.DEBOUNCE.MESSAGE_SENDING);
-    }, STREAMING_CONFIG.DEBOUNCE.MESSAGE_SENDING);
+        ],
+      },
+      {
+        headers: {
+          "Adorable-App-Id": props.appId,
+        },
+      }
+    );
+    
+    // Reset sending state after a short delay
+    setTimeout(() => {
+      setIsSending(false);
+    }, STREAMING_CONFIG.DEBOUNCE.SENDING_RESET);
   };
 
   const onSubmitWithImages = (text: string, images: CompressedImage[]) => {

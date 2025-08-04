@@ -61,8 +61,8 @@ export async function setStream(
 
   await redisPublisher.set(`app:${appId}:stream-state`, "running", { EX: 15 });
 
-  // Create a controlled stream with slight delays for better readability
-  const controlledStream = new ReadableStream({
+  // Create a fast, responsive stream without delays
+  const fastStream = new ReadableStream({
     async start(controller) {
       const reader = responseBody.getReader();
       const decoder = new TextDecoder();
@@ -72,9 +72,7 @@ export async function setStream(
           const { done, value } = await reader.read();
           if (done) break;
           
-          // Add a small delay between chunks for better readability
-          await new Promise(resolve => setTimeout(resolve, STREAMING_CONFIG.STREAMING.CHUNK_DELAY));
-          
+          // No delays for instant streaming
           controller.enqueue(value);
         }
         controller.close();
@@ -87,7 +85,7 @@ export async function setStream(
   const resumableStream = await streamContext.createNewResumableStream(
     appId,
     () => {
-      return controlledStream.pipeThrough(
+      return fastStream.pipeThrough(
         new TextDecoderStream()
       ) as ReadableStream<string>;
     }
