@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test:github": "node test-github-integration.js"
+    "test:github": "node test-github-integration.js",
+    "cleanup:repos": "node cleanup-repos.js"
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.0-beta.17",

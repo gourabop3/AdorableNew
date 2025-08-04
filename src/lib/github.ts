@@ -213,6 +213,35 @@ export class GitHubSandboxes {
     });
     return response.data;
   }
+
+  async deleteRepositoriesByPattern(pattern: string): Promise<{ deleted: string[], errors: string[] }> {
+    const repositories = await this.listRepositories();
+    const matchingRepos = repositories.filter(repo => 
+      repo.name.includes(pattern) || repo.full_name.includes(pattern)
+    );
+    
+    const deleted: string[] = [];
+    const errors: string[] = [];
+    
+    for (const repo of matchingRepos) {
+      try {
+        await this.deleteRepository(repo.owner.login, repo.name);
+        deleted.push(repo.full_name);
+        console.log(`✅ Deleted repository: ${repo.full_name}`);
+      } catch (error) {
+        const errorMsg = `Failed to delete ${repo.full_name}: ${error instanceof Error ? error.message : 'Unknown error'}`;
+        errors.push(errorMsg);
+        console.error(`❌ ${errorMsg}`);
+      }
+    }
+    
+    return { deleted, errors };
+  }
+
+  async cleanupFailedRepositories(): Promise<{ deleted: string[], errors: string[] }> {
+    // Delete repositories that might have been created during failed app creation
+    return this.deleteRepositoriesByPattern('adorable-app-');
+  }
 }
 
 export const githubSandboxes = new GitHubSandboxes();
