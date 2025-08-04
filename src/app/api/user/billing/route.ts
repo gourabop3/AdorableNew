@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { getUser } from '@/auth/stack-auth';
+import { getUserBasic } from '@/auth/stack-auth';
 import { connectToDatabase, db } from '@/lib/mongodb';
 
 export async function GET() {
   try {
     let user;
     try {
-      user = await getUser();
+      user = await getUserBasic();
     } catch (error) {
       // User not authenticated - return 401 without logging as error
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
