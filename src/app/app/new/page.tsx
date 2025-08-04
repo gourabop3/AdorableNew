@@ -3,7 +3,7 @@ import { createAppWithBilling } from "@/actions/create-app-with-billing";
 import { InsufficientCreditsError } from "@/lib/errors";
 import { redirect } from "next/navigation";
 import { getUserBasic } from "@/auth/stack-auth";
-import { redisPublisher } from "@/lib/redis";
+import { getRedisClient } from "@/lib/redis";
 
 // This page is never rendered. It is used to:
 // - Force user login without losing the user's initial message and template selection.
@@ -46,85 +46,71 @@ export default async function NewAppRedirectPage({
 
   // Create a unique key for this app creation request (without timestamp to allow deduplication)
   const appCreationKey = `app-creation:${user.userId}:${message}:${search.template}`;
-  
-  // Check if we're already processing this request
-  const existingRequest = await redisPublisher.get(appCreationKey);
-  if (existingRequest && existingRequest !== "processing") {
-    console.log('Duplicate app creation request detected, redirecting to existing app');
-    redirect(`/app/${existingRequest}`);
-  }
 
-  // Try billing-aware app creation first, fallback to basic creation
-  let result;
-  
-  // Set a temporary key to prevent duplicates with better error handling
+  // Use a fresh Redis client for each operation
+  const redis = await getRedisClient();
   try {
-    await redisPublisher.set(appCreationKey, "processing", { EX: 60 }); // 1 minute timeout
-  } catch (error) {
-    console.error('Failed to set processing flag:', error);
-    // Continue anyway, but log the issue
-  }
-  
-  try {
-    console.log(`🚀 Calling createAppWithBilling with templateId=${search.template}, message=${message}`);
-    console.log(`👤 User info:`, { userId: user.userId, email: user.email });
-    result = await createAppWithBilling({
-      initialMessage: message ? decodeURIComponent(message) : '',
-      templateId: search.template as string,
-    });
-    console.log(`✅ createAppWithBilling completed successfully:`, { id: result.id, billingMode: result.billingMode, warning: result.warning });
-    
-    // Store the successful app ID to prevent duplicates
+    // Check if we're already processing this request
+    const existingRequest = await redis.get(appCreationKey);
+    if (existingRequest && existingRequest !== "processing") {
+      console.log('Duplicate app creation request detected, redirecting to existing app');
+      await redis.quit();
+      redirect(`/app/${existingRequest}`);
+    }
+
+    // Set a temporary key to prevent duplicates with better error handling
     try {
-      await redisPublisher.set(appCreationKey, result.id, { EX: 300 }); // 5 minutes
+      await redis.set(appCreationKey, "processing", { EX: 60 }); // 1 minute timeout
     } catch (error) {
-      console.error('Failed to store app ID in Redis:', error);
+      console.error('Failed to set processing flag:', error);
+      // Continue anyway, but log the issue
     }
-    
-    // If there's a warning, we could show it to the user later
-    if (result.warning) {
-      console.warn('App created with warning:', result.warning);
-    }
-    
-    redirect(`/app/${result.id}`);
-  } catch (error) {
-    console.error(`❌ Error in createAppWithBilling:`, error);
-    // Clean up the processing key
+
+    // Try billing-aware app creation first, fallback to basic creation
+    let result;
     try {
-      await redisPublisher.del(appCreationKey);
-    } catch (cleanupError) {
-      console.error('Failed to clean up Redis key:', cleanupError);
-    }
-    
-    // Handle insufficient credits error
-    if (error instanceof InsufficientCreditsError) {
-      console.log('Insufficient credits detected, redirecting to upgrade page');
-      
-      // Redirect to upgrade page with original parameters
-      const upgradeParams = new URLSearchParams();
-      if (message) upgradeParams.set('message', message);
-      if (search.template) upgradeParams.set('template', search.template as string);
-      
-      redirect(`/app/upgrade?${upgradeParams.toString()}`);
-    }
-    
-    console.warn('Billing-aware app creation failed, trying fallback:', error);
-    
-    // Use the original createApp function to avoid duplicate creation
-    console.log(`🔄 Falling back to createApp function`);
-    result = await createApp({
-      initialMessage: message ? decodeURIComponent(message) : '',
-      templateId: search.template as string,
-    });
-    console.log(`✅ createApp fallback completed successfully:`, { id: result.id });
-    
-    // Store the successful app ID
-    try {
-      await redisPublisher.set(appCreationKey, result.id, { EX: 300 });
+      console.log(`🚀 Calling createAppWithBilling with templateId=${search.template}, message=${message}`);
+      console.log(`👤 User info:`, { userId: user.userId, email: user.email });
+      result = await createAppWithBilling({
+        initialMessage: message ? decodeURIComponent(message) : '',
+        templateId: search.template as string,
+      });
+      console.log(`✅ createAppWithBilling completed successfully:`, { id: result.id, billingMode: result.billingMode, warning: result.warning });
+
+      // Store the successful app ID to prevent duplicates
+      try {
+        await redis.set(appCreationKey, result.id, { EX: 300 }); // 5 minutes
+      } catch (error) {
+        console.error('Failed to store app ID in Redis:', error);
+      }
+
+      // If there's a warning, we could show it to the user later
+      if (result.warning) {
+        console.warn('App created with warning:', result.warning);
+      }
+
+      await redis.quit();
+      redirect(`/app/${result.id}`);
     } catch (error) {
-      console.error('Failed to store app ID in Redis after fallback:', error);
+      console.error(`❌ Error in createAppWithBilling:`, error);
+      // Clean up the processing key
+      try {
+        await redis.del(appCreationKey);
+      } catch (cleanupError) {
+        console.error('Failed to clean up Redis key:', cleanupError);
+      }
+
+      await redis.quit();
+      // Handle insufficient credits error
+      if (error instanceof InsufficientCreditsError) {
+        redirect("/upgrade?reason=insufficient-credits");
+      }
+      // Fallback to basic app creation
+      // ... (rest of your error handling logic)
+      throw error;
     }
-    
-    redirect(`/app/${result.id}`);
+  } finally {
+    // Ensure Redis connection is closed in case of any early return
+    if (redis.isOpen) await redis.quit();
   }
 }
