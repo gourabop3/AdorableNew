@@ -7,7 +7,7 @@ import { db } from "@/lib/db";
 import { freestyle } from "@/lib/freestyle";
 import { templates } from "@/lib/templates";
 import { memory } from "@/mastra/agents/builder";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 interface CreateAppOptions {
   initialMessage?: string;
@@ -94,6 +94,24 @@ export async function createAppWithBilling({
 
   console.time("database: create app");
   const app = await db.transaction(async (tx) => {
+    // Check if user already has an app with the same name (prevent duplicates)
+    const existingApp = await tx
+      .select()
+      .from(appUsers)
+      .innerJoin(appsTable, eq(appUsers.appId, appsTable.id))
+      .where(
+        and(
+          eq(appUsers.userId, user.userId),
+          eq(appsTable.name, initialMessage || 'Unnamed App')
+        )
+      )
+      .limit(1);
+
+    if (existingApp.length > 0) {
+      console.log(`App with name "${initialMessage || 'Unnamed App'}" already exists for user ${user.userId}`);
+      return existingApp[0].apps;
+    }
+
     const appInsertion = await tx
       .insert(appsTable)
       .values({
@@ -104,17 +122,33 @@ export async function createAppWithBilling({
       })
       .returning();
 
-    await tx
-      .insert(appUsers)
-      .values({
-        appId: appInsertion[0].id,
-        userId: user.userId,
-        permissions: "admin",
-        freestyleAccessToken: token.token,
-        freestyleAccessTokenId: token.id,
-        freestyleIdentity: user.freestyleIdentity,
-      })
-      .returning();
+    // Check if app user entry already exists (prevent duplicate entries)
+    const existingAppUser = await tx
+      .select()
+      .from(appUsers)
+      .where(
+        and(
+          eq(appUsers.appId, appInsertion[0].id),
+          eq(appUsers.userId, user.userId)
+        )
+      )
+      .limit(1);
+
+    if (existingAppUser.length === 0) {
+      await tx
+        .insert(appUsers)
+        .values({
+          appId: appInsertion[0].id,
+          userId: user.userId,
+          permissions: "admin",
+          freestyleAccessToken: token.token,
+          freestyleAccessTokenId: token.id,
+          freestyleIdentity: user.freestyleIdentity,
+        })
+        .returning();
+    } else {
+      console.log(`App user entry already exists for app ${appInsertion[0].id} and user ${user.userId}`);
+    }
 
     return appInsertion[0];
   });
