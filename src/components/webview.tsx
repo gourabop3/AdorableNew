@@ -10,8 +10,6 @@ import { useRef, useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { RefreshCwIcon } from "lucide-react";
 import { ShareButton } from "./share-button";
-import Image from "next/image";
-import VibeLogo from "@/vibe-logo.svg";
 
 export default function WebView(props: {
   repo: string;
@@ -56,19 +54,9 @@ export default function WebView(props: {
             return !running ? (
               <div className="flex items-center justify-center h-full bg-gradient-to-b from-[#FAFAF8] via-[#B9D6F8] to-[#D98DBA]">
                 <div className="flex flex-col items-center space-y-6">
-                  <div className="flex items-center space-x-3">
-                    <Image
-                      src={VibeLogo}
-                      alt="AdorableNew Logo"
-                      width={48}
-                      height={48}
-                      className="animate-pulse"
-                    />
-                    <h2 className="text-2xl font-bold text-gray-800">AdorableNew</h2>
-                  </div>
                   <div className="text-center space-y-2">
                     <p className="text-xl font-semibold text-gray-700">
-                      Your app coming soon...
+                      Loading your app...
                     </p>
                     <p className="text-sm text-gray-600">
                       {iframeLoading ? "Loading JavaScript" : "Starting your development environment"}
