@@ -56,6 +56,15 @@ This will:
 
 ## Troubleshooting
 
+### "Machine 'basicLinux' is not available" Error
+
+This error occurs when:
+1. **Machine type not available** - The `basicLinux` machine type is not available for your account/repository
+2. **GitHub plan limitations** - Your GitHub plan doesn't include certain machine types
+3. **Repository restrictions** - The repository has specific machine type restrictions
+
+**Fixed**: The system now automatically detects available machine types and chooses the best one.
+
 ### "Must have admin rights to Repository" Error
 
 This error occurs when:
@@ -81,10 +90,27 @@ The improved integration now reuses existing codespaces to reduce API calls.
 ## Codespace Management
 
 The system now:
+- ✅ Automatically detects available machine types
+- ✅ Chooses the best available machine for each repository
 - ✅ Checks for existing codespaces before creating new ones
 - ✅ Reuses existing codespaces when available
 - ✅ Provides better error handling and logging
 - ✅ Reduces GitHub API usage
+- ✅ Handles machine type failures gracefully
+
+## Machine Type Selection
+
+The system automatically:
+1. **Fetches available machines** for the repository
+2. **Chooses the first available** (usually the cheapest/smallest)
+3. **Falls back gracefully** if the preferred machine fails
+4. **Uses common defaults** if no machines are available
+
+Common machine types include:
+- `linux` - Basic Linux environment
+- `ubuntu-latest` - Latest Ubuntu
+- `windows-latest` - Windows environment
+- `macos-latest` - macOS environment
 
 ## Security Notes
 

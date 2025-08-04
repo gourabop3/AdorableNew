@@ -59,6 +59,22 @@ export class GitHubSandboxes {
     });
   }
 
+  async getAvailableMachines(repository: string): Promise<any[]> {
+    const [owner, repo] = repository.split('/');
+    
+    try {
+      const response = await this.octokit.codespaces.getCodespacesMachinesForAuthenticatedUser({
+        repository_id: await this.getRepositoryId(owner, repo),
+        ref: 'main',
+      });
+      
+      return response.data.machines || [];
+    } catch (error) {
+      console.warn('Could not fetch available machines, using default:', error);
+      return [];
+    }
+  }
+
   async createCodespace(
     repository: string,
     branch?: string,
@@ -77,14 +93,51 @@ export class GitHubSandboxes {
       return existingCodespace;
     }
     
-    console.log(`🚀 Creating new codespace for repository: ${repository}`);
-    const response = await this.octokit.codespaces.createForAuthenticatedUser({
-      repository_id: await this.getRepositoryId(owner, repo),
-      ref: branch || 'main',
-      machine: machine || 'basicLinux',
-    });
+    // Get available machine types for this repository
+    const availableMachines = await this.getAvailableMachines(repository);
+    let machineType = machine;
     
-    return response.data;
+    if (!machineType) {
+      if (availableMachines.length > 0) {
+        // Use the first available machine (usually the cheapest/smallest)
+        machineType = availableMachines[0].name;
+        console.log(`🔧 Using available machine type: ${machineType}`);
+      } else {
+        // Fallback to a common machine type
+        machineType = 'linux';
+        console.log(`🔧 Using fallback machine type: ${machineType}`);
+      }
+    }
+    
+    console.log(`🚀 Creating new codespace for repository: ${repository} with machine: ${machineType}`);
+    
+    try {
+      const response = await this.octokit.codespaces.createForAuthenticatedUser({
+        repository_id: await this.getRepositoryId(owner, repo),
+        ref: branch || 'main',
+        machine: machineType,
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Failed to create codespace with machine ${machineType}:`, error);
+      
+      // If the specified machine failed, try with a different one
+      if (availableMachines.length > 1) {
+        const fallbackMachine = availableMachines[1].name;
+        console.log(`🔄 Retrying with fallback machine: ${fallbackMachine}`);
+        
+        const response = await this.octokit.codespaces.createForAuthenticatedUser({
+          repository_id: await this.getRepositoryId(owner, repo),
+          ref: branch || 'main',
+          machine: fallbackMachine,
+        });
+        
+        return response.data;
+      }
+      
+      throw error;
+    }
   }
 
   async getCodespaceForRepository(repository: string): Promise<GitHubCodespace | null> {

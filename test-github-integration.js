@@ -43,7 +43,7 @@ async function testGitHubIntegration() {
     const codespace = await octokit.codespaces.createForAuthenticatedUser({
       repository_id: repo.data.id,
       ref: 'main',
-      machine: 'basicLinux',
+      // Let GitHub choose the best available machine type
     });
     console.log('✅ Codespace creation successful');
     console.log(`💻 Codespace URL: ${codespace.data.web_ide_url}`);

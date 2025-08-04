@@ -78,8 +78,8 @@ export async function POST(req: NextRequest) {
   // Create a codespace for the repository
   const codespace = await githubSandboxes.createCodespace(
     app.info.gitRepo,
-    'main',
-    'basicLinux'
+    'main'
+    // Let the system choose the best available machine type
   );
 
   const resumableStream = await sendMessage(

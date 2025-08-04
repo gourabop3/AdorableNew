@@ -56,8 +56,8 @@ export default async function AppPage({
   // Create a codespace for the repository
   const codespace = await githubSandboxes.createCodespace(
     app?.info.gitRepo,
-    'main',
-    'basicLinux'
+    'main'
+    // Let the system choose the best available machine type
   );
 
   console.log("✅ Codespace created");

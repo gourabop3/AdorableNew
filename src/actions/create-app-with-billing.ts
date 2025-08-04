@@ -79,8 +79,8 @@ export async function createAppWithBilling({
   console.time("codespace");
   const codespace = await githubSandboxes.createCodespace(
     repo.full_name,
-    'main',
-    'basicLinux'
+    'main'
+    // Let the system choose the best available machine type
   );
   console.timeEnd("codespace");
 

@@ -12,12 +12,12 @@ export async function getCodespaceUrl(repoName: string) {
       return existingCodespace.web_ide_url;
     }
     
-    // Create new codespace if none exists
+    // Create new codespace if none exists (let it choose the best machine type)
     console.log(`🚀 Creating new codespace for: ${repoName}`);
     const codespace = await githubSandboxes.createCodespace(
       repoName,
-      'main',
-      'basicLinux'
+      'main'
+      // Don't specify machine type - let it choose the best available one
     );
     
     return codespace.web_ide_url;
