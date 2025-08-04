@@ -24,27 +24,8 @@ export default function WebView(props: {
   }
 
   const devServerRef = useRef<FreestyleDevServerHandle>(null);
-  const [showOverlay, setShowOverlay] = useState(true);
   const [iframeLoaded, setIframeLoaded] = useState(false);
   const [devCommandRunning, setDevCommandRunning] = useState(false);
-
-  // Hide overlay when iframe is loaded and dev command is not running
-  useEffect(() => {
-    if (iframeLoaded && !devCommandRunning) {
-      const timer = setTimeout(() => {
-        setShowOverlay(false);
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [iframeLoaded, devCommandRunning]);
-
-  // Fallback: Hide overlay after 10 seconds to ensure app shows
-  useEffect(() => {
-    const fallbackTimer = setTimeout(() => {
-      setShowOverlay(false);
-    }, 10000);
-    return () => clearTimeout(fallbackTimer);
-  }, []);
 
   return (
     <div className="flex flex-col overflow-hidden h-screen border-l transition-opacity duration-700 mt-[2px]">
@@ -78,7 +59,7 @@ export default function WebView(props: {
                   <div className="flex items-center space-x-3">
                     <Image
                       src={VibeLogo}
-                      alt="Vibe Logo"
+                      alt="AdorableNew Logo"
                       width={48}
                       height={48}
                       className="animate-pulse"
@@ -99,36 +80,6 @@ export default function WebView(props: {
             ) : null;
           }}
         />
-        
-        {/* Overlay to hide Freestyle branding - always show until app is fully ready */}
-        {showOverlay && (
-          <div className="absolute inset-0 bg-white z-50 flex items-center justify-center">
-            <div className="text-center space-y-4">
-              <div className="flex items-center justify-center space-x-3">
-                <Image
-                  src={VibeLogo}
-                  alt="AdorableNew Logo"
-                  width={64}
-                  height={64}
-                  className="animate-pulse"
-                />
-                <h1 className="text-3xl font-bold text-gray-800">AdorableNew</h1>
-              </div>
-              <p className="text-xl text-gray-600">AI-Powered Code Generation Platform</p>
-              <p className="text-sm text-gray-500">
-                {devCommandRunning 
-                  ? "Building your app..." 
-                  : iframeLoaded 
-                    ? "Loading your app..." 
-                    : "Your app will appear here once generated..."
-                }
-              </p>
-              {devCommandRunning && (
-                <div className="loader"></div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
