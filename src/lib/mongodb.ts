@@ -1,47 +1,72 @@
 import mongoose from 'mongoose';
+import { createClient } from 'mongodb';
 
 // MongoDB connection
 const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL?.replace('postgresql://', 'mongodb://') || 'mongodb://localhost:27017/adorable';
 
 let cached = global.mongoose;
+let cachedClient = global.mongoClient;
 
 if (!cached) {
   cached = global.mongoose = { conn: null, promise: null };
 }
 
+if (!cachedClient) {
+  cachedClient = global.mongoClient = { client: null, promise: null };
+}
+
 export async function connectToDatabase() {
-  if (cached.conn) {
-    return cached.conn;
-  }
-
-  if (!cached.promise) {
-    const opts = {
-      bufferCommands: false,
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-      family: 4,
-      // Vercel serverless optimizations
-      maxIdleTimeMS: 30000,
-      minPoolSize: 1,
-      // Connection pooling for serverless
-      maxConnecting: 1,
-    };
-
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-      console.log('✅ Connected to MongoDB');
-      return mongoose;
-    });
-  }
-
+  // Try Mongoose first
   try {
-    cached.conn = await cached.promise;
-  } catch (e) {
-    cached.promise = null;
-    throw e;
-  }
+    if (cached.conn) {
+      return cached.conn;
+    }
 
-  return cached.conn;
+    if (!cached.promise) {
+      const opts = {
+        bufferCommands: false,
+        maxPoolSize: 10,
+        serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 45000,
+        family: 4,
+        // Vercel serverless optimizations
+        maxIdleTimeMS: 30000,
+        minPoolSize: 1,
+        // Connection pooling for serverless
+        maxConnecting: 1,
+      };
+
+      cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+        console.log('✅ Connected to MongoDB via Mongoose');
+        return mongoose;
+      });
+    }
+
+    cached.conn = await cached.promise;
+    return cached.conn;
+  } catch (mongooseError) {
+    console.warn('Mongoose connection failed, trying MongoDB driver:', mongooseError);
+    
+    // Fallback to MongoDB driver
+    try {
+      if (cachedClient.client) {
+        return cachedClient.client;
+      }
+
+      if (!cachedClient.promise) {
+        cachedClient.promise = createClient(MONGODB_URI).connect().then((client) => {
+          console.log('✅ Connected to MongoDB via MongoDB driver');
+          return client;
+        });
+      }
+
+      cachedClient.client = await cachedClient.promise;
+      return cachedClient.client;
+    } catch (driverError) {
+      console.error('Both Mongoose and MongoDB driver failed:', driverError);
+      throw driverError;
+    }
+  }
 }
 
 // MongoDB Schemas
