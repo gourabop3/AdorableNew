@@ -47,6 +47,25 @@ export async function createAppWithBilling({
       const dbUser = await ensureUserInDatabase(user);
       
       if (dbUser) {
+        // Check for existing app with same name and user to prevent duplicates
+        const existingApp = await db.query.apps.findFirst({
+          where: eq(appsTable.name, initialMessage || 'Unnamed App'),
+          with: {
+            appUsers: {
+              where: eq(appUsers.userId, user.userId)
+            }
+          }
+        });
+
+        if (existingApp && existingApp.appUsers.length > 0) {
+          console.log('Duplicate app detected, returning existing app:', existingApp.id);
+          return {
+            id: existingApp.id,
+            warning: 'Using existing app with same name',
+            billingMode: 'skip'
+          };
+        }
+
         // Try to deduct credits
         try {
           await deductCredits(user.userId, 5, 'App creation');
