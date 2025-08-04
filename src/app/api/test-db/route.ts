@@ -18,26 +18,44 @@ export async function GET() {
       plan: 'free' as const,
     };
     
-    console.log('🧪 Creating test user:', testUser.id);
-    const createdUser = await db.users.create(testUser);
-    console.log('✅ Test user created:', createdUser?.id || 'Unknown ID');
+    console.log('🧪 Creating test user:', testUser);
+    let createdUser = null;
+    let createError = null;
+    
+    try {
+      createdUser = await db.users.create(testUser);
+      console.log('✅ Test user created successfully:', createdUser);
+    } catch (error) {
+      console.error('❌ Error creating test user:', error);
+      createError = error.message;
+    }
     
     // Test finding the user
-    console.log('🧪 Finding test user...');
-    const foundUser = await db.users.findById(testUser.id);
-    console.log('✅ Test user found:', foundUser ? (foundUser.id || 'Found but no ID') : 'Not found');
+    console.log('🧪 Finding test user by ID:', testUser.id);
+    let foundUser = null;
+    let findError = null;
     
-          return NextResponse.json({
-        success: true,
-        message: 'Database connection and operations working correctly',
-        testUser: {
-          created: !!createdUser,
-          found: !!foundUser,
-          id: testUser.id,
-          createdUserId: createdUser?.id || 'No ID returned',
-          foundUserId: foundUser?.id || 'No ID found'
-        }
-      });
+    try {
+      foundUser = await db.users.findById(testUser.id);
+      console.log('✅ Test user found:', foundUser);
+    } catch (error) {
+      console.error('❌ Error finding test user:', error);
+      findError = error.message;
+    }
+    
+    return NextResponse.json({
+      success: !createError && !findError,
+      message: 'Database test completed',
+      testUser: {
+        created: !!createdUser,
+        found: !!foundUser,
+        id: testUser.id,
+        createdUserId: createdUser?.id || 'Not created',
+        foundUserId: foundUser?.id || 'Not found',
+        createError,
+        findError
+      }
+    });
     
   } catch (error) {
     console.error('❌ Database test failed:', error);
