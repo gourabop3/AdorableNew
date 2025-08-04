@@ -8,7 +8,6 @@ import { freestyle } from "@/lib/freestyle";
 import { templates } from "@/lib/templates";
 import { memory } from "@/mastra/agents/builder";
 import { eq } from "drizzle-orm";
-import { deductCredits } from "@/lib/credits";
 
 interface CreateAppOptions {
   initialMessage?: string;
@@ -48,12 +47,12 @@ export async function createAppWithBilling({
       
       if (dbUser) {
         // Try to deduct credits
-        try {
-          await deductCredits(user.userId, 5, 'App creation');
+        const creditResult = await tryDeductCredits(user.userId, 5);
+        if (creditResult.success) {
           billingMode = 'full';
-        } catch (creditError: any) {
+        } else {
           billingMode = 'fallback';
-          warning = creditError.message || 'Credit deduction failed';
+          warning = creditResult.message;
         }
       } else {
         billingMode = 'fallback';
@@ -172,5 +171,44 @@ async function ensureUserInDatabase(user: any) {
   } catch (error) {
     console.warn('Database user operations failed:', error);
     return null;
+  }
+}
+
+async function tryDeductCredits(userId: string, amount: number): Promise<{ success: boolean; message?: string }> {
+  try {
+    // Check current credits
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+    });
+
+    if (!user) {
+      return { success: false, message: 'User not found in database' };
+    }
+
+    if (user.credits < amount) {
+      return { success: false, message: `Insufficient credits. Need ${amount}, have ${user.credits}` };
+    }
+
+    // Deduct credits
+    await db.update(users)
+      .set({ credits: user.credits - amount })
+      .where(eq(users.id, userId));
+
+    // Record transaction (optional - won't fail if this doesn't work)
+    try {
+      await db.insert(creditTransactions).values({
+        userId,
+        amount: -amount, // Negative for usage
+        description: 'App creation',
+        type: 'usage',
+      });
+    } catch (transactionError) {
+      console.warn('Transaction recording failed, but credits were deducted:', transactionError);
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.warn('Credit deduction failed:', error);
+    return { success: false, message: 'Credit system temporarily unavailable' };
   }
 }
