@@ -2,7 +2,7 @@ import { createApp } from "@/actions/create-app";
 import { createAppWithBilling } from "@/actions/create-app-with-billing";
 import { InsufficientCreditsError } from "@/lib/errors";
 import { redirect } from "next/navigation";
-import { getUser } from "@/auth/stack-auth";
+import { getUserBasic } from "@/auth/stack-auth";
 import { redisPublisher } from "@/lib/redis";
 
 // This page is never rendered. It is used to:
@@ -15,7 +15,7 @@ export default async function NewAppRedirectPage({
   searchParams: Promise<{ [key: string]: string | string[] }>;
   params: Promise<{ id: string }>;
 }) {
-  const user = await getUser().catch(() => undefined);
+  const user = await getUserBasic().catch(() => undefined);
   const search = await searchParams;
 
   if (!user) {

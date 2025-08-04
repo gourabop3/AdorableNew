@@ -1,6 +1,6 @@
 "use server";
 
-import { getUser } from "@/auth/stack-auth";
+import { getUserBasic } from "@/auth/stack-auth";
 import { appsTable, appUsers, users } from "@/db/schema";
 import { db } from "@/lib/db";
 import { eq } from "drizzle-orm";
@@ -16,7 +16,7 @@ export async function createDemoApp({
   
   let user;
   try {
-    user = await getUser();
+    user = await getUserBasic();
     console.log('✅ User authenticated:', user?.userId);
   } catch (error) {
     console.error('❌ User authentication failed:', error);

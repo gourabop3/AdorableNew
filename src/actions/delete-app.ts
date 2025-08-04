@@ -1,13 +1,13 @@
 "use server";
 
-import { getUser } from "@/auth/stack-auth";
+import { getUserBasic } from "@/auth/stack-auth";
 import { appsTable, appUsers } from "@/db/schema";
 import { db } from "@/lib/db";
 import { and, eq } from "drizzle-orm";
 import { freestyle } from "@/lib/freestyle";
 
 export async function deleteApp(appId: string) {
-  const user = await getUser();
+  const user = await getUserBasic();
 
   // Check if user has permission to delete this app
   const userApp = await db

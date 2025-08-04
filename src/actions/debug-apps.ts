@@ -1,13 +1,13 @@
 "use server";
 
-import { getUser } from "@/auth/stack-auth";
+import { getUserBasic } from "@/auth/stack-auth";
 import { appsTable, appUsers } from "@/db/schema";
 import { db } from "@/lib/db";
 import { eq, and } from "drizzle-orm";
 import { desc } from "drizzle-orm";
 
 export async function debugUserApps() {
-  const user = await getUser();
+  const user = await getUserBasic();
   
   try {
     // Get all app user entries for this user

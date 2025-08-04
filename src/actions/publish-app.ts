@@ -1,6 +1,6 @@
 "use server";
 
-import { getUser } from "@/auth/stack-auth";
+import { getUserBasic } from "@/auth/stack-auth";
 import { appDeployments, appsTable, appUsers } from "@/db/schema";
 import { db } from "@/lib/db";
 import { freestyle } from "@/lib/freestyle";
@@ -12,7 +12,7 @@ import {
 } from "unique-names-generator";
 
 export async function publishApp({ appId }: { appId: string }) {
-  const user = await getUser();
+  const user = await getUserBasic();
 
   if (!user) {
     throw new Error("User not found");
