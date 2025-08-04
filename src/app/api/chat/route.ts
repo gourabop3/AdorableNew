@@ -8,6 +8,7 @@ import { UIMessage } from "ai";
 // "fix" mastra mcp bug
 import { EventEmitter } from "events";
 import { getAbortCallback, setStream, stopStream } from "@/lib/streams";
+import { STREAMING_CONFIG } from "@/lib/streaming-config";
 EventEmitter.defaultMaxListeners = 1000;
 
 import { NextRequest } from "next/server";
@@ -150,6 +151,9 @@ export async function sendMessage(
           EX: 15,
         });
       }
+      
+      // Add a small delay to make streaming more readable
+      await new Promise(resolve => setTimeout(resolve, STREAMING_CONFIG.STREAMING.STEP_DELAY));
     },
     async onStepFinish(step) {
       messageList.add(step.response.messages, "response");

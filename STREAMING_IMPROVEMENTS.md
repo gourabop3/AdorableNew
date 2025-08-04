@@ -1,98 +1,126 @@
 # Streaming Improvements
 
-## 🚀 **Updated to Match AdorableNewOp Repository**
+## 🚀 **Controlled Streaming for Better Readability**
 
-### **1. Faster, More Responsive Streaming**
-- **Removed artificial delays** for real-time streaming
-- **Faster polling intervals** (2 seconds instead of 3)
-- **Reduced debouncing** (300ms instead of 500ms)
-- **Direct stream processing** without slowStream wrapper
+### **1. Balanced Streaming Speed**
+- **Controlled delays** for readable streaming (15ms between chunks, 10ms between steps)
+- **Responsive UI** with optimized polling (2.5s intervals)
+- **Stable message handling** to prevent text disappearing
+- **Configurable timing** for easy adjustment
 
-### **2. Enhanced Error Handling**
-- **Advanced quota violation detection**
-- **Retry delay extraction** from API errors
-- **Better logging** for debugging
-- **Request deduplication** with shorter timeouts (10 seconds)
+### **2. Enhanced Message Stability**
+- **Improved input handling** to prevent text from disappearing
+- **Better state management** for sending messages
+- **Controlled timing** for input clearing and message sending
+- **Enhanced error handling** with quota detection
 
-### **3. Improved Performance**
-- **Real-time streaming** without artificial delays
-- **Faster UI responsiveness** with reduced debouncing
+### **3. Optimized Performance**
+- **Balanced responsiveness** without sacrificing readability
+- **Stable UI updates** with proper debouncing
 - **Better request handling** with shorter timeouts
 - **Enhanced error recovery** for quota issues
 
 ## ⚙️ **Current Configuration**
 
-The streaming is now configured for maximum responsiveness:
+The streaming is now configured for optimal balance between readability and responsiveness:
 
 ```typescript
-// Chat polling intervals (in milliseconds)
-refetchInterval: 2000, // Faster polling for better responsiveness
-staleTime: 1000, // Keep data fresh for 1 second
-gcTime: 5000, // Keep cache for 5 seconds
-
-// UI debouncing (in milliseconds)
-debounce: 300, // Reduced debounce for better responsiveness
-
-// Request deduplication (in seconds)
-requestTimeout: 10, // Shorter timeout for faster response
-maxAttempts: 60, // Max attempts to wait for stream cleanup
-attemptDelay: 500, // Delay between cleanup attempts
+export const STREAMING_CONFIG = {
+  // Stream speed control (in milliseconds)
+  STREAMING: {
+    CHUNK_DELAY: 15, // Delay between stream chunks for readability
+    STEP_DELAY: 10, // Delay between AI steps for readability
+  },
+  
+  // Chat polling intervals (in milliseconds)
+  POLLING: {
+    REFETCH_INTERVAL: 2500, // How often to check stream state
+    STALE_TIME: 1500, // How long to keep data fresh
+    GC_TIME: 5000, // How long to keep cache
+  },
+  
+  // UI debouncing (in milliseconds)
+  DEBOUNCE: {
+    RUNNING_STATE: 400, // Debounce for running state changes
+    MESSAGE_SENDING: 50, // Delay before clearing input
+    SENDING_RESET: 500, // Time to reset sending state
+  },
+  
+  // Request deduplication (in seconds)
+  DEDUPLICATION: {
+    REQUEST_TIMEOUT: 10, // How long to track duplicate requests
+    MAX_ATTEMPTS: 60, // Max attempts to wait for stream cleanup
+    ATTEMPT_DELAY: 500, // Delay between cleanup attempts
+  }
+};
 ```
 
 ## 🎯 **Key Improvements**
 
-### **1. Real-Time Streaming**
-- Removed all artificial delays between chunks
-- Direct stream processing without slowStream wrapper
-- Immediate response streaming for better user experience
+### **1. Readable Streaming**
+- **15ms delay** between stream chunks for better readability
+- **10ms delay** between AI processing steps
+- **Controlled speed** that's neither too fast nor too slow
 
-### **2. Faster UI Updates**
-- Reduced polling interval from 3s to 2s
-- Reduced debouncing from 500ms to 300ms
-- Faster state updates and responsiveness
+### **2. Stable Message Handling**
+- **Prevents text disappearing** when sending messages
+- **Better input state management** with proper timing
+- **Controlled message sending** with delays to ensure stability
 
-### **3. Enhanced Error Handling**
-- Detailed quota violation detection and logging
-- Automatic retry delay extraction from API errors
-- Better error recovery and user feedback
+### **3. Responsive UI**
+- **2.5-second** polling intervals for good responsiveness
+- **400ms debouncing** for stable state updates
+- **1.5-second stale time** for fresh data
 
-### **4. Improved Request Management**
-- Shorter request deduplication timeouts
-- Better cleanup of processing states
-- Enhanced stream abort handling
+### **4. Enhanced Error Handling**
+- **Detailed quota violation detection** and logging
+- **Automatic retry delay extraction** from API errors
+- **Better error recovery** and user feedback
 
-## 🔧 **Performance Characteristics**
+## 🔧 **How to Adjust Speed**
 
-### **Streaming Speed:**
-- **Real-time** - No artificial delays
-- **Immediate** chunk processing
-- **Fast** step transitions
+### **Make Streaming Faster:**
+```typescript
+STREAMING: {
+  CHUNK_DELAY: 5, // Reduce from 15ms
+  STEP_DELAY: 5,  // Reduce from 10ms
+}
+```
 
-### **UI Responsiveness:**
-- **2-second** polling intervals
-- **300ms** debouncing
-- **1-second** stale time
+### **Make Streaming Slower:**
+```typescript
+STREAMING: {
+  CHUNK_DELAY: 25, // Increase from 15ms
+  STEP_DELAY: 20, // Increase from 10ms
+}
+```
 
-### **Error Recovery:**
-- **10-second** request timeouts
-- **60 attempts** for cleanup
-- **500ms** between attempts
+### **Adjust UI Responsiveness:**
+```typescript
+POLLING: {
+  REFETCH_INTERVAL: 2000, // Faster updates
+  STALE_TIME: 1000, // Fresher data
+}
+DEBOUNCE: {
+  RUNNING_STATE: 300, // Faster state changes
+}
+```
 
 ## ✅ **Testing**
 
 The improvements have been tested to ensure:
-- ✅ Real-time streaming without delays
-- ✅ Fast UI responsiveness
-- ✅ Proper error handling and recovery
+- ✅ AI responses are readable and not too fast
+- ✅ Text doesn't disappear when sending messages
+- ✅ UI is responsive and stable
 - ✅ No duplicate message sending
 - ✅ Smooth streaming experience
 - ✅ Enhanced quota error detection
 
 ## 🚀 **Result**
 
-Your chat now provides a much more responsive experience with:
-- **Real-time streaming speed**
-- **Fast UI updates**
+Your chat now provides an optimal user experience with:
+- **Readable streaming speed** (not too fast, not too slow)
+- **Stable message handling** (no disappearing text)
+- **Responsive UI** with proper timing
 - **Enhanced error handling**
-- **Better performance**
-- **Improved user experience**
+- **Easy configuration** for fine-tuning

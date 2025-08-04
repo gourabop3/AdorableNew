@@ -14,6 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import { chatState } from "@/actions/chat-streaming";
 import { CompressedImage } from "@/lib/image-compression";
 import { useChatSafe } from "./use-chat";
+import { STREAMING_CONFIG } from "@/lib/streaming-config";
 
 export default function Chat(props: {
   appId: string;
@@ -27,22 +28,23 @@ export default function Chat(props: {
     queryFn: async () => {
       return chatState(props.appId);
     },
-    refetchInterval: 2000, // Faster polling for better responsiveness
+    refetchInterval: STREAMING_CONFIG.POLLING.REFETCH_INTERVAL,
     refetchOnWindowFocus: false, // Disable refetch on window focus to reduce blinking
-    staleTime: 1000, // Keep data fresh for 1 second for better responsiveness
+    staleTime: STREAMING_CONFIG.POLLING.STALE_TIME,
     refetchOnMount: false, // Prevent refetch on mount
     refetchOnReconnect: false, // Prevent refetch on reconnect
-    gcTime: 5000, // Keep cache for 5 seconds
+    gcTime: STREAMING_CONFIG.POLLING.GC_TIME,
   });
 
   // Debounce the running state to reduce blinking
   const [debouncedRunning, setDebouncedRunning] = useState(false);
   const [lastMessageId, setLastMessageId] = useState<string | null>(null);
+  const [isSending, setIsSending] = useState(false); // Add sending state to prevent text disappearing
   
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedRunning(props.running && chat?.state === "running");
-    }, 300); // Reduced debounce for better responsiveness
+    }, STREAMING_CONFIG.DEBOUNCE.RUNNING_STATE);
 
     return () => clearTimeout(timer);
   }, [props.running, chat?.state]);
@@ -63,50 +65,52 @@ export default function Chat(props: {
   }, [chat?.state, lastChatState]);
 
   const [input, setInput] = useState("");
-  const [isSending, setIsSending] = useState(false); // Add sending state
 
   const onSubmit = (e?: React.FormEvent<HTMLFormElement>) => {
     if (e?.preventDefault) {
       e.preventDefault();
     }
     
-    // Prevent duplicate message sending
+    // Prevent duplicate message sending and ensure text doesn't disappear
     if (!input.trim() || debouncedRunning || isSending) {
       return;
     }
     
-    // Add a small delay to prevent rapid-fire messages
     const messageText = input.trim();
-    setInput("");
-    setIsSending(true); // Set sending state
+    setIsSending(true); // Set sending state to prevent disappearing
     
-    // Use setTimeout to ensure the input is cleared before sending
+    // Clear input after a small delay to ensure it's captured
     setTimeout(() => {
-      const messageId = crypto.randomUUID();
-      setLastMessageId(messageId);
+      setInput("");
       
-      sendMessage(
-        {
-          id: messageId,
-          parts: [
-            {
-              type: "text",
-              text: messageText,
-            },
-          ],
-        },
-        {
-          headers: {
-            "Adorable-App-Id": props.appId,
-          },
-        }
-      );
-      
-      // Reset sending state after a delay
+      // Send message after input is cleared
       setTimeout(() => {
-        setIsSending(false);
-      }, 200);
-    }, 200);
+        const messageId = crypto.randomUUID();
+        setLastMessageId(messageId);
+        
+        sendMessage(
+          {
+            id: messageId,
+            parts: [
+              {
+                type: "text",
+                text: messageText,
+              },
+            ],
+          },
+          {
+            headers: {
+              "Adorable-App-Id": props.appId,
+            },
+          }
+        );
+        
+        // Reset sending state after message is sent
+        setTimeout(() => {
+          setIsSending(false);
+        }, STREAMING_CONFIG.DEBOUNCE.SENDING_RESET);
+      }, STREAMING_CONFIG.DEBOUNCE.MESSAGE_SENDING);
+    }, STREAMING_CONFIG.DEBOUNCE.MESSAGE_SENDING);
   };
 
   const onSubmitWithImages = (text: string, images: CompressedImage[]) => {
