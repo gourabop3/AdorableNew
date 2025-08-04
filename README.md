@@ -1,127 +1,137 @@
-# Adorable
+# AdorableNew - AI-Powered Code Generation Platform
 
-Open-source version of **Lovable** - an AI agent that can make websites and apps through a chat interface.
+A modern, AI-powered platform for generating and managing code projects with real-time streaming, resumable conversations, and intelligent code generation capabilities.
 
-## Features
+## 🚀 Features
 
-- Chat interface for interacting with AI code assistants
-- Patch-based code editing with user approval
-- Git integration for version control
-- Preview capabilities for code changes
+- **Real-time AI Streaming**: Experience smooth, resumable conversations with AI
+- **Intelligent Code Generation**: Generate complete applications with natural language prompts
+- **Project Management**: Create, edit, and manage multiple projects
+- **Modern UI**: Beautiful, responsive interface built with Next.js and Tailwind CSS
+- **Resumable Conversations**: Never lose your chat progress with Redis-backed persistence
+- **Framework Templates**: Pre-built templates for popular frameworks and use cases
 
-## Setup Instructions
+## 🛠️ Tech Stack
 
-### Dependencies
+- **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS
+- **AI Integration**: Vercel AI SDK, Gemini AI
+- **Backend**: Next.js API Routes, Redis
+- **Streaming**: Server-Sent Events (SSE) with resumable streams
+- **Deployment**: Vercel
 
-- Node.js
-- PostgreSQL database ([Neon](https://neon.tech) is easy and has a good free tier)
-- Redis (for caching and session management)
-- Anthropic API key
-- Freestyle API key
+## 📦 Installation
 
-### Installation
-
-1. Clone the repository:
-
+1. **Clone the repository**
    ```bash
-   git clone https://github.com/freestyle-sh/adorable
-   cd adorable
+   git clone https://github.com/gourabop3/AdorableNew.git
+   cd AdorableNew
    ```
 
-2. Install dependencies:
-
+2. **Install dependencies**
    ```bash
    npm install
    ```
 
-3. Get a Freestyle API key
-
-   Head to [our API keys page](https://admin.freestyle.sh/dashboard/api-tokens) to get yours. We're totally free to use right now!
-
-4. Set up environment variables:
-   Create a `.env` file in the root directory with the following variables:
-
-   ```
-   # Database
-   DATABASE_URL=postgresql://username:password@localhost:5432/adorable
-
-   # Anthropic API
-   ANTHROPIC_API_KEY=your_anthropic_api_key
-
-   # Freestyle API
-   FREESTYLE_API_KEY=your_freestyle_api_key
-   ```
-
-5. Initialize the database:
-
+3. **Set up environment variables**
    ```bash
-   npx drizzle-kit push
+   cp .env.example .env.local
+   ```
+   
+   Add your environment variables:
+   ```env
+   GEMINI_API_KEY=your_gemini_api_key
+   REDIS_URL=your_redis_url
    ```
 
-6. Set up Redis
-
-The easiest way to run Redis locally is with Docker:
-
-```bash
-docker run --name adorable-redis -p 6379:6379 -d redis
-```
-
-This will start a Redis server on port 6379. If you already have Redis running, you can skip this step.
-
-Add the following to your `.env` file (if not already present):
-
-```env
-REDIS_URL=redis://localhost:6379
-```
-
-6. Set up [Stack Auth](https://stack-auth.com)
-
-Go to the [Stack Auth dashboard](https://app.stack-auth.com) and create a new application. In Configuration > Domains, enable `Allow all localhost callbacks for development` to be able to sign in locally.
-
-You'll need to add the following environment variables to your `.env` file:
-
-```env
-NEXT_PUBLIC_STACK_PROJECT_ID=<your-project-id>
-NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=<your-publishable-client-key>
-STACK_SECRET_SERVER_KEY=<your-secret-server-key>
-```
-
-7. Add a Preview Domain (optional)
-
-Go to the [Freestyle dashboard](https://admin.freestyle.sh/dashboard/domains) and verify a new domain. Then follow the [DNS Instructions](https://docs.freestyle.sh/web/deploy-to-custom-domain) to point your domain to Freestyle.
-
-Finally, add the following environment variable to your `.env` file:
-
-```env
-PREVIEW_DOMAIN=<your-domain> # formatted like adorable.app
-```
-
-8. Run the development server:
-
+4. **Run the development server**
    ```bash
    npm run dev
    ```
 
-9. Open [http://localhost:3000](http://localhost:3000) in your browser.
+5. **Open your browser**
+   Navigate to [http://localhost:3000](http://localhost:3000)
 
-## Deployment
+## 🎯 Quick Start
 
-For production deployment:
+1. **Create a new project** by clicking "New Project"
+2. **Describe your idea** in natural language (e.g., "Build a todo app with dark mode")
+3. **Watch AI generate** your complete application
+4. **Chat with AI** to modify and improve your code
+5. **Save and manage** your projects
+
+## 🔧 Configuration
+
+### Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `GEMINI_API_KEY` | Your Gemini AI API key | Yes |
+| `REDIS_URL` | Redis connection URL | Yes |
+
+### Streaming Configuration
+
+The platform uses configurable streaming settings for optimal performance:
+
+- **Chunk Delay**: Controls the speed of text streaming
+- **Polling Intervals**: Manages real-time updates
+- **Debouncing**: Prevents UI flickering
+- **Request Deduplication**: Avoids duplicate requests
+
+## 🚀 Deployment
+
+### Vercel (Recommended)
+
+1. **Connect your repository** to Vercel
+2. **Add environment variables** in Vercel dashboard
+3. **Deploy automatically** on every push to main
+
+### Manual Deployment
 
 ```bash
 npm run build
-npm run start
+npm start
 ```
 
-Or use the included deployment script:
+## 📝 Usage Examples
 
-```bash
-./deploy.sh
+### Basic Project Generation
+
+```
+"Create a simple calculator app with a modern UI"
 ```
 
-# Billing system deployed
+### Framework-Specific Requests
 
-<!-- Last updated: 2025-01-08 09:40 UTC - Restored to eeb7ecf commit -->
-# Trigger deployment
+```
+"Build a React todo app with TypeScript and Tailwind CSS"
+"Generate a Next.js blog with MDX support"
+"Create a Vue.js e-commerce template"
+```
 
-<!-- Vercel auto-deploy trigger -->
+### Feature Requests
+
+```
+"Add dark mode to my existing app"
+"Implement user authentication with JWT"
+"Add a search feature with filters"
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆕 Latest Update
+
+**Auto-deploy trigger** - Updated README to ensure Vercel deployment is working correctly.
+
+---
+
+**Built with ❤️ using Next.js and AI**
