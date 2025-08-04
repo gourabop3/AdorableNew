@@ -14,7 +14,6 @@ import { useQuery } from "@tanstack/react-query";
 import { chatState } from "@/actions/chat-streaming";
 import { CompressedImage } from "@/lib/image-compression";
 import { useChatSafe } from "./use-chat";
-import { STREAMING_CONFIG } from "@/lib/streaming-config";
 
 export default function Chat(props: {
   appId: string;
@@ -28,12 +27,12 @@ export default function Chat(props: {
     queryFn: async () => {
       return chatState(props.appId);
     },
-    refetchInterval: STREAMING_CONFIG.POLLING.REFETCH_INTERVAL,
+    refetchInterval: 2000, // Faster polling for better responsiveness
     refetchOnWindowFocus: false, // Disable refetch on window focus to reduce blinking
-    staleTime: STREAMING_CONFIG.POLLING.STALE_TIME,
+    staleTime: 1000, // Keep data fresh for 1 second for better responsiveness
     refetchOnMount: false, // Prevent refetch on mount
     refetchOnReconnect: false, // Prevent refetch on reconnect
-    gcTime: STREAMING_CONFIG.POLLING.GC_TIME,
+    gcTime: 5000, // Keep cache for 5 seconds
   });
 
   // Debounce the running state to reduce blinking
@@ -43,7 +42,7 @@ export default function Chat(props: {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedRunning(props.running && chat?.state === "running");
-    }, STREAMING_CONFIG.DEBOUNCE.RUNNING_STATE);
+    }, 300); // Reduced debounce for better responsiveness
 
     return () => clearTimeout(timer);
   }, [props.running, chat?.state]);
@@ -106,8 +105,8 @@ export default function Chat(props: {
       // Reset sending state after a delay
       setTimeout(() => {
         setIsSending(false);
-      }, STREAMING_CONFIG.DEBOUNCE.SENDING_RESET);
-    }, STREAMING_CONFIG.DEBOUNCE.MESSAGE_SENDING);
+      }, 200);
+    }, 200);
   };
 
   const onSubmitWithImages = (text: string, images: CompressedImage[]) => {

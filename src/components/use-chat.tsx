@@ -1,5 +1,5 @@
 import { useChat } from "@ai-sdk/react";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 // For some reason, if the chat is resumed during a router page navigation, it
 // will try to resume the stream multiple times and result in some sort of leak
@@ -13,14 +13,12 @@ export function useChatSafe(
 ) {
   const id = options.id;
   const resume = options?.resume;
-  const hasResumed = useRef(false);
 
   options.resume = undefined;
 
   const onFinish = options.onFinish;
   options.onFinish = () => {
     runningChats.delete(id);
-    hasResumed.current = false;
     if (onFinish) {
       onFinish();
     }
@@ -29,26 +27,19 @@ export function useChatSafe(
   const chat = useChat(options);
 
   useEffect(() => {
-    if (!runningChats.has(id) && !hasResumed.current && resume) {
-      // Add delay before resuming to prevent rapid resumptions
-      const timer = setTimeout(() => {
-        chat.resumeStream();
-        runningChats.add(id);
-        hasResumed.current = true;
-      }, 300);
-      
-      return () => clearTimeout(timer);
+    if (!runningChats.has(id) && resume) {
+      chat.resumeStream();
+      runningChats.add(id);
     }
 
     return () => {
       if (runningChats.has(id)) {
         chat.stop().then(() => {
           runningChats.delete(id);
-          hasResumed.current = false;
         });
       }
     };
-  }, [resume, id, chat]);
+  }, [resume, id]);
 
   return chat;
 }

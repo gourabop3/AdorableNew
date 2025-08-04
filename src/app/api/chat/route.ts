@@ -13,7 +13,6 @@ EventEmitter.defaultMaxListeners = 1000;
 import { NextRequest } from "next/server";
 import { redisPublisher } from "@/lib/redis";
 import { MessageList } from "@mastra/core/agent";
-import { STREAMING_CONFIG } from "@/lib/streaming-config";
 
 export async function POST(req: NextRequest) {
   console.log("creating new chat stream");
@@ -40,7 +39,7 @@ export async function POST(req: NextRequest) {
   }
   
   // Set request processing flag with shorter timeout
-  await redisPublisher.set(cacheKey, "processing", { EX: STREAMING_CONFIG.DEDUPLICATION.REQUEST_TIMEOUT });
+  await redisPublisher.set(cacheKey, "processing", { EX: 10 }); // Reduced from 30 to 10 seconds
 
   const streamState = await redisPublisher.get(
     "app:" + appId + ":stream-state"
@@ -51,10 +50,10 @@ export async function POST(req: NextRequest) {
     stopStream(appId);
 
     // Wait until stream state is cleared
-    const maxAttempts = STREAMING_CONFIG.DEDUPLICATION.MAX_ATTEMPTS;
+    const maxAttempts = 60;
     let attempts = 0;
     while (attempts < maxAttempts) {
-      await new Promise((resolve) => setTimeout(resolve, STREAMING_CONFIG.DEDUPLICATION.ATTEMPT_DELAY));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       const updatedState = await redisPublisher.get(
         "app:" + appId + ":stream-state"
       );
@@ -151,9 +150,6 @@ export async function sendMessage(
           EX: 15,
         });
       }
-      
-      // Add a small delay to make streaming more readable
-      await new Promise(resolve => setTimeout(resolve, STREAMING_CONFIG.STREAMING.CHUNK_PROCESSING));
     },
     async onStepFinish(step) {
       messageList.add(step.response.messages, "response");
@@ -167,9 +163,6 @@ export async function sendMessage(
           messages,
         });
       }
-      
-      // Add delay between steps for better readability
-      await new Promise(resolve => setTimeout(resolve, STREAMING_CONFIG.STREAMING.STEP_DELAY));
     },
     onError: async (error) => {
       await mcp.disconnect();
