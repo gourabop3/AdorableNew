@@ -16,9 +16,21 @@ export const memory = new Memory({
   },
   vector: new PgVector({
     connectionString: process.env.DATABASE_URL!,
+    pool: {
+      max: 10,
+      idleTimeoutMillis: 300000,        // 5 minutes
+      connectionTimeoutMillis: 30000,   // 30 seconds
+      acquireTimeoutMillis: 60000,      // 1 minute
+    },
   }),
   storage: new PostgresStore({
     connectionString: process.env.DATABASE_URL!,
+    pool: {
+      max: 10,
+      idleTimeoutMillis: 300000,        // 5 minutes
+      connectionTimeoutMillis: 30000,   // 30 seconds
+      acquireTimeoutMillis: 60000,      // 1 minute
+    },
   }),
   processors: [
     // new ToolCallFilter({
