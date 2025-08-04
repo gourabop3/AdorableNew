@@ -232,7 +232,7 @@ function HomeContent() {
                     <h3 className="text-xl font-bold text-gray-900">Vibe</h3>
                   </div>
                   <p className="text-gray-600 text-sm leading-relaxed">
-                    Development platform that helps you build amazing applications faster than ever before.
+                    AI-powered development platform that helps you build amazing applications faster than ever before.
                   </p>
                 </div>
 
