@@ -6,17 +6,10 @@ import {
   TerminalIcon,
 } from "lucide-react";
 import Link from "next/link";
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "./ui/button";
 import Image from "next/image";
 import VibeLogo from "@/vibe-logo.svg";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "./ui/dialog";
 
 export function TopBar({
   appName,
@@ -39,18 +32,16 @@ export function TopBar({
         <HomeIcon className="h-5 w-5" />
       </Link>
 
-      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogTrigger asChild>
-          <Button size="sm" variant={"ghost"}>
-            <Image
-              src={VibeLogo}
-              className="h-5 w-5"
-              alt="Vibe Logo"
-              width={20}
-              height={20}
-            />
-          </Button>
-        </DialogTrigger>
+      {/* Disabled Vibe logo link - removed Dialog functionality */}
+      <Button size="sm" variant={"ghost"} disabled>
+        <Image
+          src={VibeLogo}
+          className="h-5 w-5"
+          alt="Vibe Logo"
+          width={20}
+          height={20}
+        />
+      </Button>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Open In</DialogTitle>
