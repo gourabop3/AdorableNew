@@ -48,6 +48,39 @@ export function ToolMessage({
     );
   }
 
+  if (toolInvocation.type === "tool-http_test") {
+    return (
+      <ToolBlock
+        name="http test"
+        toolInvocation={toolInvocation}
+        argsText={toolInvocation.input?.url}
+      >
+        {toolInvocation.state === "result" && toolInvocation.result && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <div className={`w-3 h-3 rounded-full ${
+                toolInvocation.result.status >= 200 && toolInvocation.result.status < 300 
+                  ? 'bg-green-500' 
+                  : 'bg-red-500'
+              }`} />
+              <span className="text-sm font-mono">
+                Status: {toolInvocation.result.status}
+              </span>
+            </div>
+            {toolInvocation.result.content && (
+              <div className="text-xs text-gray-600 max-h-20 overflow-y-auto">
+                {typeof toolInvocation.result.content === 'string' 
+                  ? toolInvocation.result.content.substring(0, 200) + '...'
+                  : JSON.stringify(toolInvocation.result.content).substring(0, 200) + '...'
+                }
+              </div>
+            )}
+          </div>
+        )}
+      </ToolBlock>
+    );
+  }
+
   if (toolInvocation.type === "tool-create_directory") {
     return (
       <ToolBlock

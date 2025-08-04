@@ -87,6 +87,32 @@ export function truncateFileToolCalls(messages: Message[]): Message[] {
             }
           }
         }
+        // Handle HTTP test tool calls
+        else if (toolName === "http_test") {
+          // Truncate the URL if it's very long
+          if (
+            toolInvocation.args &&
+            typeof toolInvocation.args === "object" &&
+            "url" in toolInvocation.args
+          ) {
+            const url = String(toolInvocation.args.url);
+            if (url.length > 100) {
+              toolInvocation.args.url =
+                url.substring(0, 50) + "... [URL truncated to save tokens]";
+            }
+          }
+
+          // Truncate the result if it exists and is long
+          if (toolInvocation.state === "result" && toolInvocation.result) {
+            if (typeof toolInvocation.result.content === "string") {
+              const content = toolInvocation.result.content;
+              if (content.length > 500) {
+                toolInvocation.result.content =
+                  content.substring(0, 200) + "... [HTTP response truncated to save tokens]";
+              }
+            }
+          }
+        }
         // Handle directory listings - truncate large outputs
         else if (toolName === "list_directory" || toolName === "search_files") {
           if (toolInvocation.state === "result" && toolInvocation.result) {
