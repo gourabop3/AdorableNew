@@ -47,25 +47,6 @@ export async function createAppWithBilling({
       const dbUser = await ensureUserInDatabase(user);
       
       if (dbUser) {
-        // Check for existing app with same name and user to prevent duplicates
-        const existingApp = await db.query.apps.findFirst({
-          where: eq(appsTable.name, initialMessage || 'Unnamed App'),
-          with: {
-            appUsers: {
-              where: eq(appUsers.userId, user.userId)
-            }
-          }
-        });
-
-        if (existingApp && existingApp.appUsers.length > 0) {
-          console.log('Duplicate app detected, returning existing app:', existingApp.id);
-          return {
-            id: existingApp.id,
-            warning: 'Using existing app with same name',
-            billingMode: 'skip'
-          };
-        }
-
         // Try to deduct credits
         try {
           await deductCredits(user.userId, 5, 'App creation');
@@ -114,6 +95,22 @@ export async function createAppWithBilling({
 
   console.time("database: create app");
   const app = await db.transaction(async (tx) => {
+    // Check for existing app with same name and user within the transaction
+    const existingApp = await tx.query.apps.findFirst({
+      where: eq(appsTable.name, initialMessage || 'Unnamed App'),
+      with: {
+        appUsers: {
+          where: eq(appUsers.userId, user.userId)
+        }
+      }
+    });
+
+    if (existingApp && existingApp.appUsers.length > 0) {
+      console.log('Duplicate app detected within transaction, returning existing app:', existingApp.id);
+      return existingApp;
+    }
+
+    // Create new app only if no duplicate exists
     const appInsertion = await tx
       .insert(appsTable)
       .values({
