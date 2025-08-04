@@ -205,9 +205,6 @@ function HomeContent() {
                   href="https://vibe.dev"
                   className="border rounded-md px-4 py-2 mt-4 text-sm font-semibold transition-colors duration-200 ease-in-out cursor-pointer w-full max-w-72 text-center block"
                 >
-                  <span className="block font-bold">
-                    By <span className="underline">Vibe</span>
-                  </span>
                   <span className="text-xs">
                     Development platform.
                   </span>
