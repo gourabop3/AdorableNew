@@ -1,4 +1,13 @@
-export const templates = {
+export interface Template {
+  id: string;
+  name: string;
+  description: string;
+  repo: string;
+  preview: string;
+  logo: string;
+}
+
+const templatesData = {
   nextjs: {
     id: "nextjs-dkjfgdf",
     name: "Next.js + Shadcn",
@@ -23,4 +32,10 @@ export const templates = {
     preview: "https://expo.dev",
     logo: "/logos/expo.svg",
   },
-};
+} as const satisfies Record<string, Template>;
+
+// Export as array for find() method compatibility
+export const templates = Object.values(templatesData);
+
+// Export the object for direct access by key if needed elsewhere
+export const templatesMap = templatesData;

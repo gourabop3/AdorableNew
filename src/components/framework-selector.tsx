@@ -10,11 +10,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { templates } from "@/lib/templates";
+import { templatesMap } from "@/lib/templates";
 
 type FrameworkSelectorProps = {
-  value?: keyof typeof templates;
-  onChange: (value: keyof typeof templates) => void;
+  value?: keyof typeof templatesMap;
+  onChange: (value: keyof typeof templatesMap) => void;
   className?: string;
 };
 
@@ -34,13 +34,13 @@ export function FrameworkSelector({
             style={{ boxShadow: "none" }}
           >
             <Image
-              src={templates[value].logo}
-              alt={templates[value].name}
+              src={templatesMap[value].logo}
+              alt={templatesMap[value].name}
               width={16}
               height={16}
               className="opacity-90"
             />
-            {templates[value].name}
+            {templatesMap[value].name}
             <ChevronDownIcon className="h-3 w-3 opacity-70" />
           </Button>
         </DropdownMenuTrigger>
@@ -49,7 +49,7 @@ export function FrameworkSelector({
           className="min-w-[8rem] !shadow-none border border-gray-200"
           style={{ boxShadow: "none" }}
         >
-          {Object.entries(templates).map(([key, template]) => (
+          {Object.entries(templatesMap).map(([key, template]) => (
             <DropdownMenuItem
               key={key}
               onClick={(e) => {
