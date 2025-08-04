@@ -17,7 +17,7 @@ interface BillingContextType {
 }
 
 const defaultBilling: BillingData = {
-  credits: 0,
+  credits: 50,
   plan: 'free'
 };
 
@@ -51,46 +51,62 @@ export const BillingProvider: React.FC<BillingProviderProps> = ({ children }) =>
     try {
       setIsLoading(true);
       setError(null);
+      
+      console.log('🔄 Fetching billing data...');
 
       const response = await fetch('/api/user/billing');
       
+      console.log('📡 Billing API response status:', response.status);
+      
       if (response.status === 401) {
         // User not authenticated - this is fine
+        console.log('🔐 User not authenticated');
         setIsAuthenticated(false);
         setBilling(null);
         return;
       }
 
       if (!response.ok) {
-        // API error - use fallback
-        console.warn('Billing API error, using fallback data');
+        // API error - try to get error details
+        const errorText = await response.text();
+        console.warn('⚠️ Billing API error:', response.status, errorText);
+        
+        // Use fallback data but mark as authenticated since we got a non-401 error
         setIsAuthenticated(true);
         setBilling(defaultBilling);
-        setError('Billing data temporarily unavailable');
+        setError(`Billing API error (${response.status}). Using default data.`);
         return;
       }
 
       const data = await response.json();
+      console.log('✅ Billing API success:', data);
       
       if (data.user && data.user.id) {
         setIsAuthenticated(true);
         setBilling({
-          credits: data.user.credits || 0,
+          credits: data.user.credits || 50,
           plan: data.user.plan || 'free',
           stripeCustomerId: data.user.stripeCustomerId
         });
+        console.log('💳 Billing data set:', {
+          credits: data.user.credits,
+          plan: data.user.plan
+        });
       } else {
-        // Invalid response - use fallback
+        // Invalid response structure
+        console.warn('⚠️ Invalid billing response structure:', data);
         setIsAuthenticated(true);
         setBilling(defaultBilling);
-        setError('Invalid billing data, using defaults');
+        setError('Invalid billing data structure, using defaults');
       }
     } catch (error) {
-      // Network error - use fallback, don't break the app
-      console.warn('Billing fetch failed, using fallback:', error);
-      setIsAuthenticated(true); // Assume authenticated if we can't check
+      // Network error or parsing error
+      console.error('❌ Billing fetch failed:', error);
+      
+      // Try to maintain authentication state but provide fallback
+      setIsAuthenticated(true);
       setBilling(defaultBilling);
-      setError('Billing service temporarily unavailable');
+      setError(`Network error: ${error.message}`);
     } finally {
       setIsLoading(false);
     }

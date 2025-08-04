@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { createClient } from 'mongodb';
 
 // MongoDB connection
-const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL?.replace('postgresql://', 'mongodb://') || 'mongodb://localhost:27017/adorable';
+const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL || 'mongodb://localhost:27017/adorable';
 
 let cached = global.mongoose;
 let cachedClient = global.mongoClient;
@@ -16,9 +16,17 @@ if (!cachedClient) {
 }
 
 export async function connectToDatabase() {
-  // Try Mongoose first
+  // Validate MongoDB URI
+  if (!MONGODB_URI || !MONGODB_URI.startsWith('mongodb')) {
+    console.error('Invalid MongoDB URI:', MONGODB_URI);
+    throw new Error('Invalid MongoDB URI. Please set MONGODB_URI environment variable.');
+  }
+
+  console.log('Attempting to connect to MongoDB with URI:', MONGODB_URI.replace(/\/\/[^:]+:[^@]+@/, '//***:***@'));
+
   try {
     if (cached.conn) {
+      console.log('Using cached Mongoose connection');
       return cached.conn;
     }
 
@@ -26,7 +34,7 @@ export async function connectToDatabase() {
       const opts = {
         bufferCommands: false,
         maxPoolSize: 10,
-        serverSelectionTimeoutMS: 5000,
+        serverSelectionTimeoutMS: 10000,
         socketTimeoutMS: 45000,
         family: 4,
         // Vercel serverless optimizations
@@ -45,11 +53,15 @@ export async function connectToDatabase() {
     cached.conn = await cached.promise;
     return cached.conn;
   } catch (mongooseError) {
-    console.warn('Mongoose connection failed, trying MongoDB driver:', mongooseError);
+    console.warn('Mongoose connection failed:', mongooseError);
+    
+    // Reset the promise so we can try again
+    cached.promise = null;
     
     // Fallback to MongoDB driver
     try {
       if (cachedClient.client) {
+        console.log('Using cached MongoDB driver connection');
         return cachedClient.client;
       }
 
@@ -64,7 +76,10 @@ export async function connectToDatabase() {
       return cachedClient.client;
     } catch (driverError) {
       console.error('Both Mongoose and MongoDB driver failed:', driverError);
-      throw driverError;
+      // Reset both promises
+      cached.promise = null;
+      cachedClient.promise = null;
+      throw new Error(`Database connection failed: ${driverError.message}`);
     }
   }
 }
@@ -158,24 +173,29 @@ export const User = mongoose.models.User || mongoose.model('User', userSchema);
 export const Subscription = mongoose.models.Subscription || mongoose.model('Subscription', subscriptionSchema);
 export const CreditTransaction = mongoose.models.CreditTransaction || mongoose.model('CreditTransaction', creditTransactionSchema);
 
-// Database operations wrapper
+// Database operations wrapper with better error handling
 export const db = {
   // App operations
   apps: {
     create: async (data: any) => {
+      await connectToDatabase();
       const app = new App(data);
       return await app.save();
     },
     findById: async (id: string) => {
+      await connectToDatabase();
       return await App.findById(id);
     },
     findMany: async (filter: any = {}) => {
+      await connectToDatabase();
       return await App.find(filter);
     },
     update: async (id: string, data: any) => {
+      await connectToDatabase();
       return await App.findByIdAndUpdate(id, data, { new: true });
     },
     delete: async (id: string) => {
+      await connectToDatabase();
       return await App.findByIdAndDelete(id);
     }
   },
@@ -183,13 +203,16 @@ export const db = {
   // AppUser operations
   appUsers: {
     create: async (data: any) => {
+      await connectToDatabase();
       const appUser = new AppUser(data);
       return await appUser.save();
     },
     findMany: async (filter: any = {}) => {
+      await connectToDatabase();
       return await AppUser.find(filter).populate('appId');
     },
     findByUserAndApp: async (userId: string, appId: string) => {
+      await connectToDatabase();
       return await AppUser.findOne({ userId, appId });
     }
   },
@@ -197,27 +220,42 @@ export const db = {
   // User operations
   users: {
     create: async (data: any) => {
-      const user = new User(data);
-      return await user.save();
+      await connectToDatabase();
+      try {
+        const user = new User(data);
+        return await user.save();
+      } catch (error) {
+        if (error.code === 11000) {
+          // User already exists, find and return existing user
+          console.log('User already exists, finding existing user:', data.id);
+          return await User.findOne({ id: data.id });
+        }
+        throw error;
+      }
     },
     findById: async (id: string) => {
-      return await User.findById(id);
+      await connectToDatabase();
+      return await User.findOne({ id: id });
     },
     findByEmail: async (email: string) => {
+      await connectToDatabase();
       return await User.findOne({ email });
     },
     update: async (id: string, data: any) => {
-      return await User.findByIdAndUpdate(id, data, { new: true });
+      await connectToDatabase();
+      return await User.findOneAndUpdate({ id: id }, data, { new: true });
     }
   },
   
   // Message operations
   messages: {
     create: async (data: any) => {
+      await connectToDatabase();
       const message = new Message(data);
       return await message.save();
     },
     findMany: async (filter: any = {}) => {
+      await connectToDatabase();
       return await Message.find(filter).sort({ createdAt: -1 });
     }
   },
@@ -225,16 +263,20 @@ export const db = {
   // Subscription operations
   subscriptions: {
     create: async (data: any) => {
+      await connectToDatabase();
       const subscription = new Subscription(data);
       return await subscription.save();
     },
     findMany: async (filter: any = {}) => {
+      await connectToDatabase();
       return await Subscription.find(filter);
     },
     findById: async (id: string) => {
+      await connectToDatabase();
       return await Subscription.findById(id);
     },
     update: async (id: string, data: any) => {
+      await connectToDatabase();
       return await Subscription.findByIdAndUpdate(id, data, { new: true });
     }
   },
@@ -242,10 +284,12 @@ export const db = {
   // Credit Transaction operations
   creditTransactions: {
     create: async (data: any) => {
+      await connectToDatabase();
       const transaction = new CreditTransaction(data);
       return await transaction.save();
     },
     findMany: async (filter: any = {}) => {
+      await connectToDatabase();
       return await CreditTransaction.find(filter).sort({ createdAt: -1 });
     }
   }

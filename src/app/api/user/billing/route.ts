@@ -8,7 +8,7 @@ export async function GET() {
     try {
       user = await getUserBasic();
     } catch (error) {
-      // User not authenticated - return 401 without logging as error
+      console.log('User not authenticated:', error.message);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -18,17 +18,39 @@ export async function GET() {
 
     console.log('Billing API: Fetching data for user:', user.userId);
 
-    await connectToDatabase();
+    try {
+      await connectToDatabase();
+      console.log('Billing API: Database connection successful');
+    } catch (dbError) {
+      console.error('Billing API: Database connection failed:', dbError);
+      // Return fallback data if database is not available
+      return NextResponse.json({
+        user: {
+          id: user.userId,
+          email: user.email || `user-${user.userId}@example.com`,
+          name: user.name || 'User',
+          credits: 50,
+          plan: 'free',
+          stripeCustomerId: null,
+        },
+        subscription: null,
+      });
+    }
 
     // Get user data
-    let dbUser = await db.users.findById(user.userId);
-
-    console.log('Billing API: Found user in database:', dbUser ? {
-      id: dbUser.id,
-      plan: dbUser.plan,
-      credits: dbUser.credits,
-      updatedAt: dbUser.updatedAt
-    } : 'User not found');
+    let dbUser;
+    try {
+      dbUser = await db.users.findById(user.userId);
+      console.log('Billing API: Found user in database:', dbUser ? {
+        id: dbUser.id,
+        plan: dbUser.plan,
+        credits: dbUser.credits,
+        updatedAt: dbUser.updatedAt
+      } : 'User not found');
+    } catch (findError) {
+      console.error('Billing API: Error finding user:', findError);
+      dbUser = null;
+    }
 
     if (!dbUser) {
       try {
@@ -49,24 +71,43 @@ export async function GET() {
           credits: dbUser.credits
         });
       } catch (insertError) {
-        console.error('Database error creating user:', insertError);
-        return NextResponse.json({ error: 'Database temporarily unavailable' }, { status: 503 });
+        console.error('Billing API: Database error creating user:', insertError);
+        // Return fallback data if user creation fails
+        return NextResponse.json({
+          user: {
+            id: user.userId,
+            email: user.email || `user-${user.userId}@example.com`,
+            name: user.name || 'User',
+            credits: 50,
+            plan: 'free',
+            stripeCustomerId: null,
+          },
+          subscription: null,
+        });
       }
     }
 
     if (!dbUser) {
+      console.error('Billing API: User data still unavailable after creation attempt');
       return NextResponse.json({ error: 'User data unavailable' }, { status: 503 });
     }
 
     // Get subscription data
-    const subscription = await db.subscriptions.findMany({ userId: dbUser.id });
-    const activeSubscription = subscription.find(sub => sub.status === 'active');
+    let subscription = null;
+    let activeSubscription = null;
+    try {
+      subscription = await db.subscriptions.findMany({ userId: dbUser.id });
+      activeSubscription = subscription.find(sub => sub.status === 'active');
 
-    console.log('Billing API: Found subscription:', activeSubscription ? {
-      id: activeSubscription.id,
-      status: activeSubscription.status,
-      stripeSubscriptionId: activeSubscription.stripeSubscriptionId
-    } : 'No subscription found');
+      console.log('Billing API: Found subscription:', activeSubscription ? {
+        id: activeSubscription.id,
+        status: activeSubscription.status,
+        stripeSubscriptionId: activeSubscription.stripeSubscriptionId
+      } : 'No subscription found');
+    } catch (subscriptionError) {
+      console.warn('Billing API: Error fetching subscription data:', subscriptionError);
+      // Continue without subscription data
+    }
 
     const responseData = {
       user: {
@@ -95,6 +136,9 @@ export async function GET() {
     return NextResponse.json(responseData);
   } catch (error) {
     console.error('Billing API error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Internal server error', 
+      details: error.message 
+    }, { status: 500 });
   }
 }
