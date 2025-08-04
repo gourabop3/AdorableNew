@@ -39,3 +39,8 @@ export const templates = Object.values(templatesData);
 
 // Export the object for direct access by key if needed elsewhere
 export const templatesMap = templatesData;
+
+// Helper function to get template ID from framework key
+export function getTemplateId(frameworkKey: keyof typeof templatesData): string {
+  return templatesData[frameworkKey].id;
+}

@@ -13,6 +13,7 @@ import { UserApps } from "@/components/user-apps";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PromptInputTextareaWithTypingAnimation } from "@/components/prompt-input";
 import { BillingProvider, useBilling } from "@/contexts/billing-context";
+import { getTemplateId } from "@/lib/templates";
 import { PaymentSuccessBanner } from "@/components/payment-success-banner";
 
 const queryClient = new QueryClient();
@@ -100,7 +101,7 @@ function HomeContent() {
         // Redirect to upgrade page with current parameters
         const params = new URLSearchParams();
         params.set('message', encodeURIComponent(prompt));
-        params.set('template', framework);
+        params.set('template', getTemplateId(framework));
         router.push(`/app/upgrade?${params.toString()}`);
         return;
       }
@@ -108,13 +109,13 @@ function HomeContent() {
       console.log(`[${requestId}] Proceeding with app creation...`);
       // Proceed with app creation
       router.push(
-        `/app/new?message=${encodeURIComponent(prompt)}&template=${framework}`
+        `/app/new?message=${encodeURIComponent(prompt)}&template=${getTemplateId(framework)}`
       );
     } catch (error) {
       console.error(`[${requestId}] Error checking credits:`, error);
       // Fallback to normal app creation
       router.push(
-        `/app/new?message=${encodeURIComponent(prompt)}&template=${framework}`
+        `/app/new?message=${encodeURIComponent(prompt)}&template=${getTemplateId(framework)}`
       );
     } finally {
       // Don't reset loading state immediately to prevent rapid re-submissions

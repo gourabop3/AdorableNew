@@ -3,6 +3,7 @@
 import { createApp } from "@/actions/create-app";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { getTemplateId } from "@/lib/templates";
 
 export function AppPageRedirect() {
   const router = useRouter();
@@ -10,12 +11,13 @@ export function AppPageRedirect() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const message = urlParams.get("message");
-    const templateId = urlParams.get("templateId") || "nextjs"; // Default to nextjs if no template specified
+    const frameworkKey = urlParams.get("templateId") || "nextjs"; // Default to nextjs if no template specified
+    const templateId = getTemplateId(frameworkKey as keyof typeof import("@/lib/templates").templatesMap);
 
     if (message) {
       createApp({
         initialMessage: decodeURIComponent(message),
-        templateId: templateId as string,
+        templateId: templateId,
       }).then((app) => {
         router.push(`/app/${app.id}?respond`);
       }).catch((error) => {
