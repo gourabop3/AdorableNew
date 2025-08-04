@@ -27,16 +27,17 @@ export default function WebView(props: {
   const [showOverlay, setShowOverlay] = useState(true);
   const [iframeLoaded, setIframeLoaded] = useState(false);
   const [devCommandRunning, setDevCommandRunning] = useState(false);
+  const [appFullyLoaded, setAppFullyLoaded] = useState(false);
 
-  // Hide overlay when dev command starts running
+  // Hide overlay only when app is fully loaded and ready
   useEffect(() => {
-    if (devCommandRunning) {
+    if (iframeLoaded && !devCommandRunning && appFullyLoaded) {
       const timer = setTimeout(() => {
         setShowOverlay(false);
-      }, 500);
+      }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [devCommandRunning]);
+  }, [iframeLoaded, devCommandRunning, appFullyLoaded]);
 
   return (
     <div className="flex flex-col overflow-hidden h-screen border-l transition-opacity duration-700 mt-[2px]">
@@ -59,17 +60,12 @@ export default function WebView(props: {
           hideWatermark={true}
           onLoad={() => {
             setIframeLoaded(true);
-            // Hide overlay after iframe loads
-            setTimeout(() => setShowOverlay(false), 1000);
+            // Mark app as fully loaded after a delay
+            setTimeout(() => setAppFullyLoaded(true), 2000);
           }}
           loadingComponent={({ iframeLoading, devCommandRunning: running }) => {
             // Update the dev command running state
             setDevCommandRunning(running);
-            
-            // Hide overlay when dev command is running (app is being built)
-            if (running) {
-              setTimeout(() => setShowOverlay(false), 500);
-            }
             
             return !running ? (
               <div className="flex items-center justify-center h-full bg-gradient-to-b from-[#FAFAF8] via-[#B9D6F8] to-[#D98DBA]">
@@ -99,8 +95,8 @@ export default function WebView(props: {
           }}
         />
         
-        {/* Overlay to hide Freestyle branding */}
-        {showOverlay && !devCommandRunning && (
+        {/* Overlay to hide Freestyle branding - always show until app is fully ready */}
+        {showOverlay && (
           <div className="absolute inset-0 bg-white z-50 flex items-center justify-center">
             <div className="text-center space-y-4">
               <div className="flex items-center justify-center space-x-3">
@@ -114,7 +110,17 @@ export default function WebView(props: {
                 <h1 className="text-3xl font-bold text-gray-800">AdorableNew</h1>
               </div>
               <p className="text-xl text-gray-600">AI-Powered Code Generation Platform</p>
-              <p className="text-sm text-gray-500">Your app will appear here once generated...</p>
+              <p className="text-sm text-gray-500">
+                {devCommandRunning 
+                  ? "Building your app..." 
+                  : iframeLoaded 
+                    ? "Loading your app..." 
+                    : "Your app will appear here once generated..."
+                }
+              </p>
+              {devCommandRunning && (
+                <div className="loader"></div>
+              )}
             </div>
           </div>
         )}
