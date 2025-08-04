@@ -1,13 +1,17 @@
 import { createClient } from "redis";
 
-export const redis = await createClient({
-  url: process.env.REDIS_URL,
-})
-  .on("error", (err) => console.log("Redis Client Error", err))
-  .connect();
+// Helper to get a connected Redis client (for serverless)
+export async function getRedisClient() {
+  const client = createClient({
+    url: process.env.REDIS_URL,
+  });
+  client.on("error", (err) => console.log("Redis Client Error", err));
+  await client.connect();
+  return client;
+}
 
-export const redisPublisher = await createClient({
-  url: process.env.REDIS_URL,
-})
-  .on("error", (err) => console.log("Publisher Redis Client Error", err))
-  .connect();
+// Usage example (replace all direct uses of 'redis' and 'redisPublisher' with this):
+// const redis = await getRedisClient();
+// await redis.set(...)
+// await redis.get(...)
+// await redis.quit();
