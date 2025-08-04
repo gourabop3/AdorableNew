@@ -1,34 +1,28 @@
 "use server";
 
-import { appsTable, messagesTable } from "@/db/schema";
-import { db } from "@/lib/db";
-import { asc, eq } from "drizzle-orm";
+import { connectToDatabase, db } from "@/lib/mongodb";
 
 export async function getApp(id: string) {
-  const app = await db
-    .select()
-    .from(appsTable)
-    .where(eq(appsTable.id, id))
-    .limit(1);
+  await connectToDatabase();
+  
+  const app = await db.apps.findById(id);
 
   if (!app) {
     throw new Error("App not found");
   }
 
-  const appInfo = app[0];
-
-  if (!appInfo) {
-    throw new Error("App not found");
-  }
-
-  const messages = await db
-    .select()
-    .from(messagesTable)
-    .where(eq(messagesTable.appId, appInfo.id))
-    .orderBy(asc(messagesTable.createdAt));
+  const messages = await db.messages.findMany({ appId: app._id });
 
   return {
-    info: appInfo,
+    info: {
+      id: app._id.toString(),
+      name: app.name,
+      description: app.description,
+      gitRepo: app.gitRepo,
+      createdAt: app.createdAt,
+      baseId: app.baseId,
+      previewDomain: app.previewDomain,
+    },
     messages: messages.map((msg) => {
       return msg.message;
     }),

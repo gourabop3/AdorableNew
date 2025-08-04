@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "migrate:to-mongodb": "node scripts/migrate-to-mongodb.js",
+    "db:test": "node -e \"require('./src/lib/mongodb').connectToDatabase().then(() => console.log('✅ MongoDB connection test successful')).catch(console.error)\""
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.0-beta.17",
@@ -40,6 +42,8 @@
     "lucide-react": "^0.487.0",
     "marked": "^15.0.8",
     "mastra": "^0.0.0-ai-v5-20250718021026",
+    "mongodb": "^6.18.0",
+    "mongoose": "^8.17.0",
     "motion": "^12.7.4",
     "next": "15.3.0",
     "next-themes": "^0.4.6",

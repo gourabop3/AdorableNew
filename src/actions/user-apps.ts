@@ -1,26 +1,20 @@
 "use server";
 
 import { getUser } from "@/auth/stack-auth";
-import { appsTable, appUsers } from "@/db/schema";
-import { db } from "@/lib/db";
-import { desc, eq } from "drizzle-orm";
+import { connectToDatabase, db } from "@/lib/mongodb";
 
 export async function getUserApps() {
   const user = await getUser();
+  await connectToDatabase();
 
-  const userApps = await db
-    .select({
-      id: appsTable.id,
-      name: appsTable.name,
-      description: appsTable.description,
-      gitRepo: appsTable.gitRepo,
-      createdAt: appsTable.createdAt,
-      permissions: appUsers.permissions,
-    })
-    .from(appUsers)
-    .innerJoin(appsTable, eq(appUsers.appId, appsTable.id))
-    .where(eq(appUsers.userId, user.userId))
-    .orderBy(desc(appsTable.createdAt));
+  const userApps = await db.appUsers.findMany({ userId: user.userId });
 
-  return userApps;
+  return userApps.map(appUser => ({
+    id: appUser.appId._id.toString(),
+    name: appUser.appId.name,
+    description: appUser.appId.description,
+    gitRepo: appUser.appId.gitRepo,
+    createdAt: appUser.appId.createdAt,
+    permissions: appUser.permissions,
+  }));
 }

@@ -2,8 +2,7 @@
 
 import { sendMessage } from "@/app/api/chat/route";
 import { getUser } from "@/auth/stack-auth";
-import { appsTable, appUsers } from "@/db/schema";
-import { db } from "@/lib/db";
+import { connectToDatabase, db } from "@/lib/mongodb";
 import { freestyle } from "@/lib/freestyle";
 import { templates } from "@/lib/templates";
 import { memory } from "@/mastra/agents/builder";
@@ -56,49 +55,40 @@ export async function createApp({
   console.timeEnd("dev server");
 
   console.time("database: create app");
+  await connectToDatabase();
     
-  const app = await db.transaction(async (tx) => {
-    const appInsertion = await tx
-      .insert(appsTable)
-      .values({
-        gitRepo: repo.repoId,
-        name: initialMessage || 'Unnamed App',
-        description: initialMessage || 'No description',
-        baseId: templateId,
-      })
-      .returning();
-
-    await tx
-      .insert(appUsers)
-      .values({
-        appId: appInsertion[0].id,
-        userId: user.userId,
-        permissions: "admin",
-        freestyleAccessToken: token.token,
-        freestyleAccessTokenId: token.id,
-        freestyleIdentity: user.freestyleIdentity,
-      })
-      .returning();
-
-    return appInsertion[0];
+  const app = await db.apps.create({
+    gitRepo: repo.repoId,
+    name: initialMessage || 'Unnamed App',
+    description: initialMessage || 'No description',
+    baseId: templateId,
   });
+
+  await db.appUsers.create({
+    appId: app._id,
+    userId: user.userId,
+    permissions: "admin",
+    freestyleAccessToken: token.token,
+    freestyleAccessTokenId: token.id,
+    freestyleIdentity: user.freestyleIdentity,
+  });
+
   console.timeEnd("database: create app");
 
   console.time("mastra: create thread");
   await memory.createThread({
-    threadId: app.id,
-    resourceId: app.id,
+    threadId: app._id.toString(),
+    resourceId: app._id.toString(),
   });
   console.timeEnd("mastra: create thread");
 
   if (initialMessage) {
     console.time("send initial message");
-    await sendMessage(app.id, mcpEphemeralUrl, {
+    await sendMessage(app._id.toString(), mcpEphemeralUrl, {
       id: crypto.randomUUID(),
       parts: [
         {
           text: initialMessage,
-          type: "text",
         },
       ],
       role: "user",
@@ -106,6 +96,5 @@ export async function createApp({
     console.timeEnd("send initial message");
   }
 
-  console.log(`[${requestId}] App created successfully:`, app.id);
-  return app;
+  return app._id.toString();
 }
