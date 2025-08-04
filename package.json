@@ -4,11 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "node scripts/migrate-render.js && next build",
     "start": "next start",
     "lint": "next lint",
     "migrate:to-mongodb": "node scripts/migrate-to-mongodb.js",
-    "db:test": "node -e \"require('./src/lib/mongodb').connectToDatabase().then(() => console.log('✅ MongoDB connection test successful')).catch(console.error)\""
+    "db:test": "node -e \"require('./src/lib/mongodb').connectToDatabase().then(() => console.log('✅ MongoDB connection test successful')).catch(console.error)\"",
+    "setup:mongodb": "node scripts/migrate-render.js"
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.0-beta.17",

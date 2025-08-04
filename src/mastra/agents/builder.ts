@@ -6,6 +6,9 @@ import { Memory } from "@mastra/memory";
 import { PostgresStore, PgVector } from "@mastra/pg";
 import { z } from "zod";
 
+// Use MongoDB URI if available, otherwise fall back to DATABASE_URL
+const connectionString = process.env.MONGODB_URI || process.env.DATABASE_URL!;
+
 export const memory = new Memory({
   options: {
     lastMessages: 1000,
@@ -15,7 +18,7 @@ export const memory = new Memory({
     },
   },
   vector: new PgVector({
-    connectionString: process.env.DATABASE_URL!,
+    connectionString,
     pool: {
       max: 10,
       idleTimeoutMillis: 300000,        // 5 minutes
@@ -24,7 +27,7 @@ export const memory = new Memory({
     },
   }),
   storage: new PostgresStore({
-    connectionString: process.env.DATABASE_URL!,
+    connectionString,
     pool: {
       max: 10,
       idleTimeoutMillis: 300000,        // 5 minutes

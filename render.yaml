@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: adorable-app
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false  # Set this manually in Render dashboard
+      - key: REDIS_URL
+        sync: false  # Set this manually in Render dashboard
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: FREESTYLE_API_KEY
+        sync: false
+      - key: GOOGLE_AI_API_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: NEXTAUTH_SECRET
+        generateValue: true
+      - key: NEXTAUTH_URL
+        value: https://your-app-name.onrender.com  # Update this with your actual URL
+
+databases:
+  - name: adorable-mongodb
+    databaseName: adorable
+    user: adorable_user
