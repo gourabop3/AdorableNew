@@ -20,22 +20,24 @@ export async function GET() {
     
     console.log('🧪 Creating test user:', testUser.id);
     const createdUser = await db.users.create(testUser);
-    console.log('✅ Test user created:', createdUser.id);
+    console.log('✅ Test user created:', createdUser?.id || 'Unknown ID');
     
     // Test finding the user
     console.log('🧪 Finding test user...');
     const foundUser = await db.users.findById(testUser.id);
-    console.log('✅ Test user found:', foundUser ? foundUser.id : 'Not found');
+    console.log('✅ Test user found:', foundUser ? (foundUser.id || 'Found but no ID') : 'Not found');
     
-    return NextResponse.json({
-      success: true,
-      message: 'Database connection and operations working correctly',
-      testUser: {
-        created: !!createdUser,
-        found: !!foundUser,
-        id: testUser.id
-      }
-    });
+          return NextResponse.json({
+        success: true,
+        message: 'Database connection and operations working correctly',
+        testUser: {
+          created: !!createdUser,
+          found: !!foundUser,
+          id: testUser.id,
+          createdUserId: createdUser?.id || 'No ID returned',
+          foundUserId: foundUser?.id || 'No ID found'
+        }
+      });
     
   } catch (error) {
     console.error('❌ Database test failed:', error);
