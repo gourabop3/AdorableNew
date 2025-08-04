@@ -140,16 +140,17 @@ function HomeContent() {
           )}
 
           <div className="flex w-full justify-between items-center">
-            <h1 className="text-lg font-bold flex-1 sm:w-80">
-              <a href="https://www.vibe.dev">Vibe</a>
-            </h1>
-            <Image
-              className="dark:invert mx-2"
-              src={LogoSvg}
-              alt="Vibe Logo"
-              width={36}
-              height={36}
-            />
+            <div className="flex items-center gap-2 flex-1 sm:w-80">
+              <Image
+                src={VibeLogo}
+                alt="Vibe Logo"
+                width={24}
+                height={24}
+              />
+              <h1 className="text-lg font-bold">
+                <a href="https://www.vibe.dev">Vibe</a>
+              </h1>
+            </div>
             <div className="flex items-center gap-2 flex-1 sm:w-80 justify-end">
               <UserButtonWithBilling />
             </div>
@@ -226,11 +227,10 @@ function HomeContent() {
                 <div className="space-y-4">
                   <div className="flex items-center space-x-2">
                     <Image
-                      src={LogoSvg}
+                      src={VibeLogo}
                       alt="Vibe Logo"
                       width={32}
                       height={32}
-                      className="dark:invert"
                     />
                     <h3 className="text-xl font-bold text-gray-900">Vibe</h3>
                   </div>
