@@ -4,81 +4,46 @@ import { createClient } from 'mongodb';
 // MongoDB connection
 const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL || 'mongodb://localhost:27017/adorable';
 
-let cached = global.mongoose;
-let cachedClient = global.mongoClient;
-
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
-}
-
-if (!cachedClient) {
-  cachedClient = global.mongoClient = { client: null, promise: null };
-}
-
+// --- NEW CONNECTION LOGIC FOR SERVERLESS ---
 export async function connectToDatabase() {
-  // Validate MongoDB URI
   if (!MONGODB_URI || !MONGODB_URI.startsWith('mongodb')) {
     console.error('Invalid MongoDB URI:', MONGODB_URI);
     throw new Error('Invalid MongoDB URI. Please set MONGODB_URI environment variable.');
   }
 
-  console.log('Attempting to connect to MongoDB with URI:', MONGODB_URI.replace(/\/\/[^:]+:[^@]+@/, '//***:***@'));
-
+  // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
+  if (mongoose.connection.readyState === 1) {
+    // Already connected
+    return mongoose.connection;
+  }
+  if (mongoose.connection.readyState === 2) {
+    // Connecting
+    await new Promise((resolve) => mongoose.connection.once('connected', resolve));
+    return mongoose.connection;
+  }
+  // Not connected, connect now
   try {
-    if (cached.conn) {
-      console.log('Using cached Mongoose connection');
-      return cached.conn;
-    }
-
-    if (!cached.promise) {
-      const opts = {
-        bufferCommands: false,
-        maxPoolSize: 10,
-        serverSelectionTimeoutMS: 10000,
-        socketTimeoutMS: 45000,
-        family: 4,
-        // Vercel serverless optimizations
-        maxIdleTimeMS: 30000,
-        minPoolSize: 1,
-        // Connection pooling for serverless
-        maxConnecting: 1,
-      };
-
-      cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-        console.log('✅ Connected to MongoDB via Mongoose');
-        return mongoose;
-      });
-    }
-
-    cached.conn = await cached.promise;
-    return cached.conn;
+    await mongoose.connect(MONGODB_URI, {
+      bufferCommands: false,
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+      family: 4,
+      maxIdleTimeMS: 30000,
+      minPoolSize: 1,
+      maxConnecting: 1,
+    });
+    console.log('✅ Connected to MongoDB via Mongoose');
+    return mongoose.connection;
   } catch (mongooseError) {
     console.warn('Mongoose connection failed:', mongooseError);
-    
-    // Reset the promise so we can try again
-    cached.promise = null;
-    
     // Fallback to MongoDB driver
     try {
-      if (cachedClient.client) {
-        console.log('Using cached MongoDB driver connection');
-        return cachedClient.client;
-      }
-
-      if (!cachedClient.promise) {
-        cachedClient.promise = createClient(MONGODB_URI).connect().then((client) => {
-          console.log('✅ Connected to MongoDB via MongoDB driver');
-          return client;
-        });
-      }
-
-      cachedClient.client = await cachedClient.promise;
-      return cachedClient.client;
+      const client = await createClient(MONGODB_URI).connect();
+      console.log('✅ Connected to MongoDB via MongoDB driver');
+      return client;
     } catch (driverError) {
       console.error('Both Mongoose and MongoDB driver failed:', driverError);
-      // Reset both promises
-      cached.promise = null;
-      cachedClient.promise = null;
       throw new Error(`Database connection failed: ${driverError.message}`);
     }
   }
