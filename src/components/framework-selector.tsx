@@ -54,7 +54,7 @@ export function FrameworkSelector({
               key={key}
               onClick={(e) => {
                 e.preventDefault();
-                onChange(key);
+                onChange(key as keyof typeof templatesMap);
               }}
               className="gap-2 text-xs"
             >
