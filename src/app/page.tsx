@@ -8,7 +8,8 @@ import LogoSvg from "@/logo.svg";
 import VibeLogo from "@/vibe-logo.svg";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ExampleButton } from "@/components/ExampleButton";
+import { TemplateCard } from "@/components/template-card";
+import { PROJECT_TEMPLATES } from "@/lib/templates";
 import { UserButtonWithBilling } from "@/components/user-button-with-billing";
 import { UserApps } from "@/components/user-apps";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -199,16 +200,21 @@ function HomeContent() {
                   </div>
                 </div>
               </div>
-              <Examples setPrompt={setPrompt} />
-              <div className="mt-8 mb-16">
-                <a
-                  href="https://vibe.dev"
-                  className="border rounded-md px-4 py-2 mt-4 text-sm font-semibold transition-colors duration-200 ease-in-out cursor-pointer w-full max-w-72 text-center block"
-                >
-                  <span className="text-xs">
-                    Development platform.
-                  </span>
-                </a>
+              <div className="grid grid-cols-2 md:grid-cols-3 mt-12 gap-6">
+                {PROJECT_TEMPLATES.map((template) => (
+                  <button
+                    key={template.title}
+                    className="w-full"
+                    onClick={() => {
+                      setPrompt(template.prompt);
+                    }}
+                  >
+                    <TemplateCard
+                      title={template.title}
+                      imageUrl={template.image}
+                    />
+                  </button>
+                ))}
               </div>
             </div>
           </div>
@@ -324,38 +330,7 @@ function HomeContent() {
   );
 }
 
-function Examples({ setPrompt }: { setPrompt: (text: string) => void }) {
-  return (
-    <div className="mt-2">
-      <div className="flex flex-wrap justify-center gap-2 px-2">
-        <ExampleButton
-          text="Dog Food Marketplace"
-          promptText="Build a dog food marketplace where users can browse and purchase premium dog food."
-          onClick={(text) => {
-            console.log("Example clicked:", text);
-            setPrompt(text);
-          }}
-        />
-        <ExampleButton
-          text="Personal Website"
-          promptText="Create a personal website with portfolio, blog, and contact sections."
-          onClick={(text) => {
-            console.log("Example clicked:", text);
-            setPrompt(text);
-          }}
-        />
-        <ExampleButton
-          text="Burrito B2B SaaS"
-          promptText="Build a B2B SaaS for burrito shops to manage inventory, orders, and delivery logistics."
-          onClick={(text) => {
-            console.log("Example clicked:", text);
-            setPrompt(text);
-          }}
-        />
-      </div>
-    </div>
-  );
-}
+
 
 export default function Home() {
   return (
