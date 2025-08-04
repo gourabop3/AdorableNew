@@ -56,10 +56,10 @@ export default function WebView(props: {
                 <div className="flex flex-col items-center space-y-6">
                   <div className="text-center space-y-2">
                     <p className="text-xl font-semibold text-gray-700">
-                      Loading your app...
+                      🚀 Preparing your app...
                     </p>
                     <p className="text-sm text-gray-600">
-                      {iframeLoading ? "Loading JavaScript" : "Starting your development environment"}
+                      {iframeLoading ? "Loading your application..." : "Setting up your development environment"}
                     </p>
                   </div>
                   <div className="loader"></div>

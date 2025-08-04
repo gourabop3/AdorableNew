@@ -90,7 +90,11 @@ export default function Chat(props: {
           "Adorable-App-Id": props.appId,
         },
       }
-    );
+    ).catch((error) => {
+      console.error("Failed to send message:", error);
+      // Reset sending state on error
+      setIsSending(false);
+    });
     
     // Reset sending state after a short delay
     setTimeout(() => {
@@ -130,12 +134,16 @@ export default function Chat(props: {
   };
 
   async function handleStop() {
-    await fetch("/api/chat/" + props.appId + "/stream", {
-      method: "DELETE",
-      headers: {
-        "Adorable-App-Id": props.appId,
-      },
-    });
+    try {
+      await fetch("/api/chat/" + props.appId + "/stream", {
+        method: "DELETE",
+        headers: {
+          "Adorable-App-Id": props.appId,
+        },
+      });
+    } catch (error) {
+      console.error("Failed to stop stream:", error);
+    }
   }
 
   return (
