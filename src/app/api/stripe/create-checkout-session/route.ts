@@ -1,45 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe, STRIPE_PLANS } from '@/lib/stripe';
 import { getUser } from '@/auth/stack-auth';
-import { db } from '@/lib/db';
-import { users } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { connectToDatabase, db } from '@/lib/mongodb';
+import Stripe from 'stripe';
 
-export async function POST(request: NextRequest) {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-12-18.acacia',
+});
+
+export async function POST(req: NextRequest) {
   try {
     const user = await getUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { plan } = await request.json();
-    
-    if (!plan || !STRIPE_PLANS[plan as keyof typeof STRIPE_PLANS]) {
-      return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
-    }
+    await connectToDatabase();
 
-    const selectedPlan = STRIPE_PLANS[plan as keyof typeof STRIPE_PLANS];
-
-    // Get or create user in our database
-    let dbUser = await db.query.users.findFirst({
-      where: eq(users.id, user.userId),
-    });
-
+    // Get or create user in database
+    let dbUser = await db.users.findById(user.userId);
     if (!dbUser) {
-      // Create new user with 50 free credits
-      dbUser = await db.insert(users).values({
+      dbUser = await db.users.create({
         id: user.userId,
-        email: user.email || '',
-        name: user.name || '',
+        email: user.email || `user-${user.userId}@example.com`,
+        name: user.name || 'User',
         image: user.image || '',
         credits: 50,
         plan: 'free',
-      }).returning()[0];
+      });
     }
 
     // Create or get Stripe customer
     let customerId = dbUser.stripeCustomerId;
-    
     if (!customerId) {
       const customer = await stripe.customers.create({
         email: dbUser.email,
@@ -50,24 +41,17 @@ export async function POST(request: NextRequest) {
       });
       
       customerId = customer.id;
-      
-      // Update user with Stripe customer ID
-      await db.update(users)
-        .set({ stripeCustomerId: customerId })
-        .where(eq(users.id, dbUser.id));
+      await db.users.update(dbUser.id, { stripeCustomerId: customerId });
     }
 
-    // Use environment variable for base URL, fallback to request origin
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
-    console.log('🔗 Using base URL for Stripe checkout:', baseUrl);
+    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
 
-    // Create checkout session
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ['card'],
       line_items: [
         {
-          price: selectedPlan.priceId,
+          price: process.env.STRIPE_PRO_PRICE_ID,
           quantity: 1,
         },
       ],
@@ -76,16 +60,12 @@ export async function POST(request: NextRequest) {
       cancel_url: `${baseUrl}/billing?canceled=true`,
       metadata: {
         userId: dbUser.id,
-        plan,
       },
     });
 
-    return NextResponse.json({ sessionId: session.id });
+    return NextResponse.json({ sessionId: session.id, url: session.url });
   } catch (error) {
     console.error('Error creating checkout session:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -195,5 +195,33 @@ export const db = {
     findMany: async (filter: any = {}) => {
       return await Message.find(filter).sort({ createdAt: -1 });
     }
+  },
+
+  // Subscription operations
+  subscriptions: {
+    create: async (data: any) => {
+      const subscription = new Subscription(data);
+      return await subscription.save();
+    },
+    findMany: async (filter: any = {}) => {
+      return await Subscription.find(filter);
+    },
+    findById: async (id: string) => {
+      return await Subscription.findById(id);
+    },
+    update: async (id: string, data: any) => {
+      return await Subscription.findByIdAndUpdate(id, data, { new: true });
+    }
+  },
+
+  // Credit Transaction operations
+  creditTransactions: {
+    create: async (data: any) => {
+      const transaction = new CreditTransaction(data);
+      return await transaction.save();
+    },
+    findMany: async (filter: any = {}) => {
+      return await CreditTransaction.find(filter).sort({ createdAt: -1 });
+    }
   }
 };

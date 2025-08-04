@@ -1,51 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe } from '@/lib/stripe';
 import { getUser } from '@/auth/stack-auth';
-import { db } from '@/lib/db';
-import { subscriptions } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { connectToDatabase, db } from '@/lib/mongodb';
+import Stripe from 'stripe';
 
-export async function POST(request: NextRequest) {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-12-18.acacia',
+});
+
+export async function POST(req: NextRequest) {
   try {
     const user = await getUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { subscriptionId } = await request.json();
-    
-    if (!subscriptionId) {
-      return NextResponse.json({ error: 'Subscription ID is required' }, { status: 400 });
-    }
+    await connectToDatabase();
 
-    // Verify the subscription belongs to the user
-    const dbSubscription = await db.query.subscriptions.findFirst({
-      where: eq(subscriptions.id, subscriptionId),
+    // Get user's active subscription
+    const subscriptions = await db.subscriptions.findMany({ 
+      userId: user.userId,
+      status: 'active'
     });
 
-    if (!dbSubscription || dbSubscription.userId !== user.userId) {
-      return NextResponse.json({ error: 'Subscription not found' }, { status: 404 });
+    if (subscriptions.length === 0) {
+      return NextResponse.json({ error: 'No active subscription found' }, { status: 404 });
     }
 
+    const subscription = subscriptions[0];
+
     // Cancel the subscription at period end
-    await stripe.subscriptions.update(subscriptionId, {
+    await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
       cancel_at_period_end: true,
     });
 
     // Update our database
-    await db.update(subscriptions)
-      .set({
-        cancelAtPeriodEnd: true,
-        updatedAt: new Date(),
-      })
-      .where(eq(subscriptions.id, subscriptionId));
+    await db.subscriptions.update(subscription.id, {
+      cancelAtPeriodEnd: true,
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error canceling subscription:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

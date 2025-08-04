@@ -1,97 +1,63 @@
-import { db } from '@/lib/db';
-import { users, creditTransactions } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { connectToDatabase, db } from '@/lib/mongodb';
 
-export async function deductCredits(userId: string, amount: number, description: string) {
-  try {
-    console.log(`🔍 deductCredits called for user ${userId}, amount: ${amount}, description: ${description}`);
-    
-    // Get current user
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, userId),
-    });
-
-    console.log(`👤 Found user:`, user ? { id: user.id, credits: user.credits } : 'User not found');
-
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    if (user.credits < amount) {
-      console.log(`❌ Insufficient credits: need ${amount}, have ${user.credits}`);
-      throw new Error('Insufficient credits');
-    }
-
-    console.log(`💳 Updating credits from ${user.credits} to ${user.credits - amount}`);
-
-    // Update user credits
-    await db.update(users)
-      .set({ 
-        credits: user.credits - amount,
-      })
-      .where(eq(users.id, userId));
-
-    console.log(`✅ Credits updated successfully`);
-
-    // Record transaction
-    await db.insert(creditTransactions).values({
-      userId,
-      amount: -amount, // Negative for usage
-      description,
-      type: 'usage',
-    });
-
-    console.log(`📝 Transaction recorded successfully`);
-
-    return { success: true, remainingCredits: user.credits - amount };
-  } catch (error) {
-    console.error('Error deducting credits:', error);
-    throw error;
-  }
+export async function getUserCredits(userId: string): Promise<number> {
+  await connectToDatabase();
+  
+  const user = await db.users.findById(userId);
+  return user?.credits || 0;
 }
 
-export async function addCredits(userId: string, amount: number, description: string, type: 'purchase' | 'bonus' | 'refund' = 'bonus') {
-  try {
-    // Get current user
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, userId),
-    });
-
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    // Update user credits
-    await db.update(users)
-      .set({ 
-        credits: user.credits + amount,
-      })
-      .where(eq(users.id, userId));
-
-    // Record transaction
-    await db.insert(creditTransactions).values({
-      userId,
-      amount,
-      description,
-      type,
-    });
-
-    return { success: true, newCredits: user.credits + amount };
-  } catch (error) {
-    console.error('Error adding credits:', error);
-    throw error;
+export async function deductCredits(userId: string, amount: number, description: string): Promise<number> {
+  await connectToDatabase();
+  
+  const user = await db.users.findById(userId);
+  if (!user) {
+    throw new Error('User not found');
   }
+
+  if (user.credits < amount) {
+    throw new Error('Insufficient credits');
+  }
+
+  const newCredits = user.credits - amount;
+  
+  await db.users.update(userId, { credits: newCredits });
+  
+  // Record the transaction
+  await db.creditTransactions.create({
+    userId,
+    amount: -amount,
+    description,
+    type: 'usage',
+  });
+
+  return newCredits;
 }
 
-export async function getUserCredits(userId: string) {
-  try {
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, userId),
-    });
-
-    return user?.credits || 0;
-  } catch (error) {
-    console.error('Error getting user credits:', error);
-    return 0;
+export async function addCredits(userId: string, amount: number, description: string): Promise<number> {
+  await connectToDatabase();
+  
+  const user = await db.users.findById(userId);
+  if (!user) {
+    throw new Error('User not found');
   }
+
+  const newCredits = user.credits + amount;
+  
+  await db.users.update(userId, { credits: newCredits });
+  
+  // Record the transaction
+  await db.creditTransactions.create({
+    userId,
+    amount,
+    description,
+    type: 'bonus',
+  });
+
+  return newCredits;
+}
+
+export async function checkCredits(userId: string, required: number): Promise<boolean> {
+  const credits = await getUserCredits(userId);
+  return credits >= required;
 }
