@@ -26,6 +26,17 @@ export default function WebView(props: {
   const devServerRef = useRef<FreestyleDevServerHandle>(null);
   const [showOverlay, setShowOverlay] = useState(true);
   const [iframeLoaded, setIframeLoaded] = useState(false);
+  const [devCommandRunning, setDevCommandRunning] = useState(false);
+
+  // Hide overlay when dev command starts running
+  useEffect(() => {
+    if (devCommandRunning) {
+      const timer = setTimeout(() => {
+        setShowOverlay(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [devCommandRunning]);
 
   return (
     <div className="flex flex-col overflow-hidden h-screen border-l transition-opacity duration-700 mt-[2px]">
@@ -49,10 +60,18 @@ export default function WebView(props: {
           onLoad={() => {
             setIframeLoaded(true);
             // Hide overlay after iframe loads
-            setTimeout(() => setShowOverlay(false), 2000);
+            setTimeout(() => setShowOverlay(false), 1000);
           }}
-          loadingComponent={({ iframeLoading, devCommandRunning }) =>
-            !devCommandRunning && (
+          loadingComponent={({ iframeLoading, devCommandRunning: running }) => {
+            // Update the dev command running state
+            setDevCommandRunning(running);
+            
+            // Hide overlay when dev command is running (app is being built)
+            if (running) {
+              setTimeout(() => setShowOverlay(false), 500);
+            }
+            
+            return !running ? (
               <div className="flex items-center justify-center h-full bg-gradient-to-b from-[#FAFAF8] via-[#B9D6F8] to-[#D98DBA]">
                 <div className="flex flex-col items-center space-y-6">
                   <div className="flex items-center space-x-3">
@@ -76,12 +95,12 @@ export default function WebView(props: {
                   <div className="loader"></div>
                 </div>
               </div>
-            )
-          }
+            ) : null;
+          }}
         />
         
         {/* Overlay to hide Freestyle branding */}
-        {showOverlay && (
+        {showOverlay && !devCommandRunning && (
           <div className="absolute inset-0 bg-white z-50 flex items-center justify-center">
             <div className="text-center space-y-4">
               <div className="flex items-center justify-center space-x-3">
