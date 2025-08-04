@@ -71,6 +71,16 @@ export function UserButtonWithBilling() {
     }
   };
 
+  // Show loading state while checking authentication
+  if (isLoading) {
+    console.log('⏳ Loading authentication state...');
+    return (
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+      </div>
+    );
+  }
+
   // If not authenticated, show simple Stack UserButton
   if (!isAuthenticated) {
     console.log('🔐 User not authenticated, showing simple button');

@@ -46,6 +46,7 @@ export const BillingProvider: React.FC<BillingProviderProps> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   const fetchBillingData = async () => {
     try {
