@@ -14,17 +14,27 @@ export function useChatSafe(
   const id = options.id;
   const resume = options?.resume;
 
-  options.resume = undefined;
+  // Configure the API endpoint and headers for app-specific communication
+  const chatOptions = {
+    ...options,
+    id: id, // Ensure the chat ID is properly set for message persistence
+    api: "/api/chat", // Use the main chat API endpoint
+    headers: {
+      "Vibe-App-Id": id, // Pass the app ID in headers
+      ...options.headers, // Include any additional headers
+    },
+    resume: undefined, // We'll handle resume manually
+  };
 
   const onFinish = options.onFinish;
-  options.onFinish = () => {
+  chatOptions.onFinish = () => {
     runningChats.delete(id);
     if (onFinish) {
       onFinish();
     }
   };
 
-  const chat = useChat(options);
+  const chat = useChat(chatOptions);
 
   useEffect(() => {
     if (!runningChats.has(id) && resume) {
