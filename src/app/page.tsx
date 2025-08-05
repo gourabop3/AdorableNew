@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { PromptInput, PromptInputActions } from "@/components/ui/prompt-input";
 import { FrameworkSelector } from "@/components/framework-selector";
 import Image from "next/image";
@@ -140,22 +141,31 @@ function HomeContent() {
             />
           )}
 
-          <div className="flex w-full justify-between items-center">
-            <div className="flex items-center gap-2 flex-1 sm:w-80">
-              <Image
-                src={VibeLogo}
-                alt="Vibe Logo"
-                width={24}
-                height={24}
-              />
-              <h1 className="text-lg font-bold">
-                Vibe
-              </h1>
+          {/* Header */}
+          <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50 mb-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex justify-between items-center h-16">
+                <Link href="/" className="flex items-center space-x-2">
+                  <Image src={VibeLogo} alt="Vibe Logo" width={32} height={32} />
+                  <span className="text-xl font-bold text-gray-900">Vibe</span>
+                </Link>
+                <nav className="flex space-x-8">
+                  <Link href="/" className="text-blue-600 font-medium">
+                    Home
+                  </Link>
+                  <Link href="/docs" className="text-gray-600 hover:text-gray-900 transition-colors">
+                    Documentation
+                  </Link>
+                  <Link href="/pricing" className="text-gray-600 hover:text-gray-900 transition-colors">
+                    Pricing
+                  </Link>
+                </nav>
+                <div className="flex items-center">
+                  <UserButtonWithBilling />
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-2 flex-1 sm:w-80 justify-end">
-              <UserButtonWithBilling />
-            </div>
-          </div>
+          </header>
 
           <div>
             <div className="w-full max-w-lg px-4 sm:px-0 mx-auto flex flex-col items-center mt-16 sm:mt-24 md:mt-32 col-start-1 col-end-1 row-start-1 row-end-1 z-10">
@@ -247,19 +257,19 @@ function HomeContent() {
                   <h4 className="text-lg font-semibold text-gray-900">Quick Links</h4>
                   <ul className="space-y-2 text-sm">
                     <li>
-                      <a href="https://vibe.dev" className="text-gray-600 hover:text-gray-900 transition-colors">
+                      <Link href="/" className="text-gray-600 hover:text-gray-900 transition-colors">
                         Home
-                      </a>
+                      </Link>
                     </li>
                     <li>
-                      <a href="https://vibe.dev/docs" className="text-gray-600 hover:text-gray-900 transition-colors">
+                      <Link href="/docs" className="text-gray-600 hover:text-gray-900 transition-colors">
                         Documentation
-                      </a>
+                      </Link>
                     </li>
                     <li>
-                      <a href="https://vibe.dev/pricing" className="text-gray-600 hover:text-gray-900 transition-colors">
+                      <Link href="/pricing" className="text-gray-600 hover:text-gray-900 transition-colors">
                         Pricing
-                      </a>
+                      </Link>
                     </li>
                   </ul>
                 </div>
