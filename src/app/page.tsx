@@ -98,7 +98,7 @@ function HomeContent() {
 
     try {
       // Check if user has enough credits before proceeding
-      if (billing && billing.credits < 5) {
+      if (billing && billing.credits < 1) {
         console.log(`[${requestId}] Insufficient credits, redirecting to upgrade`);
         // Redirect to upgrade page with current parameters
         const params = new URLSearchParams();

@@ -207,7 +207,7 @@ export function UserButtonWithBilling() {
                     <div className="flex items-center gap-2">
                       <ZapIcon className="h-3 w-3 text-yellow-500" />
                       <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {billing.plan === 'pro' ? `${billing.credits}/100` : `${billing.credits}/50`}
+                        {billing.plan === 'pro' ? `${billing.credits}/100` : `${billing.credits}/5`}
                       </span>
                     </div>
                   </div>
