@@ -1,4 +1,4 @@
-# AdorableNew - AI-Powered Code Generation Platform
+# Vibe - AI-Powered Code Generation Platform
 
 A modern, AI-powered platform for generating and managing code projects with real-time streaming, resumable conversations, and intelligent code generation capabilities.
 
@@ -23,8 +23,8 @@ A modern, AI-powered platform for generating and managing code projects with rea
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/gourabop3/AdorableNew.git
-   cd AdorableNew
+   git clone https://github.com/gourabop3/Vibe.git
+   cd Vibe
    ```
 
 2. **Install dependencies**

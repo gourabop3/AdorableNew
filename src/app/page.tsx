@@ -149,7 +149,7 @@ function HomeContent() {
                 height={24}
               />
               <h1 className="text-lg font-bold">
-                AdorableNew
+                Vibe
               </h1>
             </div>
             <div className="flex items-center gap-2 flex-1 sm:w-80 justify-end">
@@ -160,7 +160,7 @@ function HomeContent() {
           <div>
             <div className="w-full max-w-lg px-4 sm:px-0 mx-auto flex flex-col items-center mt-16 sm:mt-24 md:mt-32 col-start-1 col-end-1 row-start-1 row-end-1 z-10">
               <p className="text-neutral-600 text-center mb-6 text-3xl sm:text-4xl md:text-5xl font-bold">
-                Build Something With AdorableNew
+                Build Something With Vibe
               </p>
 
               <div className="w-full relative my-5">

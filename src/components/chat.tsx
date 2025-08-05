@@ -75,22 +75,22 @@ export default function Chat(props: {
     // Send message immediately
     const messageId = crypto.randomUUID();
     
-    sendMessage(
-      {
-        id: messageId,
-        parts: [
+            sendMessage(
           {
-            type: "text",
-            text: messageText,
+            id: messageId,
+            parts: [
+              {
+                type: "text",
+                text: messageText,
+              },
+            ],
           },
-        ],
-      },
-      {
-        headers: {
-          "Adorable-App-Id": props.appId,
-        },
-      }
-    ).catch((error) => {
+          {
+            headers: {
+              "Vibe-App-Id": props.appId,
+            },
+          }
+        ).catch((error) => {
       console.error("Failed to send message:", error);
       // Reset sending state on error
       setIsSending(false);
@@ -126,7 +126,7 @@ export default function Chat(props: {
       },
       {
         headers: {
-          "Adorable-App-Id": props.appId,
+          "Vibe-App-Id": props.appId,
         },
       }
     );
@@ -138,7 +138,7 @@ export default function Chat(props: {
       await fetch("/api/chat/" + props.appId + "/stream", {
         method: "DELETE",
         headers: {
-          "Adorable-App-Id": props.appId,
+          "Vibe-App-Id": props.appId,
         },
       });
     } catch (error) {
