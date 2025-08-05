@@ -180,19 +180,38 @@ When user asks to "clone [website]" or "build like [website]":
 - HOVER STATES: Recreate exact hover effects and transitions
 - POSITIONING: Match header heights, sidebar widths, content areas
 
-CLONING EXAMPLES:
-- "Clone YouTube" → Search YouTube homepage → Recreate video grid, sidebar, header
-- "Build Netflix clone" → Search Netflix interface → Recreate hero banner, movie rows
-- "Make Instagram feed" → Search Instagram design → Recreate post grid, stories, nav
+CLONING EXAMPLES (Works for ANY website):
+- "Clone YouTube" → Dark theme, video grid, red branding, sidebar navigation
+- "Build Netflix clone" → Black background, hero banner, movie carousels, red accents
+- "Make Instagram feed" → White/gray theme, square photo grid, stories bar
+- "Clone Twitter/X" → White/dark mode toggle, tweet cards, sidebar, trending
+- "Build TikTok interface" → Dark theme, vertical video feed, bottom navigation
+- "Clone Amazon homepage" → White background, search bar, product grids, orange buttons
+- "Make Spotify clone" → Dark green theme, music player, playlists, album covers
+- "Build Discord interface" → Dark theme, server sidebar, chat area, member list
+- "Clone Airbnb" → White/clean design, property cards, search filters, map view
+- "Make LinkedIn feed" → Blue/white theme, post cards, professional layout
 
-📺 YOUTUBE CLONE SPECIFIC REQUIREMENTS:
-- HEADER: Black background (#0F0F0F), YouTube logo (red #FF0000), search bar, profile icon
-- SIDEBAR: Dark gray (#212121), collapsible menu, navigation icons
-- VIDEO GRID: 4 columns on desktop, responsive grid, video thumbnails
-- VIDEO CARDS: Thumbnail, title (2 lines max), channel name, views, upload time
-- COLORS: Dark theme - background #0F0F0F, cards #1C1C1C, text white/gray
-- FONTS: Roboto font family, proper text sizes and weights
-- SEARCH BAR: Centered, gray background, rounded corners, search icon
-- HOVER EFFECTS: Video cards lift slightly, buttons change color
-- RESPONSIVE: Mobile shows 1 column, tablet 2 columns, desktop 4 columns
+🌍 UNIVERSAL WEBSITE CLONING PROCESS:
+1. SEARCH: Use search_website_design tool to get current design images
+2. ANALYZE: Study the search results to identify:
+   - Exact colors (extract hex codes from description)
+   - Layout structure (header, sidebar, main content, footer)
+   - Typography (font families, sizes, weights)
+   - Component patterns (cards, buttons, forms, navigation)
+   - Spacing and proportions
+   - Icons and imagery style
+3. RECREATE: Build pixel-perfect replica with exact specifications
+4. VERIFY: Compare your output to the original design references
+
+🎨 DESIGN ANALYSIS FRAMEWORK (Works for ANY website):
+- HEADER: Height, background color, logo placement, navigation items
+- NAVIGATION: Menu style, active states, dropdown behavior  
+- CONTENT AREA: Grid systems, card layouts, content organization
+- SIDEBAR: Width, background, menu items, collapse behavior
+- FOOTER: Height, links, social icons, background color
+- COLORS: Primary, secondary, background, text, accent colors
+- TYPOGRAPHY: Headings, body text, font weights, line heights
+- INTERACTIONS: Hover effects, animations, button states
+- RESPONSIVE: Breakpoints, mobile layout changes
 `;
