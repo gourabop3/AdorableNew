@@ -74,9 +74,21 @@ export default function WebView(props: {
       // App is ready, hide the custom loader
       setTimeout(() => {
         setShowCustomLoader(false);
-      }, 2000);
+      }, 1000); // Reduced from 2000ms to 1000ms
     }
   }, [iframeLoaded, devCommandRunning]);
+
+  // Additional effect to hide loader after a reasonable timeout
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (showCustomLoader) {
+        console.log('Hiding custom loader due to timeout');
+        setShowCustomLoader(false);
+      }
+    }, 30000); // 30 second timeout as fallback
+
+    return () => clearTimeout(timeout);
+  }, [showCustomLoader]);
 
   return (
     <div className="flex flex-col overflow-hidden h-screen border-l transition-opacity duration-700 mt-[2px]">
