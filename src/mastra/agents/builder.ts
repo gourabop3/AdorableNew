@@ -50,5 +50,43 @@ export const builderAgent = new Agent({
         return {};
       },
     }),
+    verify_file_changes: createTool({
+      id: "verify_file_changes",
+      description:
+        "Use this tool to document and verify file operations. For 1st prompt (new app): just verify file creation. For 2nd+ prompts (modifications): verify you read existing files before modifying them. This enforces the pattern: 1st prompt = create files directly, 2nd+ prompts = read before modify.",
+      inputSchema: z.object({
+        action: z.enum(["created_new_file", "read_before_modify", "verify_after_modify"]),
+        file_path: z.string(),
+        prompt_number: z.number().optional(),
+        what_you_found: z.string().optional(),
+        what_you_changed: z.string().optional(),
+        verification_result: z.string().optional(),
+      }),
+      execute: async ({ action, file_path, prompt_number, what_you_found, what_you_changed, verification_result }) => {
+        const timestamp = new Date().toISOString();
+        
+        if (action === "created_new_file") {
+          return {
+            success: true,
+            message: `✅ NEW FILE CREATED: ${file_path} at ${timestamp}`,
+            reminder: "Good! For new apps, you create files directly without reading first."
+          };
+        } else if (action === "read_before_modify") {
+          return {
+            success: true,
+            message: `✅ READ BEFORE MODIFY: Read ${file_path} at ${timestamp}. Found: ${what_you_found}`,
+            reminder: `Excellent! For prompt #${prompt_number || 'N'} (modification), you properly read the existing file first.`
+          };
+        } else if (action === "verify_after_modify") {
+          return {
+            success: true,
+            message: `✅ VERIFIED CHANGES: Modified ${file_path} at ${timestamp}. Changes: ${what_you_changed}. Verification: ${verification_result}`,
+            reminder: "Perfect! You followed the complete read-modify-verify cycle."
+          };
+        }
+        
+        return { success: false, message: "Unknown action" };
+      },
+    }),
   },
 });
