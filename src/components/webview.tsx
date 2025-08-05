@@ -24,6 +24,7 @@ export default function WebView(props: {
   const devServerRef = useRef<FreestyleDevServerHandle>(null);
   const [iframeLoaded, setIframeLoaded] = useState(false);
   const [devCommandRunning, setDevCommandRunning] = useState(false);
+  const [showCustomLoader, setShowCustomLoader] = useState(true);
 
   // Function to hide any Freestyle branding
   const hideFreestyleBranding = () => {
@@ -67,6 +68,16 @@ export default function WebView(props: {
     }
   };
 
+  // Hide custom loader when app is ready
+  useEffect(() => {
+    if (iframeLoaded && !devCommandRunning) {
+      // App is ready, hide the custom loader
+      setTimeout(() => {
+        setShowCustomLoader(false);
+      }, 2000);
+    }
+  }, [iframeLoaded, devCommandRunning]);
+
   return (
     <div className="flex flex-col overflow-hidden h-screen border-l transition-opacity duration-700 mt-[2px]">
       <div className="h-12 border-b border-gray-200 items-center flex px-2 bg-background sticky top-0 justify-end gap-2">
@@ -80,6 +91,24 @@ export default function WebView(props: {
         <ShareButton domain={props.domain} appId={props.appId} />
       </div>
       <div className="relative w-full h-full">
+        {/* Custom loader overlay */}
+        {showCustomLoader && (
+          <div className="absolute inset-0 bg-white z-50 flex items-center justify-center">
+            <div className="text-center space-y-6">
+              <div className="flex flex-col items-center space-y-4">
+                <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
+                <div className="text-center space-y-2">
+                  <h2 className="text-2xl font-bold text-gray-800">Vibe</h2>
+                  <p className="text-lg text-gray-600">Creating your app...</p>
+                  <p className="text-sm text-gray-500">
+                    {devCommandRunning ? "Building your application..." : "Setting up your development environment"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="w-full h-full" style={{ 
           // Hide any Freestyle branding that might appear
           '--hide-branding': 'true'
