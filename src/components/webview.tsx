@@ -25,6 +25,7 @@ export default function WebView(props: {
   const [iframeLoaded, setIframeLoaded] = useState(false);
   const [devCommandRunning, setDevCommandRunning] = useState(false);
   const [showCustomLoader, setShowCustomLoader] = useState(true);
+  const [appReady, setAppReady] = useState(false);
 
   // Function to hide any Freestyle branding
   const hideFreestyleBranding = () => {
@@ -70,13 +71,26 @@ export default function WebView(props: {
 
   // Hide custom loader when app is ready
   useEffect(() => {
+    console.log('Loader state:', { iframeLoaded, devCommandRunning, appReady });
+    
     if (iframeLoaded && !devCommandRunning) {
       // App is ready, hide the custom loader
       setTimeout(() => {
+        console.log('Hiding custom loader - app ready');
         setShowCustomLoader(false);
-      }, 1000); // Reduced from 2000ms to 1000ms
+        setAppReady(true);
+      }, 1000);
     }
-  }, [iframeLoaded, devCommandRunning]);
+  }, [iframeLoaded, devCommandRunning, appReady]);
+
+  // Hide loader immediately if iframe is already loaded (for existing apps)
+  useEffect(() => {
+    if (iframeLoaded && !devCommandRunning && !appReady) {
+      console.log('Hiding custom loader - iframe already loaded');
+      setShowCustomLoader(false);
+      setAppReady(true);
+    }
+  }, [iframeLoaded, devCommandRunning, appReady]);
 
   // Additional effect to hide loader after a reasonable timeout
   useEffect(() => {
@@ -84,11 +98,27 @@ export default function WebView(props: {
       if (showCustomLoader) {
         console.log('Hiding custom loader due to timeout');
         setShowCustomLoader(false);
+        setAppReady(true);
       }
-    }, 30000); // 30 second timeout as fallback
+    }, 15000); // Reduced to 15 second timeout as fallback
 
     return () => clearTimeout(timeout);
   }, [showCustomLoader]);
+
+  // Hide loader quickly if iframe loads within 3 seconds (existing apps)
+  useEffect(() => {
+    if (iframeLoaded && !devCommandRunning) {
+      const quickTimeout = setTimeout(() => {
+        if (showCustomLoader) {
+          console.log('Hiding custom loader - quick load (existing app)');
+          setShowCustomLoader(false);
+          setAppReady(true);
+        }
+      }, 3000);
+
+      return () => clearTimeout(quickTimeout);
+    }
+  }, [iframeLoaded, devCommandRunning, showCustomLoader]);
 
   return (
     <div className="flex flex-col overflow-hidden h-screen border-l transition-opacity duration-700 mt-[2px]">
@@ -103,8 +133,8 @@ export default function WebView(props: {
         <ShareButton domain={props.domain} appId={props.appId} />
       </div>
       <div className="relative w-full h-full">
-        {/* Custom loader overlay */}
-        {showCustomLoader && (
+        {/* Custom loader overlay - only show when creating new apps */}
+        {showCustomLoader && devCommandRunning && (
           <div className="absolute inset-0 bg-white z-50 flex items-center justify-center">
             <div className="text-center space-y-6">
               <div className="flex flex-col items-center space-y-4">
@@ -134,6 +164,7 @@ export default function WebView(props: {
             hideLogo={true}
             hideFooter={true}
                       onLoad={() => {
+            console.log('Iframe loaded');
             setIframeLoaded(true);
             // Try to hide Freestyle branding after iframe loads
             setTimeout(() => {
@@ -142,6 +173,7 @@ export default function WebView(props: {
           }}
             loadingComponent={({ iframeLoading, devCommandRunning: running }) => {
               // Update the dev command running state
+              console.log('Dev command running:', running);
               setDevCommandRunning(running);
               
               return !running ? (
