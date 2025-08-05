@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { reviewCode, generateSecurityScan } from '@/lib/ai-code-review';
-import { generateTests, generateE2ETests, generatePerformanceTests } from '@/lib/ai-test-generator';
 import { generateProjectDocumentation, generateComponentDocumentation } from '@/lib/ai-documentation';
 import { analyzePerformance, optimizeComponent } from '@/lib/ai-performance';
 
@@ -18,21 +17,6 @@ export async function POST(request: NextRequest) {
         const { projectFiles } = data;
         const securityScan = await generateSecurityScan(projectFiles);
         return NextResponse.json({ success: true, data: securityScan });
-
-      case 'generate-tests':
-        const { code: testCode, filename: testFilename, testType } = data;
-        const tests = await generateTests(testCode, testFilename, testType);
-        return NextResponse.json({ success: true, data: tests });
-
-      case 'generate-e2e-tests':
-        const { appDescription, userFlows } = data;
-        const e2eTests = await generateE2ETests(appDescription, userFlows);
-        return NextResponse.json({ success: true, data: e2eTests });
-
-      case 'performance-tests':
-        const { projectFiles: perfFiles } = data;
-        const perfTests = await generatePerformanceTests(perfFiles);
-        return NextResponse.json({ success: true, data: perfTests });
 
       case 'analyze-performance':
         const { projectFiles: analysisFiles } = data;
@@ -76,9 +60,6 @@ export async function GET() {
     features: [
       'code-review',
       'security-scan', 
-      'generate-tests',
-      'generate-e2e-tests',
-      'performance-tests',
       'analyze-performance',
       'optimize-component',
       'generate-documentation',
