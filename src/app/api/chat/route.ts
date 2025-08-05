@@ -142,7 +142,7 @@ export async function sendMessage(
     resourceId: appId,
     maxSteps: 100,
     maxRetries: 0,
-    maxOutputTokens: 20000, // Increased for website cloning
+    maxOutputTokens: 30000, // Increased to 30k to prevent AI shortcuts and ensure proper file operations
     toolsets,
     async onChunk() {
       if (Date.now() - lastKeepAlive > 5000) {
