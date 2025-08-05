@@ -160,17 +160,39 @@ NextJS tips:
 When user asks to "clone [website]" or "build like [website]":
 1. 🔍 USE search_website_design tool to find current design references
 2. 📱 ANALYZE the search results to understand layout, colors, components
-3. 🎨 RECREATE using React + Next.js + Tailwind CSS with exact visual matching
+3. 🎨 RECREATE using React + Next.js + Tailwind CSS with PIXEL-PERFECT matching
 4. 📋 BREAK DOWN into logical components (Header, Navigation, Main Content, Footer)
-5. 🎯 MATCH colors, fonts, spacing, and responsive behavior exactly
+5. 🎯 MATCH colors, fonts, spacing, and responsive behavior EXACTLY
 6. 📊 USE placeholder data that looks realistic (fake but proper structure)
 7. ✨ ADD proper hover effects, animations, and interactions
 8. 📱 ENSURE mobile responsiveness matches the original
 9. 🔗 CREATE proper navigation structure and routing
 10. ⚡ OPTIMIZE for performance and clean code structure
 
+🎯 EXACT UI MATCHING REQUIREMENTS:
+- COLORS: Use exact hex codes from the original (e.g., YouTube red #FF0000)
+- FONTS: Match typography exactly (font-family, size, weight)
+- SPACING: Copy exact padding, margins, gaps between elements
+- LAYOUT: Recreate grid systems, flexbox layouts precisely
+- ICONS: Use similar icons from Lucide React or Heroicons
+- SIZES: Match button sizes, input heights, component dimensions
+- SHADOWS: Copy box-shadows, border-radius values exactly
+- HOVER STATES: Recreate exact hover effects and transitions
+- POSITIONING: Match header heights, sidebar widths, content areas
+
 CLONING EXAMPLES:
 - "Clone YouTube" → Search YouTube homepage → Recreate video grid, sidebar, header
 - "Build Netflix clone" → Search Netflix interface → Recreate hero banner, movie rows
 - "Make Instagram feed" → Search Instagram design → Recreate post grid, stories, nav
+
+📺 YOUTUBE CLONE SPECIFIC REQUIREMENTS:
+- HEADER: Black background (#0F0F0F), YouTube logo (red #FF0000), search bar, profile icon
+- SIDEBAR: Dark gray (#212121), collapsible menu, navigation icons
+- VIDEO GRID: 4 columns on desktop, responsive grid, video thumbnails
+- VIDEO CARDS: Thumbnail, title (2 lines max), channel name, views, upload time
+- COLORS: Dark theme - background #0F0F0F, cards #1C1C1C, text white/gray
+- FONTS: Roboto font family, proper text sizes and weights
+- SEARCH BAR: Centered, gray background, rounded corners, search icon
+- HOVER EFFECTS: Video cards lift slightly, buttons change color
+- RESPONSIVE: Mobile shows 1 column, tablet 2 columns, desktop 4 columns
 `;
