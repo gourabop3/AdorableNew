@@ -60,6 +60,12 @@ export default async function AppPage({
   });
 
   console.log('✅ UI messages loaded:', uiMessages.length);
+  console.log('📋 Message details:', uiMessages.map(m => ({
+    id: m.id,
+    role: m.role,
+    hasContent: !!m.parts?.length,
+    contentPreview: m.parts?.[0]?.text?.slice(0, 50) + '...'
+  })));
 
   const { codeServerUrl, ephemeralUrl } = await freestyle.requestDevServer({
     repoId: app?.info.gitRepo,

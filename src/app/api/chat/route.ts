@@ -157,12 +157,13 @@ export async function sendMessage(
     },
     async onStepFinish(step) {
       messageList.add(step.response.messages, "response");
+      console.log('📝 Added', step.response.messages.length, 'messages to messageList. Total unsaved:', messageList.drainUnsavedMessages().length);
 
       if (shouldAbort) {
         await redisPublisher.del(`app:${appId}:stream-state`);
         controller.abort("Aborted stream after step finish");
         const messages = messageList.drainUnsavedMessages();
-        console.log(messages);
+        console.log('💾 Saving messages on abort:', messages.length);
         await builderAgent.getMemory()?.saveMessages({
           messages,
         });
@@ -218,6 +219,27 @@ export async function sendMessage(
     onFinish: async () => {
       await redisPublisher.del(`app:${appId}:stream-state`);
       await redisPublisher.del(cacheKey); // Clean up request deduplication
+      
+      // Save any unsaved AI messages when stream finishes normally
+      const messages = messageList.drainUnsavedMessages();
+      console.log('💾 Attempting to save unsaved messages on stream finish. Found:', messages.length);
+      
+      if (messages.length > 0) {
+        console.log('💾 Saving', messages.length, 'unsaved messages:', messages.map(m => ({
+          id: m.id,
+          role: m.role,
+          threadId: m.threadId,
+          hasContent: !!m.content
+        })));
+        
+        await builderAgent.getMemory()?.saveMessages({
+          messages,
+        });
+        console.log('✅ Messages saved successfully');
+      } else {
+        console.log('⚠️ No unsaved messages found to save on stream finish');
+      }
+      
       await mcp.disconnect();
     },
     abortSignal: controller.signal,
