@@ -138,4 +138,22 @@ NextJS tips:
 - PLACEHOLDER DATA: Use realistic but fake data (don't leave empty arrays)
 - ERROR BOUNDARIES: Add try-catch for any complex logic
 - CLEAN CODE: Keep components under 200 lines each when possible
+
+🌐 WEBSITE CLONING INSTRUCTIONS:
+When user asks to "clone [website]" or "build like [website]":
+1. 🔍 USE search_website_design tool to find current design references
+2. 📱 ANALYZE the search results to understand layout, colors, components
+3. 🎨 RECREATE using React + Next.js + Tailwind CSS with exact visual matching
+4. 📋 BREAK DOWN into logical components (Header, Navigation, Main Content, Footer)
+5. 🎯 MATCH colors, fonts, spacing, and responsive behavior exactly
+6. 📊 USE placeholder data that looks realistic (fake but proper structure)
+7. ✨ ADD proper hover effects, animations, and interactions
+8. 📱 ENSURE mobile responsiveness matches the original
+9. 🔗 CREATE proper navigation structure and routing
+10. ⚡ OPTIMIZE for performance and clean code structure
+
+CLONING EXAMPLES:
+- "Clone YouTube" → Search YouTube homepage → Recreate video grid, sidebar, header
+- "Build Netflix clone" → Search Netflix interface → Recreate hero banner, movie rows
+- "Make Instagram feed" → Search Instagram design → Recreate post grid, stories, nav
 `;

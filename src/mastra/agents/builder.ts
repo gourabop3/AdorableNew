@@ -88,5 +88,75 @@ export const builderAgent = new Agent({
         return { success: false, message: "Unknown action" };
       },
     }),
+    search_website_design: createTool({
+      id: "search_website_design",
+      description:
+        "Search Google for current website designs and layouts to clone. Use this when user asks to clone a website like 'clone YouTube' or 'build Netflix homepage'. This will find current design references and screenshots to recreate the exact same layout and styling.",
+      inputSchema: z.object({
+        website_name: z.string().describe("The website to search for (e.g., 'YouTube', 'Netflix', 'Instagram')"),
+        search_type: z.enum(["homepage", "interface", "design", "layout"]).describe("What aspect to search for"),
+        additional_terms: z.string().optional().describe("Additional search terms like '2024', 'current', 'mobile' etc."),
+      }),
+      execute: async ({ website_name, search_type, additional_terms }) => {
+        try {
+          const apiKey = process.env.GOOGLE_CUSTOM_SEARCH_API_KEY;
+          const searchEngineId = process.env.GOOGLE_CUSTOM_SEARCH_ENGINE_ID;
+          
+          if (!apiKey || !searchEngineId) {
+            return {
+              success: false,
+              error: "Google Custom Search API credentials not configured"
+            };
+          }
+
+          // Build search query
+          const searchQuery = `${website_name} ${search_type} ${additional_terms || 'current 2024'}`.trim();
+          
+          // Make Google Custom Search API request
+          const searchUrl = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${searchEngineId}&q=${encodeURIComponent(searchQuery)}&searchType=image&num=5`;
+          
+          const response = await fetch(searchUrl);
+          const data = await response.json();
+          
+          if (!response.ok) {
+            return {
+              success: false,
+              error: `Google Search API error: ${data.error?.message || 'Unknown error'}`
+            };
+          }
+
+          if (!data.items || data.items.length === 0) {
+            return {
+              success: false,
+              error: `No search results found for "${searchQuery}"`
+            };
+          }
+
+          // Extract useful information from search results
+          const results = data.items.slice(0, 3).map((item: any) => ({
+            title: item.title,
+            link: item.link,
+            image: item.image?.thumbnailLink || item.link,
+            snippet: item.snippet,
+            contextLink: item.image?.contextLink,
+          }));
+
+          return {
+            success: true,
+            searchQuery,
+            totalResults: data.searchInformation?.totalResults || 0,
+            results,
+            message: `Found ${results.length} design references for ${website_name}. Use these to recreate the current design.`,
+            designInsights: `Based on search results for "${searchQuery}", I can see current ${website_name} design patterns. I'll now analyze these references and recreate the components with matching layouts, colors, and styling.`
+          };
+
+        } catch (error) {
+          return {
+            success: false,
+            error: `Search failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+          };
+        }
+      },
+    }),
   },
 });
