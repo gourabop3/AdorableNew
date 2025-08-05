@@ -25,6 +25,48 @@ export default function WebView(props: {
   const [iframeLoaded, setIframeLoaded] = useState(false);
   const [devCommandRunning, setDevCommandRunning] = useState(false);
 
+  // Function to hide any Freestyle branding
+  const hideFreestyleBranding = () => {
+    try {
+      // Get the iframe element
+      const iframe = document.querySelector('iframe');
+      if (iframe && iframe.contentDocument) {
+        const iframeDoc = iframe.contentDocument;
+        
+        // Hide any elements with Freestyle branding
+        const brandingSelectors = [
+          '[class*="freestyle"]',
+          '[class*="Freestyle"]',
+          '[id*="freestyle"]',
+          '[id*="Freestyle"]',
+          '[data-freestyle]',
+          '[data-freestyle-branding]',
+          '[data-freestyle-logo]',
+          '[data-freestyle-watermark]',
+          '.freestyle-branding',
+          '.freestyle-logo',
+          '.freestyle-watermark',
+          '.freestyle-footer',
+          '.freestyle-header',
+          'img[src*="freestyle"]',
+          'img[src*="Freestyle"]',
+          'img[alt*="freestyle"]',
+          'img[alt*="Freestyle"]'
+        ];
+        
+        brandingSelectors.forEach(selector => {
+          const elements = iframeDoc.querySelectorAll(selector);
+          elements.forEach(el => {
+            (el as HTMLElement).style.display = 'none';
+          });
+        });
+      }
+    } catch (error) {
+      // Cross-origin restrictions might prevent access
+      console.log('Could not access iframe content due to CORS');
+    }
+  };
+
   return (
     <div className="flex flex-col overflow-hidden h-screen border-l transition-opacity duration-700 mt-[2px]">
       <div className="h-12 border-b border-gray-200 items-center flex px-2 bg-background sticky top-0 justify-end gap-2">
@@ -50,9 +92,13 @@ export default function WebView(props: {
             hideWatermark={true}
             hideLogo={true}
             hideFooter={true}
-            onLoad={() => {
-              setIframeLoaded(true);
-            }}
+                      onLoad={() => {
+            setIframeLoaded(true);
+            // Try to hide Freestyle branding after iframe loads
+            setTimeout(() => {
+              hideFreestyleBranding();
+            }, 1000);
+          }}
             loadingComponent={({ iframeLoading, devCommandRunning: running }) => {
               // Update the dev command running state
               setDevCommandRunning(running);

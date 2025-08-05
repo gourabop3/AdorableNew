@@ -81,3 +81,43 @@ iframe * {
   /* Hide any branding elements inside iframe */
   --hide-branding: true;
 }
+
+/* Additional server-side branding hiding */
+iframe img[src*="freestyle"],
+iframe img[src*="Freestyle"],
+iframe img[alt*="freestyle"],
+iframe img[alt*="Freestyle"],
+iframe img[title*="freestyle"],
+iframe img[title*="Freestyle"] {
+  display: none !important;
+}
+
+/* Hide any text content that might contain Freestyle branding */
+iframe *:contains("Freestyle"),
+iframe *:contains("freestyle") {
+  display: none !important;
+}
+
+/* Hide any elements with specific Freestyle classes */
+iframe .freestyle-branding,
+iframe .freestyle-logo,
+iframe .freestyle-watermark,
+iframe .freestyle-footer,
+iframe .freestyle-header {
+  display: none !important;
+}
+
+/* Hide any elements with data attributes for branding */
+iframe [data-branding="true"],
+iframe [data-watermark="true"],
+iframe [data-logo="true"] {
+  display: none !important;
+}
+
+/* Hide any elements that might be dynamically added */
+iframe [class*="brand"],
+iframe [class*="Brand"],
+iframe [id*="brand"],
+iframe [id*="Brand"] {
+  display: none !important;
+}
