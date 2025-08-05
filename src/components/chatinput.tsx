@@ -130,7 +130,7 @@ export function PromptInputBasic({
         <PromptInputTextarea
           placeholder={
             isGenerating
-              ? "Adorable is working..."
+              ? "Vibe is working..."
               : isCompressing
                 ? "Compressing images..."
                 : "Type your message here..."
@@ -159,6 +159,19 @@ export function PromptInputBasic({
         >
           <Paperclip className="h-4 w-4" />
         </Button>
+
+        {/* Stop button - show when AI is generating */}
+        {isGenerating && (
+          <Button
+            variant="destructive"
+            size="icon"
+            className="h-8 w-8 rounded-full"
+            onClick={stop}
+            title="Stop AI generation"
+          >
+            <SquareIcon className="h-4 w-4" />
+          </Button>
+        )}
 
         <Button
           type="submit"
