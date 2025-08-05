@@ -11,6 +11,8 @@ An open source AI app builder that creates full-stack applications with real-tim
 - **Modern UI**: Beautiful, responsive interface built with Next.js and Tailwind CSS
 - **Auto-deploy**: Automatic deployment to Vercel with every commit
 
+// Trigger Vercel auto-deploy
+
 ## 🛠️ Tech Stack
 
 - **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS
