@@ -160,27 +160,18 @@ export function PromptInputBasic({
           <Paperclip className="h-4 w-4" />
         </Button>
 
-        {/* Stop button - show when AI is generating */}
-        {isGenerating && (
-          <Button
-            variant="destructive"
-            size="icon"
-            className="h-8 w-8 rounded-full"
-            onClick={stop}
-            title="Stop AI generation"
-          >
-            <SquareIcon className="h-4 w-4" />
-          </Button>
-        )}
-
         <Button
           type="submit"
           size="icon"
-          disabled={isLoading || isSubmitting || isCompressing || !input.trim()}
+          disabled={isLoading || isSubmitting || isCompressing || (!input.trim() && !isGenerating)}
           className="shrink-0"
-          onClick={handleSubmitWithData}
+          onClick={isGenerating ? stop : handleSubmitWithData}
+          variant={isGenerating ? "destructive" : "default"}
+          title={isGenerating ? "Stop AI generation" : "Send message"}
         >
-          {isLoading || isSubmitting ? (
+          {isGenerating ? (
+            <SquareIcon className="h-4 w-4" />
+          ) : isLoading || isSubmitting ? (
             <SquareIcon className="h-4 w-4" />
           ) : (
             <ArrowUp className="h-4 w-4" />
