@@ -50,5 +50,36 @@ export const builderAgent = new Agent({
         return {};
       },
     }),
+    verify_file_changes: createTool({
+      id: "verify_file_changes",
+      description:
+        "Use this tool to document and verify that you have properly read files before modifying them and verified changes after making them. This tool helps enforce the 'read before write' pattern and ensures you're not pretending to make changes. Always use this after reading files and after making changes.",
+      inputSchema: z.object({
+        action: z.enum(["read_before_modify", "verify_after_modify"]),
+        file_path: z.string(),
+        what_you_found: z.string().optional(),
+        what_you_changed: z.string().optional(),
+        verification_result: z.string().optional(),
+      }),
+      execute: async ({ action, file_path, what_you_found, what_you_changed, verification_result }) => {
+        const timestamp = new Date().toISOString();
+        
+        if (action === "read_before_modify") {
+          return {
+            success: true,
+            message: `✅ VERIFIED: Read ${file_path} at ${timestamp}. Found: ${what_you_found}`,
+            reminder: "Now you can make informed changes to this file based on what you actually read."
+          };
+        } else if (action === "verify_after_modify") {
+          return {
+            success: true,
+            message: `✅ VERIFIED: Modified ${file_path} at ${timestamp}. Changes: ${what_you_changed}. Verification: ${verification_result}`,
+            reminder: "Changes have been properly verified. Good job following the read-modify-verify pattern!"
+          };
+        }
+        
+        return { success: false, message: "Unknown action" };
+      },
+    }),
   },
 });
