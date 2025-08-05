@@ -17,6 +17,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PromptInputTextareaWithTypingAnimation } from "@/components/prompt-input";
 import { BillingProvider, useBilling } from "@/contexts/billing-context";
 import { PaymentSuccessBanner } from "@/components/payment-success-banner";
+import { InteractiveDemo } from "@/components/interactive-demo";
 
 const queryClient = new QueryClient();
 
@@ -230,6 +231,11 @@ function HomeContent() {
           </div>
           <div className="border-t py-8 mx-0 sm:-mx-4">
             <UserApps />
+          </div>
+
+          {/* Interactive Demo Section */}
+          <div className="py-16 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-900/20">
+            <InteractiveDemo />
           </div>
           
           {/* Professional Footer */}
