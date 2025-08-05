@@ -1,15 +1,15 @@
-# Vibe - AI-Powered Code Generation Platform
+# Vibe
 
-A modern, AI-powered platform for generating and managing code projects with real-time streaming, resumable conversations, and intelligent code generation capabilities.
+An open source AI app builder that creates full-stack applications with real-time streaming and intelligent code generation.
 
-## 🚀 Features
+## Features
 
-- **Real-time AI Streaming**: Experience smooth, resumable conversations with AI
-- **Intelligent Code Generation**: Generate complete applications with natural language prompts
-- **Project Management**: Create, edit, and manage multiple projects
+- **AI-Powered Development**: Uses Gemini 2.5 Pro for intelligent code generation
+- **Real-time Streaming**: Live updates as the AI builds your application
+- **Full-stack Applications**: Creates complete web applications with frontend and backend
+- **Website Cloning**: Clone any website with Google Custom Search integration
 - **Modern UI**: Beautiful, responsive interface built with Next.js and Tailwind CSS
-- **Resumable Conversations**: Never lose your chat progress with Redis-backed persistence
-- **Framework Templates**: Pre-built templates for popular frameworks and use cases
+- **Auto-deploy**: Automatic deployment to Vercel with every commit
 
 ## 🛠️ Tech Stack
 
