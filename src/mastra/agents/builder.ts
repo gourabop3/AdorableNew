@@ -158,5 +158,43 @@ export const builderAgent = new Agent({
         }
       },
     }),
+    enforce_tool_usage: createTool({
+      id: "enforce_tool_usage",
+      description:
+        "MANDATORY tool that must be called before making ANY file modifications on 2nd+ prompts. This prevents the AI from pretending to edit files. Call this to confirm you will actually use tools, not just describe changes.",
+      inputSchema: z.object({
+        action: z.enum(["confirm_will_read_file", "confirm_will_edit_file", "confirm_completed_changes"]),
+        file_path: z.string(),
+        commitment: z.string().describe("Your commitment to actually use the tools, not just describe changes"),
+      }),
+      execute: async ({ action, file_path, commitment }) => {
+        const timestamp = new Date().toISOString();
+        
+        if (action === "confirm_will_read_file") {
+          return {
+            success: true,
+            message: `✅ COMMITMENT LOGGED: You committed to read ${file_path} at ${timestamp}`,
+            warning: "You MUST now actually use read_file tool - no pretending allowed!",
+            next_step: "Now use read_file tool to actually read the file content."
+          };
+        } else if (action === "confirm_will_edit_file") {
+          return {
+            success: true,
+            message: `✅ COMMITMENT LOGGED: You committed to edit ${file_path} at ${timestamp}`,
+            warning: "You MUST now actually use edit_file tool - no pretending allowed!",
+            next_step: "Now use edit_file tool to actually make the changes."
+          };
+        } else if (action === "confirm_completed_changes") {
+          return {
+            success: true,
+            message: `✅ CHANGES LOGGED: You completed changes to ${file_path} at ${timestamp}`,
+            reminder: "Good! You actually used the tools instead of pretending.",
+            commitment_fulfilled: commitment
+          };
+        }
+        
+        return { success: false, message: "Unknown action" };
+      },
+    }),
   },
 });

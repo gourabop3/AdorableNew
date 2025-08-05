@@ -1,9 +1,9 @@
 // Streaming configuration for optimal performance and stability
 export const STREAMING_CONFIG = {
-  // Stream speed control (in milliseconds) - Minimal delays for fast streaming
+  // Stream speed control (in milliseconds) - Controlled for readability
   STREAMING: {
-    CHUNK_DELAY: 0, // No delay for instant streaming
-    STEP_DELAY: 0, // No delay between AI steps
+    CHUNK_DELAY: 15, // Readable streaming speed (not too fast)
+    STEP_DELAY: 10, // Small delay between AI steps for readability
   },
   
   // Chat polling intervals (in milliseconds) - Less frequent to reduce refreshes
