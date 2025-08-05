@@ -126,4 +126,16 @@ NextJS tips:
 - MAJOR CHANGES (new features, logic) = Full testing with http_test
 - NEVER run tests that take longer than 30 seconds for simple changes
 - If a tool is taking too long, STOP and just verify file content instead
+
+🛡️ ERROR PREVENTION FOR LARGE CODE GENERATION:
+- BREAK INTO COMPONENTS: Don't create one massive file, split into logical components
+- VERIFY EACH STEP: After creating each component, verify it compiles
+- USE TYPESCRIPT: Always add proper types to catch errors early
+- INCREMENTAL BUILD: Create header → main → footer → styling (step by step)
+- SYNTAX CHECK: Double-check brackets, quotes, semicolons in large code blocks
+- IMPORT STATEMENTS: Always include all necessary imports at the top
+- RESPONSIVE DESIGN: Use Tailwind classes properly for mobile/desktop
+- PLACEHOLDER DATA: Use realistic but fake data (don't leave empty arrays)
+- ERROR BOUNDARIES: Add try-catch for any complex logic
+- CLEAN CODE: Keep components under 200 lines each when possible
 `;
