@@ -53,7 +53,7 @@ export const builderAgent = new Agent({
     verify_file_changes: createTool({
       id: "verify_file_changes",
       description:
-        "Use this tool to document and verify file operations. For 1st prompt (new app): just verify file creation. For 2nd+ prompts (modifications): verify you read existing files before modifying them. This enforces the pattern: 1st prompt = create files directly, 2nd+ prompts = read before modify.",
+        "Use this tool to document and verify file operations efficiently. For 1st prompt (new app): just verify file creation. For 2nd+ prompts (modifications): verify you read existing files before modifying them. IMPORTANT: Keep verification FAST - don't run lengthy tests for small changes. This enforces the pattern: 1st prompt = create files directly, 2nd+ prompts = read before modify.",
       inputSchema: z.object({
         action: z.enum(["created_new_file", "read_before_modify", "verify_after_modify"]),
         file_path: z.string(),
@@ -81,7 +81,7 @@ export const builderAgent = new Agent({
           return {
             success: true,
             message: `✅ VERIFIED CHANGES: Modified ${file_path} at ${timestamp}. Changes: ${what_you_changed}. Verification: ${verification_result}`,
-            reminder: "Perfect! You followed the complete read-modify-verify cycle."
+            reminder: "Perfect! You followed the complete read-modify-verify cycle. Remember: keep testing FAST - only use http_test for major changes."
           };
         }
         
