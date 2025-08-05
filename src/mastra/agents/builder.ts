@@ -95,7 +95,7 @@ export const builderAgent = new Agent({
       inputSchema: z.object({
         website_name: z.string().describe("The website to search for (e.g., 'YouTube', 'Netflix', 'Instagram')"),
         search_type: z.enum(["homepage", "interface", "design", "layout"]).describe("What aspect to search for"),
-        additional_terms: z.string().optional().describe("Additional search terms like '2024', 'current', 'mobile' etc."),
+        additional_terms: z.string().optional().describe("Additional search terms like '2025', 'current', 'mobile' etc."),
       }),
       execute: async ({ website_name, search_type, additional_terms }) => {
         try {
@@ -110,7 +110,7 @@ export const builderAgent = new Agent({
           }
 
           // Build search query
-          const searchQuery = `${website_name} ${search_type} ${additional_terms || 'current 2024'}`.trim();
+          const searchQuery = `${website_name} ${search_type} ${additional_terms || 'current 2025'}`.trim();
           
           // Make Google Custom Search API request
           const searchUrl = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${searchEngineId}&q=${encodeURIComponent(searchQuery)}&searchType=image&num=5`;
@@ -147,7 +147,7 @@ export const builderAgent = new Agent({
             totalResults: data.searchInformation?.totalResults || 0,
             results,
             message: `Found ${results.length} design references for ${website_name}. Use these to recreate the current design.`,
-            designInsights: `Based on search results for "${searchQuery}", I can see current ${website_name} design patterns. I'll now analyze these references and recreate the components with matching layouts, colors, and styling.`
+            designInsights: `Based on search results for "${searchQuery}", I can see current 2025 ${website_name} design patterns. I'll now analyze these references and recreate the components with matching layouts, colors, and styling.`
           };
 
         } catch (error) {
