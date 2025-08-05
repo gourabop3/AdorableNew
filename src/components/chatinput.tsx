@@ -165,7 +165,13 @@ export function PromptInputBasic({
           size="icon"
           disabled={isLoading || isSubmitting || isCompressing || (!input.trim() && !isGenerating)}
           className="shrink-0"
-          onClick={isGenerating ? stop : handleSubmitWithData}
+          onClick={() => {
+            if (isGenerating) {
+              stop();
+            } else {
+              handleSubmitWithData();
+            }
+          }}
           variant={isGenerating ? "destructive" : "default"}
           title={isGenerating ? "Stop AI generation" : "Send message"}
         >
