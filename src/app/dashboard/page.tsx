@@ -150,12 +150,10 @@ export default function DashboardPage() {
                 <SettingsIcon className="w-4 h-4 mr-2" />
                 Settings
               </Button>
-              <Link href="/chat">
-                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                   <BrainIcon className="w-4 h-4 mr-2" />
                   New Project
                 </Button>
-              </Link>
             </div>
           </div>
         </div>
@@ -293,12 +291,10 @@ export default function DashboardPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Link href="/chat">
-                  <Button className="w-full justify-start bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                <Button className="w-full justify-start bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                     <MessageSquareIcon className="w-4 h-4 mr-2" />
                     Start New Chat
                   </Button>
-                </Link>
                 <Button variant="outline" className="w-full justify-start">
                   <GitBranchIcon className="w-4 h-4 mr-2" />
                   Import from GitHub

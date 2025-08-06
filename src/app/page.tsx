@@ -151,10 +151,6 @@ function HomeContent() {
                 Dashboard
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-200 group-hover:w-full"></span>
               </Link>
-              <Link href="/chat" className="text-gray-600 hover:text-blue-600 transition-colors font-medium relative group">
-                AI Chat
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-200 group-hover:w-full"></span>
-              </Link>
               <Link href="/docs" className="text-gray-600 hover:text-blue-600 transition-colors font-medium relative group">
                 Documentation
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-200 group-hover:w-full"></span>
