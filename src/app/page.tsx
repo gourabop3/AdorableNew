@@ -151,15 +151,7 @@ function HomeContent() {
                   <span className="text-xl font-bold text-gray-900">Vibe</span>
                 </Link>
                 <nav className="flex space-x-8">
-                  <Link href="/" className="text-blue-600 font-medium">
-                    Home
-                  </Link>
-                  <Link href="/docs" className="text-gray-600 hover:text-gray-900 transition-colors">
-                    Documentation
-                  </Link>
-                  <Link href="/pricing" className="text-gray-600 hover:text-gray-900 transition-colors">
-                    Pricing
-                  </Link>
+                  {/* Navigation links removed - keeping only logo and user button */}
                 </nav>
                 <div className="flex items-center">
                   <UserButtonWithBilling />
