@@ -18,11 +18,8 @@ import {
   Rocket, 
   Shield, 
   Zap,
-  ChevronRight,
   ExternalLink,
   Github,
-  Calendar,
-  Clock,
   CheckCircle
 } from "lucide-react";
 
@@ -60,162 +57,7 @@ const techStack = {
   ]
 };
 
-const learningPath = [
-  {
-    day: 1,
-    title: "Project Setup & Next.js Fundamentals",
-    topics: ["Next.js 15 App Router", "TypeScript basics", "Project structure"],
-    duration: "4 hours",
-    difficulty: "Beginner"
-  },
-  {
-    day: 2,
-    title: "React 19 & Modern React Patterns",
-    topics: ["React 19 features", "Hooks", "Component patterns"],
-    duration: "5 hours",
-    difficulty: "Beginner"
-  },
-  {
-    day: 3,
-    title: "Styling with Tailwind CSS",
-    topics: ["Utility classes", "Responsive design", "Custom components"],
-    duration: "4 hours",
-    difficulty: "Beginner"
-  },
-  {
-    day: 4,
-    title: "UI Components with Radix UI",
-    topics: ["Accessibility", "Component primitives", "Custom styling"],
-    duration: "4 hours",
-    difficulty: "Intermediate"
-  },
-  {
-    day: 5,
-    title: "State Management & Data Flow",
-    topics: ["React state", "Context API", "Zustand"],
-    duration: "5 hours",
-    difficulty: "Intermediate"
-  },
-  {
-    day: 6,
-    title: "Database Design & Drizzle ORM",
-    topics: ["Database schema", "Drizzle ORM", "Type safety"],
-    duration: "6 hours",
-    difficulty: "Intermediate"
-  },
-  {
-    day: 7,
-    title: "Authentication & Authorization",
-    topics: ["User authentication", "Session management", "Security"],
-    duration: "5 hours",
-    difficulty: "Intermediate"
-  },
-  {
-    day: 8,
-    title: "API Routes & Backend Logic",
-    topics: ["Next.js API routes", "Request handling", "Error management"],
-    duration: "5 hours",
-    difficulty: "Intermediate"
-  },
-  {
-    day: 9,
-    title: "AI Integration & AI SDK",
-    topics: ["AI SDK setup", "Streaming responses", "AI agents"],
-    duration: "6 hours",
-    difficulty: "Advanced"
-  },
-  {
-    day: 10,
-    title: "Mastra AI Agent Framework",
-    topics: ["Agent creation", "Tool integration", "Memory management"],
-    duration: "6 hours",
-    difficulty: "Advanced"
-  },
-  {
-    day: 11,
-    title: "Real-time Features & WebSockets",
-    topics: ["Real-time updates", "WebSocket integration", "Live collaboration"],
-    duration: "5 hours",
-    difficulty: "Advanced"
-  },
-  {
-    day: 12,
-    title: "Caching & Performance",
-    topics: ["Redis caching", "Performance optimization", "CDN setup"],
-    duration: "4 hours",
-    difficulty: "Advanced"
-  },
-  {
-    day: 13,
-    title: "Testing & Quality Assurance",
-    topics: ["Unit testing", "Integration testing", "E2E testing"],
-    duration: "5 hours",
-    difficulty: "Intermediate"
-  },
-  {
-    day: 14,
-    title: "Error Handling & Monitoring",
-    topics: ["Error boundaries", "Logging", "Monitoring tools"],
-    duration: "4 hours",
-    difficulty: "Intermediate"
-  },
-  {
-    day: 15,
-    title: "Security Best Practices",
-    topics: ["Input validation", "XSS prevention", "CSRF protection"],
-    duration: "4 hours",
-    difficulty: "Advanced"
-  },
-  {
-    day: 16,
-    title: "Deployment & CI/CD",
-    topics: ["Vercel deployment", "Environment variables", "CI/CD pipeline"],
-    duration: "4 hours",
-    difficulty: "Intermediate"
-  },
-  {
-    day: 17,
-    title: "Performance Optimization",
-    topics: ["Code splitting", "Lazy loading", "Bundle optimization"],
-    duration: "5 hours",
-    difficulty: "Advanced"
-  },
-  {
-    day: 18,
-    title: "Accessibility & SEO",
-    topics: ["WCAG guidelines", "SEO optimization", "Meta tags"],
-    duration: "4 hours",
-    difficulty: "Intermediate"
-  },
-  {
-    day: 19,
-    title: "Mobile Optimization",
-    topics: ["Responsive design", "PWA features", "Mobile testing"],
-    duration: "4 hours",
-    difficulty: "Intermediate"
-  },
-  {
-    day: 20,
-    title: "Advanced AI Features",
-    topics: ["Custom AI models", "Fine-tuning", "AI workflows"],
-    duration: "6 hours",
-    difficulty: "Advanced"
-  },
-  {
-    day: 21,
-    title: "Scalability & Architecture",
-    topics: ["Microservices", "Load balancing", "Database scaling"],
-    duration: "5 hours",
-    difficulty: "Advanced"
-  },
-  {
-    day: 22,
-    title: "Project Completion & Deployment",
-    topics: ["Final testing", "Production deployment", "Documentation"],
-    duration: "4 hours",
-    difficulty: "Intermediate"
-  }
-];
+
 
 export default function DocsPage() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -253,7 +95,7 @@ export default function DocsPage() {
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
             Complete guide to building AI-powered applications with our modern tech stack. 
-            Master everything from Next.js to AI integration in 22 days.
+            Master everything from Next.js to AI integration.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
@@ -269,10 +111,9 @@ export default function DocsPage() {
 
         {/* Tabs Navigation */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-12">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="tech-stack">Tech Stack</TabsTrigger>
-            <TabsTrigger value="learning-path">Learning Path</TabsTrigger>
             <TabsTrigger value="api">API Reference</TabsTrigger>
           </TabsList>
 
@@ -380,63 +221,7 @@ export default function DocsPage() {
             </div>
           </TabsContent>
 
-          {/* Learning Path Tab */}
-          <TabsContent value="learning-path" className="space-y-8">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">22-Day Learning Path</h2>
-              <p className="text-gray-600 max-w-2xl mx-auto">
-                Master the complete tech stack with our structured learning path. 
-                Each day builds upon the previous, taking you from beginner to expert.
-              </p>
-            </div>
 
-            <div className="grid gap-6">
-              {learningPath.map((day) => (
-                <Card key={day.day} className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-4 mb-3">
-                          <div className="flex items-center justify-center w-12 h-12 bg-blue-100 text-blue-600 rounded-full font-bold">
-                            {day.day}
-                          </div>
-                          <div>
-                            <h3 className="text-xl font-semibold text-gray-900">{day.title}</h3>
-                            <div className="flex items-center space-x-4 mt-1">
-                              <div className="flex items-center text-sm text-gray-500">
-                                <Clock className="w-4 h-4 mr-1" />
-                                {day.duration}
-                              </div>
-                              <Badge 
-                                variant={day.difficulty === 'Beginner' ? 'default' : 
-                                        day.difficulty === 'Intermediate' ? 'secondary' : 'destructive'}
-                              >
-                                {day.difficulty}
-                              </Badge>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="ml-16">
-                          <ul className="space-y-1">
-                            {day.topics.map((topic, index) => (
-                              <li key={index} className="flex items-center text-gray-600">
-                                <ChevronRight className="w-4 h-4 mr-2 text-blue-500" />
-                                {topic}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Learn
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
 
           {/* API Reference Tab */}
           <TabsContent value="api" className="space-y-8">
