@@ -443,22 +443,23 @@ export function InteractiveDemo() {
 
   return (
     <div className="interactive-demo">
-      <div className="max-w-6xl mx-auto p-6">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
             See Vibe in Action
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Watch how AI transforms your ideas into fully functional applications in real-time
+          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+            Watch how AI transforms your ideas into fully functional applications in real-time. 
+            Experience the future of development.
           </p>
         </div>
 
         {/* Demo Controls */}
-        <div className="flex justify-center gap-4 mb-8">
+        <div className="flex justify-center gap-4 mb-10">
           <Button
             onClick={isPlaying ? pauseDemo : startDemo}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all duration-200"
             size="lg"
           >
             {isPlaying ? <PauseIcon className="w-5 h-5" /> : <PlayIcon className="w-5 h-5" />}
@@ -467,7 +468,7 @@ export function InteractiveDemo() {
           <Button
             onClick={resetDemo}
             variant="outline"
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 border-2 border-gray-300 hover:border-gray-400 transition-all duration-200"
             size="lg"
           >
             <RotateCcwIcon className="w-5 h-5" />
@@ -550,9 +551,6 @@ export function InteractiveDemo() {
             Try It Yourself
             <ArrowRightIcon className="w-5 h-5" />
           </Button>
-          <p className="text-sm text-gray-500 mt-2">
-            No credit card required • Start building in seconds
-          </p>
         </div>
       </div>
     </div>

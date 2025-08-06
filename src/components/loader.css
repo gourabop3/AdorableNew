@@ -67,11 +67,16 @@ iframe [id*="Header"] {
   display: none !important;
 }
 
-/* Hide any elements with Freestyle-related attributes ONLY inside iframe */
+/* Show Freestyle logo with placeholder name */
+iframe [data-freestyle-logo] {
+  display: block !important;
+  content: "/placeholder-freestyle-logo.svg" !important;
+}
+
+/* Hide other Freestyle branding elements ONLY inside iframe */
 iframe [data-freestyle],
 iframe [data-freestyle-server],
 iframe [data-freestyle-branding],
-iframe [data-freestyle-logo],
 iframe [data-freestyle-watermark] {
   display: none !important;
 }
@@ -98,9 +103,14 @@ iframe *:contains("freestyle") {
   display: none !important;
 }
 
-/* Hide any elements with specific Freestyle classes */
+/* Show Freestyle logo with placeholder name */
+iframe .freestyle-logo {
+  display: block !important;
+  content: "/placeholder-freestyle-logo.svg" !important;
+}
+
+/* Hide other Freestyle branding elements */
 iframe .freestyle-branding,
-iframe .freestyle-logo,
 iframe .freestyle-watermark,
 iframe .freestyle-footer,
 iframe .freestyle-header {
