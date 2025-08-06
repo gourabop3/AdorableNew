@@ -2,7 +2,7 @@
 export const STREAMING_CONFIG = {
   // Stream speed control (in milliseconds) - Controlled for readability
   STREAMING: {
-    CHUNK_DELAY: 15, // Readable streaming speed (not too fast)
+    CHUNK_DELAY: 50, // More natural streaming speed
     STEP_DELAY: 10, // Small delay between AI steps for readability
   },
   

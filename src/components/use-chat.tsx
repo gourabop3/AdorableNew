@@ -1,5 +1,5 @@
 import { useChat } from "@ai-sdk/react";
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 
 // For some reason, if the chat is resumed during a router page navigation, it
 // will try to resume the stream multiple times and result in some sort of leak
@@ -35,6 +35,13 @@ export function useChatSafe(
   };
 
   const chat = useChat(chatOptions);
+
+  // Add a sending flag to prevent double-sends
+  const [isSending, setIsSending] = useState(false);
+  // Add a ref to track the current stream
+  const streamRef = useRef(null);
+  // Add a Set to track message IDs
+  const messageIds = useRef(new Set());
 
   useEffect(() => {
     if (!runningChats.has(id) && resume) {
