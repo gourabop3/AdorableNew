@@ -551,9 +551,6 @@ export function InteractiveDemo() {
             Try It Yourself
             <ArrowRightIcon className="w-5 h-5" />
           </Button>
-          <p className="text-sm text-gray-500 mt-2">
-            No credit card required • Start building in seconds
-          </p>
         </div>
       </div>
     </div>

@@ -200,23 +200,7 @@ function HomeContent() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
-              <Button 
-                size="lg" 
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
-                onClick={() => router.push('/chat')}
-              >
-                <RocketIcon className="w-5 h-5 mr-2" />
-                Start Building Free
-              </Button>
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="border-2 border-gray-300 hover:border-blue-400 hover:bg-blue-50 px-8 py-4 text-lg font-semibold transition-all duration-300 group"
-                onClick={() => document.getElementById('demo-section')?.scrollIntoView({ behavior: 'smooth' })}
-              >
-                <PlayIcon className="w-5 h-5 mr-2 group-hover:text-blue-600 transition-colors" />
-                Watch Demo
-              </Button>
+              {/* Removed Start Building Free and Watch Demo buttons section as requested */}
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-3xl mx-auto">
@@ -357,38 +341,7 @@ function HomeContent() {
       <TestimonialsSection />
 
       {/* CTA Section */}
-      <div className="py-24 bg-gradient-to-r from-blue-600 to-purple-600 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 relative z-10">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Ready to Build Something Amazing?
-          </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of developers and creators who are building the future with AI-powered development.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                          <Button 
-                size="lg" 
-                className="bg-white text-blue-600 hover:bg-gray-50 px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300"
-                onClick={() => router.push('/chat')}
-              >
-                Start Building Now
-                <ArrowRightIcon className="w-5 h-5 ml-2" />
-              </Button>
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="border-2 border-white/30 text-white hover:bg-white/10 px-8 py-4 text-lg font-semibold transition-all duration-300"
-              onClick={() => router.push('/pricing')}
-            >
-              View Pricing
-            </Button>
-          </div>
-          <p className="text-sm text-blue-200 mt-4">
-            No credit card required • Start with 3 free apps
-          </p>
-        </div>
-      </div>
+      {/* Removed CTA section with 'Start Building Now' as requested */}
 
       {/* Professional Footer */}
       <ProfessionalFooter />
