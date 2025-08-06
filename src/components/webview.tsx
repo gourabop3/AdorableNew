@@ -43,10 +43,8 @@ export default function WebView(props: {
           '[id*="Freestyle"]',
           '[data-freestyle]',
           '[data-freestyle-branding]',
-          '[data-freestyle-logo]',
           '[data-freestyle-watermark]',
           '.freestyle-branding',
-          '.freestyle-logo',
           '.freestyle-watermark',
           '.freestyle-footer',
           '.freestyle-header',
@@ -56,10 +54,25 @@ export default function WebView(props: {
           'img[alt*="Freestyle"]'
         ];
         
+        // Hide other branding elements
         brandingSelectors.forEach(selector => {
           const elements = iframeDoc.querySelectorAll(selector);
           elements.forEach(el => {
             (el as HTMLElement).style.display = 'none';
+          });
+        });
+
+        // Show freestyle logo with placeholder name
+        const logoSelectors = [
+          '[data-freestyle-logo]',
+          '.freestyle-logo'
+        ];
+        
+        logoSelectors.forEach(selector => {
+          const elements = iframeDoc.querySelectorAll(selector);
+          elements.forEach(el => {
+            (el as HTMLElement).style.display = 'block';
+            (el as HTMLElement).textContent = '/placeholder-freestyle-logo.svg';
           });
         });
       }
