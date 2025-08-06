@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { UserButton as StackUserButton } from "@stackframe/stack";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "next-themes";
 import { 
   ZapIcon, 
   CrownIcon, 
@@ -42,11 +43,15 @@ export function UserButtonWithBilling() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [isInviting, setIsInviting] = useState(false);
   const [copiedInviteLink, setCopiedInviteLink] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
 
-  // Mock theme state - replace with actual theme context
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('light');
+  // Ensure component is mounted before accessing theme
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -332,7 +337,7 @@ export function UserButtonWithBilling() {
                         <button
                           onClick={() => handleThemeChange('light')}
                           className={`w-full text-left px-2 py-1.5 text-sm rounded flex items-center gap-2 ${
-                            theme === 'light' 
+                            mounted && theme === 'light' 
                               ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' 
                               : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
                           }`}
@@ -343,7 +348,7 @@ export function UserButtonWithBilling() {
                         <button
                           onClick={() => handleThemeChange('dark')}
                           className={`w-full text-left px-2 py-1.5 text-sm rounded flex items-center gap-2 ${
-                            theme === 'dark' 
+                            mounted && theme === 'dark' 
                               ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' 
                               : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
                           }`}
@@ -354,7 +359,7 @@ export function UserButtonWithBilling() {
                         <button
                           onClick={() => handleThemeChange('system')}
                           className={`w-full text-left px-2 py-1.5 text-sm rounded flex items-center gap-2 ${
-                            theme === 'system' 
+                            mounted && theme === 'system' 
                               ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' 
                               : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
                           }`}
