@@ -65,68 +65,34 @@ function HomeContent() {
   // Refresh billing data when window regains focus (user returns from app creation)
   useEffect(() => {
     const handleFocus = () => {
-      console.log('Window focused, refreshing billing data...');
       refetch();
     };
-
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
   }, [refetch]);
 
   const handleSubmit = async () => {
-    // Generate a unique request ID for tracking
     const requestId = crypto.randomUUID();
-    
-    // Prevent multiple rapid submissions
-    if (isLoading || checkingCredits) {
-      console.log(`[${requestId}] Submission blocked - already processing`);
-      return;
-    }
-    
-    // Additional check to prevent empty submissions
-    if (!prompt.trim()) {
-      console.log(`[${requestId}] Submission blocked - empty prompt`);
-      return;
-    }
-    
-    console.log(`[${requestId}] Starting app creation process...`);
-    if (isDevelopment) {
-      console.log(`[${requestId}] Development mode detected - double execution possible`);
-    }
-    
+    if (isLoading || checkingCredits) return;
+    if (!prompt.trim()) return;
     setIsLoading(true);
     setCheckingCredits(true);
-
     try {
-      // Check if user has enough credits before proceeding
       if (billing && billing.credits < 1) {
-        console.log(`[${requestId}] Insufficient credits, redirecting to upgrade`);
-        // Redirect to upgrade page with current parameters
         const params = new URLSearchParams();
         params.set('message', encodeURIComponent(prompt));
         params.set('template', framework);
         router.push(`/app/upgrade?${params.toString()}`);
         return;
       }
-
-      console.log(`[${requestId}] Proceeding with app creation...`);
-      // Proceed with app creation
-      router.push(
-        `/app/new?message=${encodeURIComponent(prompt)}&template=${framework}`
-      );
+      router.push(`/app/new?message=${encodeURIComponent(prompt)}&template=${framework}`);
     } catch (error) {
-      console.error(`[${requestId}] Error checking credits:`, error);
-      // Fallback to normal app creation
-      router.push(
-        `/app/new?message=${encodeURIComponent(prompt)}&template=${framework}`
-      );
+      router.push(`/app/new?message=${encodeURIComponent(prompt)}&template=${framework}`);
     } finally {
-      // Don't reset loading state immediately to prevent rapid re-submissions
       setTimeout(() => {
-        console.log(`[${requestId}] Resetting loading states...`);
         setIsLoading(false);
         setCheckingCredits(false);
-      }, 2000); // Increased from 1 second to 2 seconds for better protection
+      }, 2000);
     }
   };
 
@@ -141,7 +107,6 @@ function HomeContent() {
           showHomeButton={false}
         />
       )}
-
       {/* Header */}
       <header className="border-b bg-white/90 backdrop-blur-md sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -164,24 +129,18 @@ function HomeContent() {
           </div>
         </div>
       </header>
-
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
           <div className="text-center">
-            {/* Main Headline */}
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 leading-tight">
               Build AI Apps
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> Instantly</span>
             </h1>
-            
-            {/* Subheadline */}
             <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
               Generate, deploy, and manage full-stack applications with AI. 
               <span className="font-semibold text-gray-900"> No code required.</span>
             </p>
-
-            {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
               <Button 
                 size="lg" 
@@ -199,8 +158,6 @@ function HomeContent() {
                 Watch Demo
               </Button>
             </div>
-
-            {/* Trust Indicators */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-8 text-sm text-gray-500">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -218,7 +175,6 @@ function HomeContent() {
           </div>
         </div>
       </div>
-
           {/* App Generator Section */}
           <div id="app-generator" className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <div className="text-center mb-12">
