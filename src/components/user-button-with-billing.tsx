@@ -23,7 +23,6 @@ import {
   DownloadIcon,
   HelpCircleIcon,
   BellIcon,
-  KeyIcon,
   GlobeIcon,
   PaletteIcon,
   ChevronDownIcon,
@@ -132,7 +131,29 @@ export function UserButtonWithBilling() {
   };
 
   const handleNavigate = (path: string) => {
-    router.push(path);
+    // Handle different navigation paths
+    switch (path) {
+      case '/settings':
+        toast.info('Settings page coming soon!');
+        break;
+      case '/profile':
+        toast.info('Profile page coming soon!');
+        break;
+      case '/security':
+        toast.info('Security settings coming soon!');
+        break;
+      case '/help':
+        toast.info('Help & Support coming soon!');
+        break;
+      case '/docs':
+        router.push('/docs');
+        break;
+      case '/billing':
+        router.push('/billing');
+        break;
+      default:
+        router.push(path);
+    }
     setIsDropdownOpen(false);
   };
 
@@ -378,14 +399,6 @@ export function UserButtonWithBilling() {
                 >
                   <ShieldIcon className="h-4 w-4" />
                   Security
-                </button>
-
-                <button
-                  onClick={() => handleNavigate('/api-keys')}
-                  className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md flex items-center gap-2 transition-colors"
-                >
-                  <KeyIcon className="h-4 w-4" />
-                  API Keys
                 </button>
 
                 {/* Help & Support */}
