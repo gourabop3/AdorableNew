@@ -172,6 +172,99 @@ function HomeContent() {
           </div>
         </div>
       </div>
+      {/* App Generator Section */}
+      <div id="app-generator" className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            Describe Your App
+          </h2>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Tell us what you want to build, and our AI will create it for you in seconds.
+          </p>
+        </div>
+        <div className="w-full relative">
+          <div className="relative w-full max-w-full overflow-hidden">
+            <div className="w-full bg-white rounded-xl relative z-10 border border-gray-200 shadow-lg transition-all duration-200 hover:shadow-xl">
+              <PromptInput
+                leftSlot={
+                  <FrameworkSelector
+                    value={framework}
+                    onChange={setFramework}
+                  />
+                }
+                isLoading={isLoading || checkingCredits}
+                value={prompt}
+                onValueChange={setPrompt}
+                onSubmit={handleSubmit}
+                className="relative z-10 border-none bg-transparent shadow-none focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-200 transition-all duration-200"
+              >
+                <PromptInputTextareaWithTypingAnimation />
+                <PromptInputActions>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={handleSubmit}
+                    disabled={isLoading || checkingCredits || !prompt.trim()}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 font-semibold transition-all duration-200"
+                  >
+                    <span className="hidden sm:inline">
+                      {checkingCredits ? 'Checking Credits...' : 'Create App ⏎'}
+                    </span>
+                    <span className="sm:hidden">
+                      {checkingCredits ? 'Checking...' : 'Create ⏎'}
+                    </span>
+                  </Button>
+                </PromptInputActions>
+              </PromptInput>
+            </div>
+          </div>
+        </div>
+        <div className="mt-16">
+          <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">
+            Popular Templates
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {PROJECT_TEMPLATES.map((template) => (
+              <button
+                key={template.title}
+                className="w-full group"
+                onClick={() => {
+                  setPrompt(template.prompt);
+                  document.getElementById('app-generator')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                <div className="bg-white rounded-xl border border-gray-200 p-4 hover:border-blue-300 hover:shadow-lg transition-all duration-200 group-hover:scale-105">
+                  <div className="aspect-video relative rounded-lg overflow-hidden mb-3">
+                    <Image
+                      src={template.image}
+                      alt={template.title}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-200"
+                    />
+                  </div>
+                  <p className="font-semibold text-gray-900 text-sm text-left group-hover:text-blue-600 transition-colors">
+                    {template.title}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+      {/* Demo Section */}
+      <div id="demo-section" className="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              See It In Action
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Watch how our AI transforms your ideas into working applications in real-time.
+            </p>
+          </div>
+          <InteractiveDemo />
+        </div>
+      </div>
       {/* ...rest of the content remains unchanged... */}
     </main>
   );
