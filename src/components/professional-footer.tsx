@@ -11,7 +11,7 @@ import {
   TwitterIcon, 
   LinkedinIcon, 
   GithubIcon, 
-  DiscordIcon,
+  MessageSquareIcon,
   ArrowRightIcon,
   MailIcon,
   MapPinIcon,
@@ -57,7 +57,7 @@ const socialLinks = [
   { name: "Twitter", href: "https://twitter.com/vibe", icon: TwitterIcon },
   { name: "LinkedIn", href: "https://linkedin.com/company/vibe", icon: LinkedinIcon },
   { name: "GitHub", href: "https://github.com/vibe", icon: GithubIcon },
-  { name: "Discord", href: "https://discord.gg/vibe", icon: DiscordIcon }
+  { name: "Discord", href: "https://discord.gg/vibe", icon: MessageSquareIcon }
 ];
 
 export function ProfessionalFooter() {
