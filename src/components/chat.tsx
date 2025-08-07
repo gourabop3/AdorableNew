@@ -16,6 +16,10 @@ import { CompressedImage } from "@/lib/image-compression";
 import { useChatSafe } from "./use-chat";
 import { STREAMING_CONFIG } from "@/lib/streaming-config";
 
+// Import the new beautiful chat components
+import BeautifulChatLayout from "./beautiful-chat-layout";
+import { StreamingMessage, StreamingChatContainer, StreamingInput } from "./streaming-message";
+
 export default function Chat(props: {
   appId: string;
   initialMessages: UIMessage[];
@@ -75,22 +79,22 @@ export default function Chat(props: {
     // Send message immediately
     const messageId = crypto.randomUUID();
     
-            sendMessage(
+    sendMessage(
+      {
+        id: messageId,
+        parts: [
           {
-            id: messageId,
-            parts: [
-              {
-                type: "text",
-                text: messageText,
-              },
-            ],
+            type: "text",
+            text: messageText,
           },
-          {
-            headers: {
-              "Vibe-App-Id": props.appId,
-            },
-          }
-        ).catch((error) => {
+        ],
+      },
+      {
+        headers: {
+          "Vibe-App-Id": props.appId,
+        },
+      }
+    ).catch((error) => {
       console.error("Failed to send message:", error);
       // Reset sending state on error
       setIsSending(false);
@@ -99,30 +103,27 @@ export default function Chat(props: {
     // Reset sending state after a short delay
     setTimeout(() => {
       setIsSending(false);
-    }, STREAMING_CONFIG.DEBOUNCE.SENDING_RESET);
+    }, 1000);
   };
 
   const onSubmitWithImages = (text: string, images: CompressedImage[]) => {
-    const parts: Parameters<typeof sendMessage>[0]["parts"] = [];
-
-    if (text.trim()) {
-      parts.push({
-        type: "text",
-        text: text,
-      });
-    }
-
-    images.forEach((image) => {
-      parts.push({
-        type: "file",
-        mediaType: image.mimeType,
-        url: image.data,
-      });
-    });
-
+    if (!text.trim() && images.length === 0) return;
+    
+    const messageId = crypto.randomUUID();
+    
     sendMessage(
       {
-        parts,
+        id: messageId,
+        parts: [
+          {
+            type: "text",
+            text: text,
+          },
+          ...images.map((image) => ({
+            type: "image" as const,
+            image: image.data,
+          })),
+        ],
       },
       {
         headers: {
@@ -130,150 +131,52 @@ export default function Chat(props: {
         },
       }
     );
-    setInput("");
   };
 
   async function handleStop() {
     try {
-      await fetch("/api/chat/" + props.appId + "/stream", {
-        method: "DELETE",
-        headers: {
-          "Vibe-App-Id": props.appId,
-        },
+      const response = await fetch(`/api/chat/${props.appId}/stop`, {
+        method: "POST",
       });
+      
+      if (!response.ok) {
+        console.error("Failed to stop chat");
+      }
     } catch (error) {
-      console.error("Failed to stop stream:", error);
+      console.error("Error stopping chat:", error);
     }
   }
 
+  // Use the new beautiful chat layout
   return (
-    <div
-      className="flex flex-col h-full"
-      style={{ transform: "translateZ(0)" }}
-    >
-      {props.topBar}
-      <div
-        className="flex-1 overflow-y-auto flex flex-col space-y-6 min-h-0 transition-all duration-300"
-        style={{ overflowAnchor: "auto" }}
-      >
-        <ChatContainer autoScroll>
-          {messages.map((message: any) => (
-            <MessageBody key={message.id} message={message} />
-          ))}
-        </ChatContainer>
-      </div>
-      <div className="flex-shrink-0 p-3 transition-all bg-background md:backdrop-blur-sm">
-        <PromptInputBasic
-          stop={handleStop}
-          input={input}
-          onValueChange={(value) => {
-            setInput(value);
-          }}
-          onSubmit={onSubmit}
-          onSubmitWithImages={onSubmitWithImages}
-          isGenerating={props.isLoading || debouncedRunning}
-        />
-      </div>
-    </div>
+    <BeautifulChatLayout
+      appId={props.appId}
+      initialMessages={messages}
+      isLoading={props.isLoading}
+      running={debouncedRunning}
+      onStop={handleStop}
+      onSendMessage={(messageText) => {
+        setInput(messageText);
+        onSubmit();
+      }}
+      title="AI Assistant"
+      className="h-full"
+    />
   );
 }
 
+// Legacy message body component for backward compatibility
 const MessageBody = React.memo(function MessageBody({ message }: { message: any }) {
-  if (message.role === "user") {
-    return (
-      <div className="flex justify-end py-1 mb-4">
-        <div className="bg-neutral-200 dark:bg-neutral-700 rounded-xl px-4 py-1 max-w-[80%] ml-auto">
-          {message.parts.map((part: any, index: number) => {
-            if (part.type === "text") {
-              return <div key={index}>{part.text}</div>;
-            } else if (
-              part.type === "file" &&
-              part.mediaType?.startsWith("image/")
-            ) {
-              return (
-                <div key={index} className="mt-2">
-                  <Image
-                    src={part.url as string}
-                    alt="User uploaded image"
-                    width={200}
-                    height={200}
-                    className="max-w-full h-auto rounded"
-                    style={{ maxHeight: "200px" }}
-                  />
-                </div>
-              );
-            }
-            return <div key={index}>unexpected message</div>;
-          })}
-        </div>
-      </div>
-    );
-  }
+  const isUser = message.role === "user";
+  const isTool = message.role === "tool";
 
-  if (Array.isArray(message.parts) && message.parts.length !== 0) {
-    return (
-      <div className="mb-4">
-        {message.parts.map((part: any, index: any) => {
-          if (part.type === "text") {
-            return (
-              <div key={index} className="mb-4">
-                <Markdown className="prose prose-sm dark:prose-invert max-w-none">
-                  {part.text}
-                </Markdown>
-              </div>
-            );
-          }
-
-          if (part.type.startsWith("tool-")) {
-            // if (
-            //   part.toolInvocation.state === "result" &&
-            //   part.toolInvocation.result.isError
-            // ) {
-            //   return (
-            //     <div
-            //       key={index}
-            //       className="border-red-500 border text-sm text-red-800 rounded bg-red-100 px-2 py-1 mt-2 mb-4"
-            //     >
-            //       {part.toolInvocation.result?.content?.map(
-            //         (content: { type: "text"; text: string }, i: number) => (
-            //           <div key={i}>{content.text}</div>
-            //         )
-            //       )}
-            //       {/* Unexpectedly failed while using tool{" "}
-            //       {part.toolInvocation.toolName}. Please try again. again. */}
-            //     </div>
-            //   );
-            // }
-
-            // if (
-            //   message.parts!.length - 1 == index &&
-            //   part.toolInvocation.state !== "result"
-            // ) {
-            return <EnhancedToolMessage key={index} toolInvocation={part} />;
-            // } else {
-            //   return undefined;
-            // }
-          }
-        })}
-      </div>
-    );
-  }
-
-  if (message.parts) {
-    return (
-      <Markdown className="prose prose-sm dark:prose-invert max-w-none">
-        {message.parts
-          .map((part: any) =>
-            part.type === "text" ? part.text : "[something went wrong]"
-          )
-          .join("")}
-      </Markdown>
-    );
+  if (isTool) {
+    return <EnhancedToolMessage message={message} />;
   }
 
   return (
-    <div>
-      <p className="text-gray-500">Something went wrong</p>
+    <div className="prose prose-sm dark:prose-invert max-w-none">
+      <Markdown content={message.content} />
     </div>
   );
 });
