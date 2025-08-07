@@ -4,7 +4,7 @@ An open source AI app builder that creates full-stack applications with real-tim
 
 ## Features
 
-- **AI-Powered Development**: Uses Gemini 2.5 Pro for intelligent code generation
+- **AI-Powered Development**: Uses Gemini 2.0 Flash Exp for intelligent code generation
 - **Real-time Streaming**: Live updates as the AI builds your application
 - **Full-stack Applications**: Creates complete web applications with frontend and backend
 - **Website Cloning**: Clone any website with Google Custom Search integration

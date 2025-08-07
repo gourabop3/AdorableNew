@@ -63,7 +63,7 @@ Make it beginner-friendly but comprehensive for developers.
 `;
 
   const result = await generateObject({
-    model: google('gemini-1.5-pro'),
+    model: google('gemini-2.0-flash-exp'),
     prompt,
     schema: documentationSchema,
   });
@@ -111,7 +111,7 @@ Format as OpenAPI/Swagger compatible documentation.
 `;
 
   const result = await generateObject({
-    model: google('gemini-1.5-pro'),
+    model: google('gemini-2.0-flash-exp'),
     prompt,
     schema: z.object({
       endpoints: z.array(z.object({
@@ -176,7 +176,7 @@ Make it clear and helpful for other developers.
 `;
 
   const result = await generateObject({
-    model: google('gemini-1.5-pro'),
+    model: google('gemini-2.0-flash-exp'),
     prompt,
     schema: z.object({
       description: z.string(),
@@ -218,7 +218,7 @@ Return the complete code with JSDoc comments added.
 `;
 
   const result = await generateText({
-    model: google('gemini-1.5-pro'),
+    model: google('gemini-2.0-flash-exp'),
     prompt,
   });
 

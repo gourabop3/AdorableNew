@@ -76,7 +76,7 @@ Rate performance 0-100 and provide specific, actionable optimizations.
 `;
 
   const result = await generateObject({
-    model: google('gemini-1.5-pro'),
+    model: google('gemini-2.0-flash-exp'),
     prompt,
     schema: performanceAnalysisSchema,
   });
@@ -124,7 +124,7 @@ Return the optimized code and explain each optimization applied.
 `;
 
   const result = await generateObject({
-    model: google('gemini-1.5-pro'),
+    model: google('gemini-2.0-flash-exp'),
     prompt,
     schema: z.object({
       optimizedCode: z.string(),
@@ -186,7 +186,7 @@ Focus on actionable recommendations to reduce bundle size.
 `;
 
   const result = await generateObject({
-    model: google('gemini-1.5-pro'),
+    model: google('gemini-2.0-flash-exp'),
     prompt,
     schema: z.object({
       analysis: z.object({
@@ -246,7 +246,7 @@ priority === 'runtime' ? 'improving runtime performance' :
 `;
 
   const result = await generateObject({
-    model: google('gemini-1.5-pro'),
+    model: google('gemini-2.0-flash-exp'),
     prompt,
     schema: z.object({
       plan: z.array(z.object({

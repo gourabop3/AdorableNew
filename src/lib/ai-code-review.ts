@@ -45,7 +45,7 @@ Rate the code 0-10 and provide specific, actionable feedback with line numbers w
 `;
 
   const result = await generateObject({
-    model: google('gemini-1.5-pro'),
+    model: google('gemini-2.0-flash-exp'),
     prompt,
     schema: codeReviewSchema,
   });
@@ -83,7 +83,7 @@ Provide a security score (0-10) and detailed findings with specific fixes.
 `;
 
   const result = await generateObject({
-    model: google('gemini-1.5-pro'),
+    model: google('gemini-2.0-flash-exp'),
     prompt,
     schema: z.object({
       vulnerabilities: z.array(z.object({

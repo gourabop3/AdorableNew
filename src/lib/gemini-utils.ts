@@ -89,7 +89,7 @@ export async function testGeminiConnection(): Promise<{
       };
     }
 
-    const model = google("gemini-2.5-pro");
+    const model = google("gemini-2.0-flash-exp");
     
     const result = await generateText({
       model,

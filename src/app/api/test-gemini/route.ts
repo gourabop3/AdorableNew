@@ -21,7 +21,7 @@ export async function GET() {
     console.log(`✅ API key loaded: ${maskedKey}`);
     
     // Test Gemini model
-    const model = google("gemini-2.5-pro");
+    const model = google("gemini-2.0-flash-exp");
     
     const result = await generateText({
       model,
