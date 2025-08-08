@@ -4,6 +4,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { PromptInput, PromptInputActions } from "@/components/ui/prompt-input";
 import { FrameworkSelector } from "@/components/framework-selector";
+import { ModelSelector } from "@/components/model-selector";
+import { DEFAULT_MODEL } from "@/lib/models";
 import Image from "next/image";
 import LogoSvg from "@/logo.svg";
 import VibeLogo from "@/vibe-logo.svg";
@@ -29,6 +31,7 @@ interface UserData {
 function HomeContent() {
   const [prompt, setPrompt] = useState("");
   const [framework, setFramework] = useState("nextjs");
+  const [modelKey, setModelKey] = useState<string>(DEFAULT_MODEL);
   const [isLoading, setIsLoading] = useState(false);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [checkingCredits, setCheckingCredits] = useState(false);
@@ -111,9 +114,11 @@ function HomeContent() {
 
       console.log(`[${requestId}] Proceeding with app creation...`);
       // Proceed with app creation
-      router.push(
-        `/app/new?message=${encodeURIComponent(prompt)}&template=${framework}`
-      );
+      const params = new URLSearchParams();
+      params.set('message', encodeURIComponent(prompt));
+      params.set('template', framework);
+      if (modelKey) params.set('model', modelKey);
+      router.push(`/app/new?${params.toString()}`);
     } catch (error) {
       console.error(`[${requestId}] Error checking credits:`, error);
       // Fallback to normal app creation
@@ -171,10 +176,13 @@ function HomeContent() {
                   <div className="w-full bg-accent rounded-md relative z-10 border transition-colors">
                     <PromptInput
                       leftSlot={
-                        <FrameworkSelector
-                          value={framework}
-                          onChange={setFramework}
-                        />
+                        <div className="flex gap-2 items-center">
+                          <FrameworkSelector
+                            value={framework}
+                            onChange={setFramework}
+                          />
+                          <ModelSelector value={modelKey} onChange={setModelKey} />
+                        </div>
                       }
                       isLoading={isLoading || checkingCredits}
                       value={prompt}

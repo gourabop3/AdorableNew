@@ -2,7 +2,8 @@ import { getApp } from "@/actions/get-app";
 import { freestyle } from "@/lib/freestyle";
 import { getAppIdFromHeaders } from "@/lib/utils";
 import { MCPClient } from "@mastra/mcp";
-import { builderAgent } from "@/mastra/agents/builder";
+import { createBuilderAgent, memory } from "@/mastra/agents/builder";
+import { DEFAULT_MODEL } from "@/lib/models";
 import { UIMessage } from "ai";
 
 // "fix" mastra mcp bug
@@ -104,6 +105,10 @@ export async function sendMessage(
   });
 
   const toolsets = await mcp.getToolsets();
+
+  const selectedModel =
+    (await redisPublisher.get(`app:${appId}:model`)) || DEFAULT_MODEL;
+  const builderAgent = createBuilderAgent(selectedModel);
 
   await (
     await builderAgent.getMemory()

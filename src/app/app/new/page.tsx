@@ -56,6 +56,7 @@ export default async function NewAppRedirectPage({
 
   // Try billing-aware app creation first, fallback to basic creation
   let result;
+  const modelParam = Array.isArray(search.model) ? search.model[0] : (search.model as string | undefined);
   
   // Set a temporary key to prevent duplicates with better error handling
   try {
@@ -72,6 +73,13 @@ export default async function NewAppRedirectPage({
       initialMessage: message ? decodeURIComponent(message) : '',
       templateId: search.template as string,
     });
+    if (modelParam) {
+      try {
+        await redisPublisher.set(`app:${result.id}:model`, modelParam);
+      } catch (e) {
+        console.warn('Failed to save model selection in Redis', e);
+      }
+    }
     console.log(`✅ createAppWithBilling completed successfully:`, { id: result.id, billingMode: result.billingMode, warning: result.warning });
     
     // Store the successful app ID to prevent duplicates
@@ -116,6 +124,13 @@ export default async function NewAppRedirectPage({
       initialMessage: message ? decodeURIComponent(message) : '',
       templateId: search.template as string,
     });
+    if (modelParam) {
+      try {
+        await redisPublisher.set(`app:${result.id}:model`, modelParam);
+      } catch (e) {
+        console.warn('Failed to save model selection in Redis (fallback)', e);
+      }
+    }
     console.log(`✅ createApp fallback completed successfully:`, { id: result.id });
     
     // Store the successful app ID
