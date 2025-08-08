@@ -151,6 +151,7 @@ export async function sendMessage(
     maxRetries: 0,
     maxOutputTokens: 30000, // Increased to 30k to prevent AI shortcuts and ensure proper file operations
     toolsets,
+    toolChoice: "required",
     async onChunk() {
       if (Date.now() - lastKeepAlive > 5000) {
         lastKeepAlive = Date.now();

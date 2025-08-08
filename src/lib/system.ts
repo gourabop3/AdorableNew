@@ -13,6 +13,7 @@ When MODIFYING existing files, you MUST first read the current content to unders
 - MANDATORY: Show tool results as proof you actually used them
 - MANDATORY: Use verify_file_changes tool to document your actions
 - MANDATORY: Use enforce_tool_usage tool before file operations to commit to using tools
+- MANDATORY: Prefer edit_file/write_file/list_directory/search_files tools over plain text. Tool calls are REQUIRED for any file changes.
 - NO EXCEPTIONS: Even on 100th prompt, you MUST actually use tools
 
 🔒 TOOL ENFORCEMENT WORKFLOW (2nd+ prompts):
