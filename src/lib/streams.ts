@@ -62,31 +62,13 @@ export async function setStream(
 
   await redisPublisher.set(`app:${appId}:stream-state`, "running", { EX: 15 });
 
-  // Create a fast, responsive stream without delays
-  const fastStream = new ReadableStream({
-    async start(controller) {
-      const reader = responseBody.getReader();
-      const decoder = new TextDecoder();
-      
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          
-          // No delays for instant streaming
-          controller.enqueue(value);
-        }
-        controller.close();
-      } catch (error) {
-        controller.error(error);
-      }
-    }
-  });
+  // Use buffered response to smooth bursty chunks
+  const pacedStream = bufferedResponse(responseBody);
 
   const resumableStream = await streamContext.createNewResumableStream(
     appId,
     () => {
-      return fastStream.pipeThrough(
+      return pacedStream.pipeThrough(
         new TextDecoderStream()
       ) as ReadableStream<string>;
     }
