@@ -41,6 +41,7 @@ function CodeBlockCode({
   const { theme: browserTheme } = useTheme();
 
   const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const theme = browserTheme === "dark" ? "github-dark" : "github-light";
 
@@ -58,19 +59,43 @@ function CodeBlockCode({
   }, [code, language, theme]);
 
   const classNames = cn(
-    "w-full overflow-x-auto text-[13px] [&>pre]:px-4 [&>pre]:py-4",
+    "relative w-full overflow-x-auto text-[13px] [&>pre]:px-4 [&>pre]:py-4",
     className,
   );
 
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(code || "");
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+    } catch (e) {
+      console.error("Copy failed", e);
+    }
+  }
+
   // SSR fallback: render plain code if not hydrated yet
   return highlightedHtml ? (
-    <div
-      className={classNames}
-      dangerouslySetInnerHTML={{ __html: highlightedHtml }}
-      {...props}
-    />
+    <div className={classNames} {...props}>
+      <button
+        onClick={handleCopy}
+        className="absolute top-2 right-2 z-10 rounded border px-2 py-1 text-xs bg-white/70 dark:bg-black/40 hover:bg-white/90 dark:hover:bg-black/60 backdrop-blur-sm"
+        aria-label="Copy code"
+      >
+        {copied ? "Copied" : "Copy"}
+      </button>
+      <div
+        dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+      />
+    </div>
   ) : (
     <div className={classNames} {...props}>
+      <button
+        onClick={handleCopy}
+        className="absolute top-2 right-2 z-10 rounded border px-2 py-1 text-xs bg-white/70 dark:bg-black/40 hover:bg-white/90 dark:hover:bg-black/60 backdrop-blur-sm"
+        aria-label="Copy code"
+      >
+        {copied ? "Copied" : "Copy"}
+      </button>
       <pre>
         <code>{code}</code>
       </pre>
