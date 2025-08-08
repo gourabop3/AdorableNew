@@ -6,6 +6,7 @@ import { stackServerApp } from "@/auth/stack-auth";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
 import { cn } from "@/lib/utils";
+import { NavBar } from "@/components/nav-bar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -62,7 +63,10 @@ export default function RootLayout({
           <Toaster />
 
           <StackProvider app={stackServerApp}>
-            <StackTheme>{children}</StackTheme>
+            <StackTheme>
+              <NavBar />
+              {children}
+            </StackTheme>
           </StackProvider>
         </ThemeProvider>
       </body>

@@ -142,23 +142,7 @@ function HomeContent() {
             />
           )}
 
-          {/* Header */}
-          <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50 mb-8">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex justify-between items-center h-16">
-                <Link href="/" className="flex items-center space-x-2">
-                  <Image src={VibeLogo} alt="Vibe Logo" width={32} height={32} />
-                  <span className="text-xl font-bold text-gray-900">Vibe</span>
-                </Link>
-                <nav className="flex space-x-8">
-                  {/* Navigation links removed - keeping only logo and user button */}
-                </nav>
-                <div className="flex items-center">
-                  <UserButtonWithBilling />
-                </div>
-              </div>
-            </div>
-          </header>
+          {/* Global NavBar renders in layout */}
 
           <div>
             <div className="w-full max-w-lg px-4 sm:px-0 mx-auto flex flex-col items-center mt-16 sm:mt-24 md:mt-32 col-start-1 col-end-1 row-start-1 row-end-1 z-10">
