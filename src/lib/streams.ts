@@ -6,6 +6,7 @@ import { after } from "next/server";
 import { createResumableStreamContext } from "resumable-stream";
 import { redis, redisPublisher } from "./redis";
 import { STREAMING_CONFIG } from "./streaming-config";
+import { bufferedResponse } from "./buffered-response";
 
 const streamContext = createResumableStreamContext({
   waitUntil: after,
