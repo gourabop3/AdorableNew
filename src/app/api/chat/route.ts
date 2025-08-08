@@ -84,7 +84,8 @@ export async function POST(req: NextRequest) {
   const resumableStream = await sendMessage(
     appId,
     mcpEphemeralUrl,
-    messages.at(-1)!
+    messages.at(-1)!,
+    cacheKey
   );
 
   return resumableStream.response();
@@ -93,7 +94,8 @@ export async function POST(req: NextRequest) {
 export async function sendMessage(
   appId: string,
   mcpUrl: string,
-  message: UIMessage
+  message: UIMessage,
+  requestCacheKey: string
 ) {
   const mcp = new MCPClient({
     id: crypto.randomUUID(),
@@ -177,7 +179,7 @@ export async function sendMessage(
     onError: async (error) => {
       await mcp.disconnect();
       await redisPublisher.del(`app:${appId}:stream-state`);
-      await redisPublisher.del(cacheKey); // Clean up request deduplication
+      await redisPublisher.del(requestCacheKey); // Clean up request deduplication
       
       // Enhanced error handling for quota issues
       if (error?.message?.includes('quota') || error?.message?.includes('429') || error?.statusCode === 429) {
@@ -223,7 +225,7 @@ export async function sendMessage(
     },
     onFinish: async () => {
       await redisPublisher.del(`app:${appId}:stream-state`);
-      await redisPublisher.del(cacheKey); // Clean up request deduplication
+      await redisPublisher.del(requestCacheKey); // Clean up request deduplication
       
       // Save any unsaved AI messages when stream finishes normally
       const messages = messageList.drainUnsavedMessages();
