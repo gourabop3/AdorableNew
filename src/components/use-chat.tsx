@@ -7,7 +7,15 @@ import { useEffect, useState, useRef } from "react";
 // think it's related to react rendering components twice in dev mode so
 // discover bugs. This utility prevents a stream from being resumed multiple
 // times.
-const runningChats = new Set<string>();
+// Use an HMR-stable global to track running chats so hot-reloads/edits don't reset it
+const getRunningChats = (): Set<string> => {
+  const globalObj = typeof window !== "undefined" ? (window as any) : (globalThis as any);
+  if (!globalObj.__vibeRunningChats) {
+    globalObj.__vibeRunningChats = new Set<string>();
+  }
+  return globalObj.__vibeRunningChats as Set<string>;
+};
+const runningChats = getRunningChats();
 export function useChatSafe(
   options: Parameters<typeof useChat>[0] & { id: string; onFinish?: () => void }
 ) {
